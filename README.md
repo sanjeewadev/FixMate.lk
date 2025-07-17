@@ -28,13 +28,11 @@ service-management-system/.
 ## Frontend Setup - React
 
 cd client
-npm install
-npm start
+npm run dev
 
 ## Backend Setup - Nodejs + Express
 
 cd server
-npm install
 node index.js
 
 ## Rules
