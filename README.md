@@ -19,11 +19,11 @@ It’s a full-stack web application built with **React (Frontend)** and **Node.j
 
 ## Project Structure
 
-service-management-system/
-• client/ # React Frontend
-• server/ # Node.js + Express Backend
-• README.md # This file
-• .gitignore
+service-management-system/.
+• client/ # React Frontend.
+• server/ # Node.js + Express Backend.
+• README.md # This file.
+• .gitignore.
 
 ## Frontend Setup - React
 
