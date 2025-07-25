@@ -41,40 +41,9 @@ const registerCoordinator = async (req, res) => {
   }
 };
 
-// Coordinator login
-const loginCoordinator = async (req, res) => {
-  try {
-    const { email, password } = req.body;
 
-    const coordinator = await Coordinator.findOne({ email });
-    if (!coordinator) {
-      return res.status(404).json({ message: "Coordinator not found" });
-    }
-
-    const isMatch = await bcrypt.compare(password, coordinator.password_hash);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
-
-    res.status(200).json({
-      message: "Login successful",
-      coordinator: {
-        id: coordinator._id,
-        full_name: coordinator.full_name,
-        email: coordinator.email,
-        phone_number: coordinator.phone_number,
-        address: coordinator.address,
-        district: coordinator.district,
-        profile_image_url: coordinator.profile_image_url
-      }
-    });
-  } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ message: "Server error during login." });
-  }
-};
 
 module.exports = {
   registerCoordinator,
-  loginCoordinator
+
 };

@@ -45,45 +45,9 @@ const registerTechnician = async (req, res) => {
   }
 };
 
-// Technician login
-const loginTechnician = async (req, res) => {
-  try {
-    const { email, password } = req.body;
 
-    const technician = await Technician.findOne({ email });
-    if (!technician) {
-      return res.status(404).json({ message: "Technician not found" });
-    }
-
-    const isMatch = await bcrypt.compare(password, technician.password_hash);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
-
-    res.status(200).json({
-      message: "Login successful",
-      technician: {
-        id: technician._id,
-        full_name: technician.full_name,
-        email: technician.email,
-        phone_number: technician.phone_number,
-        address: technician.address,
-        district: technician.district,
-        profile_image_url: technician.profile_image_url,
-        specialization: technician.specialization,
-        experience_years: technician.experience_years,
-        availability_status: technician.availability_status,
-        rating: technician.rating,
-        assigned_jobs_count: technician.assigned_jobs_count
-      }
-    });
-  } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ message: "Server error during login." });
-  }
-};
 
 module.exports = {
   registerTechnician,
-  loginTechnician
+  
 };

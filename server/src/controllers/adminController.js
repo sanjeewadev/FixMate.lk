@@ -34,45 +34,9 @@ const registerAdmin = async (req, res) => {
   }
 };
 
-const loginAdmin = async (req, res) => {
-  try {
-    const { email, password } = req.body;
 
-    // 🔐 Check if it's the Super Admin
-    if (
-      email === process.env.SUPER_ADMIN_EMAIL &&
-      password === process.env.SUPER_ADMIN_PASSWORD
-    ) {
-      // You can generate a token here if needed
-      return res.status(200).json({
-        message: "Super Admin login successful",
-        role: "super_admin"
-      });
-    }
-
-    // 🔐 Check in DB for normal admin
-    const admin = await Admin.findOne({ email });
-    if (!admin) return res.status(404).json({ message: "Admin not found" });
-
-    const isMatch = await bcrypt.compare(password, admin.password_hash);
-    if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
-
-    res.status(200).json({
-      message: "Admin login successful",
-      admin: {
-        id: admin._id,
-        full_name: admin.full_name,
-        email: admin.email
-      }
-    });
-
-  } catch (error) {
-    console.error("Admin login error:", error);
-    res.status(500).json({ message: "Server error during admin login." });
-  }
-};
 
 module.exports = {
   registerAdmin,
-  loginAdmin
+
 };
