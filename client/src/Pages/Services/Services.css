@@ -1,0 +1,25 @@
+/* Wrapper for entire service section */
+.services-wrapper {
+  padding: 40px 20px;
+  background-color: #f8f8f8;
+}
+
+/* Section title */
+.services-title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+/* Container holding all service cards */
+.services-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Style for each individual service card (handled inside ServiceCard component) */
