@@ -10,14 +10,22 @@ const registerCoordinator = async (req, res) => {
       password,
       phone_number,
       address,
-      district,
-      profile_image_url
+      district
     } = req.body;
+
+    // Check if image was uploaded
+    const profile_image_url = req.file ? req.file.path : "";
+
+    if (!full_name || !email || !password || !address || !district || !profile_image_url) {
+      return res.status(400).json({ message: "Please fill in all required fields including profile image." });
+    }
 
     const existing = await Coordinator.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: "Coordinator already exists with this email." });
     }
+
+    
 
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(password, salt);
@@ -41,40 +49,6 @@ const registerCoordinator = async (req, res) => {
   }
 };
 
-// Coordinator login
-const loginCoordinator = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    const coordinator = await Coordinator.findOne({ email });
-    if (!coordinator) {
-      return res.status(404).json({ message: "Coordinator not found" });
-    }
-
-    const isMatch = await bcrypt.compare(password, coordinator.password_hash);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
-
-    res.status(200).json({
-      message: "Login successful",
-      coordinator: {
-        id: coordinator._id,
-        full_name: coordinator.full_name,
-        email: coordinator.email,
-        phone_number: coordinator.phone_number,
-        address: coordinator.address,
-        district: coordinator.district,
-        profile_image_url: coordinator.profile_image_url
-      }
-    });
-  } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ message: "Server error during login." });
-  }
-};
-
 module.exports = {
   registerCoordinator,
-  loginCoordinator
 };

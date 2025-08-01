@@ -1,9 +1,11 @@
 const express = require("express");
-const { registerCoordinator, loginCoordinator } = require("../controllers/coordinatorController");
+const { registerCoordinator } = require("../controllers/coordinatorController");
+const getUploadMiddleware = require("../middleware/cloudinaryUploader.js");
 
 const router = express.Router();
 
-router.post("/register", registerCoordinator);
-router.post("/login", loginCoordinator);
+const upload = getUploadMiddleware("coordinators"); // 📁 uploads to fixmate/coordinators
+
+router.post("/register", upload.single("profile_image"), registerCoordinator);
 
 module.exports = router;
