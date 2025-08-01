@@ -45,7 +45,7 @@ function UserRegister({ onSwitch }) {
       formPayload.append('district', formData.district);
       if (imageFile) formPayload.append('profileImage', imageFile);
 
-      const response = await fetch('http://localhost:5000/api/customers/register', {
+      const response = await fetch('http://localhost:7001/api/customer/register', {
         method: 'POST',
         body: formPayload,
       });
