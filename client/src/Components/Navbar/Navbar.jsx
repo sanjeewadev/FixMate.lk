@@ -1,25 +1,15 @@
 import React, { useEffect, useState } from "react";
-import MenuLink from "../MenuLink/MenuLink.jsx";
 import "./navbar.css";
 import Login from "../Login/Login.jsx";
 import UserRegister from "../UserRegister/UserRegister.jsx";
-import TechnicianRegister from "../TechnicianRegister/TechnicianRegister.jsx";
 
 function Navbar() {
   const [modalType, setModalType] = useState(null);
-
-  // const [authentication, setauthentication] = useState(false);
 
   const openLogin = () => setModalType("login");
   const openRegister = () => setModalType("register");
   const closeModal = () => setModalType(null);
 
-  // useEffect(() => {
-  //   //inside
-  //   if (localStorage.getItem("auth")) {
-  //     setauthentication(true);
-  //   }
-  // }, []);
 
   return (
     <>
@@ -29,10 +19,6 @@ function Navbar() {
         </a>
 
         <div className="navbar-menu">
-          <MenuLink linkName="AdminDashboard" url="/AdminDashboard" />
-          <MenuLink linkName="Home" url="/" />
-          <MenuLink linkName="AboutUs" url="/AboutUs" />
-          <MenuLink linkName="Services" url="/Services" />
           <div className="navbar-buttons">
             <button className="login-button" onClick={openLogin}>
               Login/Signup
@@ -40,7 +26,7 @@ function Navbar() {
 
             <button
               className="tasker-button"
-              onClick={() => setModalType("technician")}
+              onClick={() => setModalType("")}
             >
               Become a Tasker
             </button>
