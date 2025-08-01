@@ -1,5 +1,5 @@
 const express = require("express");
-const { registerCoordinator } = require("../controllers/coordinatorController");
+const { registerCoordinator, loginCoordinator } = require("../controllers/coordinatorController");
 const getUploadMiddleware = require("../middleware/cloudinaryUploader.js");
 
 const router = express.Router();

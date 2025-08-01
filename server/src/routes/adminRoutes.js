@@ -1,3 +1,4 @@
+const { loginAdmin } = require("../controllers/adminController");
 const express = require("express");
 const { registerAdmin } = require("../controllers/adminController");
 const getUploadMiddleware = require("../middleware/cloudinaryUploader.js");

@@ -1,5 +1,6 @@
 const express = require("express");
-const { registerTechnician } = require("../controllers/technicianController");
+const { registerTechnician, loginTechnician } = require("../controllers/technicianController");
+
 
 // ✅ Import the middleware
 const getUploadMiddleware = require("../middleware/cloudinaryUploader"); // Adjust path if needed
