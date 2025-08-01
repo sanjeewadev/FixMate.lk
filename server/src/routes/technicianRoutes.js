@@ -10,5 +10,6 @@ const router = express.Router();
 const upload = getUploadMiddleware("technicians"); // 📁 uploads to fixmate/technicians
 
 router.post("/register", upload.single("profile_image"), registerTechnician);
+router.post("/login", loginTechnician);
 
 module.exports = router;

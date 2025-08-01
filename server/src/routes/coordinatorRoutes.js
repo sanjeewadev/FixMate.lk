@@ -7,5 +7,6 @@ const router = express.Router();
 const upload = getUploadMiddleware("coordinators"); // 📁 uploads to fixmate/coordinators
 
 router.post("/register", upload.single("profile_image"), registerCoordinator);
+router.post("/login", loginCoordinator);
 
 module.exports = router;
