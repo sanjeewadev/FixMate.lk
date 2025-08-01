@@ -1,11 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const { register } = require("../controllers/customerController");
+const { register, login } = require("../controllers/customerController");
 const getUploadMiddleware = require("../middleware/cloudinaryUploader");
 
-const upload = getUploadMiddleware("customers"); // 📁 uploads to fixmate/customers
+const upload = getUploadMiddleware("customers"); // folder: fixmate/customers
 
-router.post("/register", upload.single("profile_image"), register);
+router.post("/register", upload.single("profileImage"), register);
 router.post("/login", login);
 
 module.exports = router;

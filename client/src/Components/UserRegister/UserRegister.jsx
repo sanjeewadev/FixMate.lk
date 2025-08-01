@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { SHA256 } from 'crypto-js';
 import './UserRegister.css';
 
 function UserRegister({ onSwitch }) {
@@ -28,20 +27,41 @@ function UserRegister({ onSwitch }) {
     setImagePreview(URL.createObjectURL(file));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
-    const hashedPassword = SHA256(formData.password).toString();
-    const userData = {
-      ...formData,
-      password: hashedPassword,
-      profileImage: imageFile ? imageFile.name : null,
-    };
-    console.log("Register:", userData);
-    alert("Registration successful!");
+
+    try {
+      const formPayload = new FormData();
+      formPayload.append('full_name', formData.fullName);
+      formPayload.append('email', formData.email);
+      formPayload.append('password', formData.password); // raw password
+      formPayload.append('phone_number', formData.phone);
+      formPayload.append('address', formData.address);
+      formPayload.append('district', formData.district);
+      if (imageFile) formPayload.append('profileImage', imageFile);
+
+      const response = await fetch('http://localhost:5000/api/customers/register', {
+        method: 'POST',
+        body: formPayload,
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("Registration successful!");
+        onSwitch(); // Switch to login screen
+      } else {
+        alert(result.message || "Registration failed.");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      alert("An error occurred during registration.");
+    }
   };
 
   return (
@@ -114,6 +134,7 @@ function UserRegister({ onSwitch }) {
           className="profile-preview"
           src={imagePreview}
           alt="Profile Preview"
+          style={{ maxWidth: '150px', marginTop: '10px' }}
         />
       )}
       <button type="submit">Register</button>
