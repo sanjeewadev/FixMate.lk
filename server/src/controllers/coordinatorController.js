@@ -10,14 +10,22 @@ const registerCoordinator = async (req, res) => {
       password,
       phone_number,
       address,
-      district,
-      profile_image_url
+      district
     } = req.body;
+
+    // Check if image was uploaded
+    const profile_image_url = req.file ? req.file.path : "";
+
+    if (!full_name || !email || !password || !address || !district || !profile_image_url) {
+      return res.status(400).json({ message: "Please fill in all required fields including profile image." });
+    }
 
     const existing = await Coordinator.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: "Coordinator already exists with this email." });
     }
+
+    
 
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(password, salt);
@@ -41,9 +49,6 @@ const registerCoordinator = async (req, res) => {
   }
 };
 
-
-
 module.exports = {
   registerCoordinator,
-
 };

@@ -1,9 +1,13 @@
 const express = require("express");
 const { registerAdmin } = require("../controllers/adminController");
+const getUploadMiddleware = require("../middleware/cloudinaryUploader.js");
+
 
 const router = express.Router();
 
-router.post("/register", registerAdmin);
+const upload = getUploadMiddleware("admins"); // 📁 uploads to fixmate/admins
+
+router.post("/register", upload.single("profile_image"), registerAdmin);
 
 
 module.exports = router;

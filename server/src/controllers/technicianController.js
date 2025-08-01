@@ -11,19 +11,24 @@ const registerTechnician = async (req, res) => {
       phone_number,
       address,
       district,
-      profile_image_url,
       specialization,
       experience_years
     } = req.body;
 
+    // Check if technician already exists
     const existing = await Technician.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: "Technician already exists with this email." });
     }
 
+    // Optional: Handle uploaded image
+    const profile_image_url = req.file ? req.file.path : ""; // or null if you prefer
+
+    // Hash password
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(password, salt);
 
+    // Create new technician
     const newTechnician = new Technician({
       full_name,
       email,
@@ -31,12 +36,13 @@ const registerTechnician = async (req, res) => {
       phone_number,
       address,
       district,
-      profile_image_url,
       specialization,
-      experience_years
+      experience_years,
+      profile_image_url
     });
 
     await newTechnician.save();
+
     res.status(201).json({ message: "Technician registered successfully." });
 
   } catch (error) {
@@ -45,9 +51,6 @@ const registerTechnician = async (req, res) => {
   }
 };
 
-
-
 module.exports = {
   registerTechnician,
-  
 };
