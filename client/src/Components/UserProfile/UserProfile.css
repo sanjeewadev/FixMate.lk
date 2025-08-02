@@ -1,0 +1,234 @@
+
+.user-profile {
+  max-width: 700px;
+  margin: 50px auto;
+  background: #ffffff;
+  padding: 40px 50px;
+  border-radius: 14px;
+  box-shadow: 0 10px 25px rgb(0 0 0 / 0.1);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #222;
+}
+
+.profile-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.profile-img {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #0077ff;
+  box-shadow: 0 4px 15px rgb(0 119 255 / 0.3);
+  transition: transform 0.25s ease;
+}
+
+.profile-img:hover {
+  transform: scale(1.05);
+}
+
+.change-pic {
+  margin-top: 12px;
+  background: none;
+  border: none;
+  color: #0077ff;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.change-pic:hover {
+  color: #005fcc;
+}
+
+.profile-header h3 {
+  margin-top: 18px;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.profile-header p {
+  margin-top: 6px;
+  font-size: 15px;
+  color: #555;
+  font-style: italic;
+}
+
+/* View mode user info cards */
+
+.user-info-view {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 25px 40px;
+  margin-bottom: 35px;
+}
+
+.user-info-view .info-item {
+  background: #f9fafc;
+  border-radius: 10px;
+  padding: 20px 25px;
+  box-shadow: 0 3px 12px rgb(0 0 0 / 0.05);
+}
+
+.user-info-view .info-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.user-info-view .info-value {
+  font-size: 17px;
+  font-weight: 500;
+  color: #222;
+  word-wrap: break-word;
+}
+
+/* Edit mode form */
+
+.profile-form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 22px 36px;
+  margin-bottom: 35px;
+}
+
+.profile-form input {
+  font-size: 15px;
+  padding: 14px 18px;
+  border-radius: 10px;
+  border: 1.6px solid #ccc;
+  transition: border-color 0.3s ease;
+}
+
+.profile-form input:focus {
+  outline: none;
+  border-color: #0077ff;
+  box-shadow: 0 0 8px rgb(0 119 255 / 0.4);
+}
+
+.profile-form input[readonly] {
+  background-color: #eee;
+  cursor: not-allowed;
+}
+
+.btn-save {
+  grid-column: span 2;
+  background-color: #0077ff;
+  border: none;
+  color: white;
+  padding: 15px 0;
+  font-weight: 700;
+  font-size: 17px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 6px 18px rgb(0 119 255 / 0.35);
+}
+
+.btn-save:hover {
+  background-color: #005fcc;
+  box-shadow: 0 8px 20px rgb(0 95 204 / 0.6);
+}
+
+/* Change Password Section */
+
+.password-section {
+  border-top: 1px solid #eee;
+  padding-top: 30px;
+}
+
+.password-section h3 {
+  font-weight: 700;
+  font-size: 21px;
+  margin-bottom: 28px;
+  color: #0077ff;
+}
+
+.password-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 34px;
+}
+
+.password-form input {
+  font-size: 15px;
+  padding: 13px 16px;
+  border-radius: 10px;
+  border: 1.6px solid #ccc;
+  transition: border-color 0.3s ease;
+}
+
+.password-form input:focus {
+  outline: none;
+  border-color: #0077ff;
+  box-shadow: 0 0 8px rgb(0 119 255 / 0.4);
+}
+
+.btn-password {
+  grid-column: span 2;
+  background-color: #0077ff;
+  border: none;
+  color: white;
+  padding: 15px 0;
+  font-weight: 700;
+  font-size: 17px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 6px 18px rgb(0 119 255 / 0.35);
+}
+
+.btn-password:hover {
+  background-color: #005fcc;
+  box-shadow: 0 8px 20px rgb(0 95 204 / 0.6);
+}
+
+/* Edit Toggle Button */
+
+.edit-toggle-btn {
+  display: block;
+  margin: 0 auto 40px;
+  background: none;
+  border: 2px solid #0077ff;
+  color: #0077ff;
+  padding: 10px 36px;
+  font-weight: 600;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.edit-toggle-btn:hover {
+  background-color: #0077ff;
+  color: white;
+}
+
+/* Responsive for Mobile */
+
+@media (max-width: 600px) {
+  .user-profile {
+    padding: 30px 20px;
+  }
+  .user-info-view,
+  .profile-form,
+  .password-form {
+    grid-template-columns: 1fr;
+  }
+  .btn-save,
+  .btn-password {
+    grid-column: span 1;
+  }
+  .profile-img {
+    width: 110px;
+    height: 110px;
+  }
+}

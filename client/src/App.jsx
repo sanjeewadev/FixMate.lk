@@ -13,9 +13,6 @@ function App() {
         <Navbar />
         </div>
         <Slideshow />
-        <BodyContent >
-         <p>Hiiiii</p>
-        </BodyContent> 
         
       </div>
   );

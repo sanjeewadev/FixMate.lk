@@ -1,17 +1,14 @@
 import React from 'react'
 import Navbar from '../../Components/Navbar/Navbar'
 import DashboardLayout from '../../Components/DashboardLayout/DashboardLayout.jsx'
-import './AdminDashboard.css'
 
-
-function AdminDashboard() {
+function StaffDashboard() {
   return (
-    <div>
+     <div>
    <Navbar />
-    <DashboardLayout role="admin" />
+    <DashboardLayout role="staff" />
    </div>
-
   )
 }
 
-export default AdminDashboard
+export default StaffDashboard

@@ -29,6 +29,9 @@ function Navbar() {
         </a>
 
         <div className="navbar-menu">
+          <MenuLink linkName="StaffDashboard" url="/StaffDashboard" />
+          <MenuLink linkName="TechnicianDashboard" url="/TechnicianDashboard" />
+          <MenuLink linkName="UserDashboard" url="/UserDashboard" />
           <MenuLink linkName="AdminDashboard" url="/AdminDashboard" />
           <MenuLink linkName="Home" url="/" />
           <MenuLink linkName="AboutUs" url="/AboutUs" />

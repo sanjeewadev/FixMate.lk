@@ -12,14 +12,13 @@ function UserRegister({ onSwitch }) {
     address: '',
     district: '',
   });
+
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
   const handleChange = (e) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleImageChange = (e) => {
@@ -30,23 +29,38 @@ function UserRegister({ onSwitch }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Password confirmation validation
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
+
+    // Phone number validation: +94 followed by 9 digits
+    const phoneRegex = /^\+94\d{9}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      alert("Invalid phone number format. Use +94XXXXXXXXX");
+      return;
+    }
+
+    // Hash the password
     const hashedPassword = SHA256(formData.password).toString();
+
     const userData = {
       ...formData,
       password: hashedPassword,
       profileImage: imageFile ? imageFile.name : null,
     };
+
     console.log("Register:", userData);
     alert("Registration successful!");
+    // TODO: send userData to backend using axios or fetch
   };
 
   return (
     <form className="userregister-form" onSubmit={handleSubmit}>
       <h2>Register</h2>
+
       <input
         type="text"
         name="fullName"
@@ -82,7 +96,7 @@ function UserRegister({ onSwitch }) {
       <input
         type="tel"
         name="phone"
-        placeholder="Phone Number"
+        placeholder="Phone Number (e.g., +94771234567)"
         value={formData.phone}
         onChange={handleChange}
         required
@@ -110,13 +124,11 @@ function UserRegister({ onSwitch }) {
         required
       />
       {imagePreview && (
-        <img
-          className="profile-preview"
-          src={imagePreview}
-          alt="Profile Preview"
-        />
+        <img className="profile-preview" src={imagePreview} alt="Profile Preview" />
       )}
+
       <button type="submit">Register</button>
+
       <p className="userregister-link">
         Already have an account?{' '}
         <span
