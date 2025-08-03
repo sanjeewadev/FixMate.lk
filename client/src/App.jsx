@@ -1,19 +1,13 @@
-import React from 'react'
-import Navbar from "./Components/Navbar/Navbar.jsx"
+import React from 'react';
 import './App.css'
-import Slideshow from './Components/Slideshow/Slideshow.jsx';
-import BodyContent from './Components/BodyContent/BodyContent.jsx';
+import Home from './Pages/Home/Home.jsx';
 
 
 function App() {
   
   return (    
       <div>
-        <div>
-        <Navbar />
-        </div>
-        <Slideshow />
-        
+        <Home />     
       </div>
   );
 }

@@ -1,0 +1,53 @@
+.services-section-wrapper {
+  padding: 40px;
+  text-align: center;
+}
+
+.services-section-title {
+  font-size: 36px;
+  font-weight: bold;
+  color: #111;
+  text-align: left;
+  padding-left: 80px;
+}
+
+.services-section-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); 
+  gap: 30px;
+  justify-items: center;
+}
+
+.services-section-card {
+  width: 160px;
+  text-align: center;
+}
+
+.services-section-card img {
+  width: 100%;
+  height: 160px;
+  border-radius: 10px;
+  object-fit: cover;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.services-section-card p {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.services-section-link {
+  padding-right: 80px;
+  text-align: right;
+}
+
+.services-section-link a {
+  color: #007BFF;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.services-section-link a:hover {
+  text-decoration: underline;
+}

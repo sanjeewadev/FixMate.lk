@@ -1,0 +1,67 @@
+.fixmate-about-wrapper {
+  padding: 50px 20px;
+  background-color: #ffffff;
+  font-family: "Segoe UI", sans-serif;
+  text-align: center;
+}
+
+.fixmate-about-heading {
+  font-size: 36px;
+  font-weight: bold;
+  color: #111;
+  padding-left: 1020px;
+}
+
+.fixmate-about-container {
+  background-color: #e7f2ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 650px;
+  padding: 40px;
+  border-radius: 20px;
+  flex-wrap: wrap;
+  /* max-width: 1000px; */
+  margin: 0 auto;
+  text-align: left;
+  width: 1200px;
+}
+
+.fixmate-about-image img {
+  max-width: 250px;
+  height: auto;
+}
+
+.fixmate-about-text {
+  max-width: 550px;
+}
+
+.fixmate-about-text h3 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: #000;
+}
+
+.fixmate-about-text p {
+  font-size: 15px;
+  color: #333;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.fixmate-about-btn {
+  background-color: #1d74f5;
+  color: #fff;
+  padding: 10px 22px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  width: auto;
+}
+
+.fixmate-about-btn:hover {
+  background-color: #125bcf;
+}
