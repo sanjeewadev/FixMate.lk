@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { SHA256 } from 'crypto-js';
 import './UserRegister.css';
 
 function UserRegister({ onSwitch }) {
@@ -12,13 +11,14 @@ function UserRegister({ onSwitch }) {
     address: '',
     district: '',
   });
-
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
   };
 
   const handleImageChange = (e) => {
@@ -27,40 +27,46 @@ function UserRegister({ onSwitch }) {
     setImagePreview(URL.createObjectURL(file));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Password confirmation validation
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
 
-    // Phone number validation: +94 followed by 9 digits
-    const phoneRegex = /^\+94\d{9}$/;
-    if (!phoneRegex.test(formData.phone)) {
-      alert("Invalid phone number format. Use +94XXXXXXXXX");
-      return;
+    try {
+      const formPayload = new FormData();
+      formPayload.append('full_name', formData.fullName);
+      formPayload.append('email', formData.email);
+      formPayload.append('password', formData.password); // raw password
+      formPayload.append('phone_number', formData.phone);
+      formPayload.append('address', formData.address);
+      formPayload.append('district', formData.district);
+      if (imageFile) formPayload.append('profileImage', imageFile);
+
+      const response = await fetch('http://localhost:7001/api/customer/register', {
+        method: 'POST',
+        body: formPayload,
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("Registration successful!");
+        onSwitch(); // Switch to login screen
+      } else {
+        alert(result.message || "Registration failed.");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      alert("An error occurred during registration.");
     }
-
-    // Hash the password
-    const hashedPassword = SHA256(formData.password).toString();
-
-    const userData = {
-      ...formData,
-      password: hashedPassword,
-      profileImage: imageFile ? imageFile.name : null,
-    };
-
-    console.log("Register:", userData);
-    alert("Registration successful!");
-    // TODO: send userData to backend using axios or fetch
   };
 
   return (
     <form className="userregister-form" onSubmit={handleSubmit}>
       <h2>Register</h2>
-
       <input
         type="text"
         name="fullName"
@@ -96,7 +102,7 @@ function UserRegister({ onSwitch }) {
       <input
         type="tel"
         name="phone"
-        placeholder="Phone Number (e.g., +94771234567)"
+        placeholder="Phone Number"
         value={formData.phone}
         onChange={handleChange}
         required
@@ -124,11 +130,14 @@ function UserRegister({ onSwitch }) {
         required
       />
       {imagePreview && (
-        <img className="profile-preview" src={imagePreview} alt="Profile Preview" />
+        <img
+          className="profile-preview"
+          src={imagePreview}
+          alt="Profile Preview"
+          style={{ maxWidth: '150px', marginTop: '10px' }}
+        />
       )}
-
       <button type="submit">Register</button>
-
       <p className="userregister-link">
         Already have an account?{' '}
         <span

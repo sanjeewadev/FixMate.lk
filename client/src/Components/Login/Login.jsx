@@ -5,11 +5,37 @@ function Login({ onSwitch }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Login:", { email, password });
-    alert("Login Successful!");
-  };
+  
+
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const response = await fetch("http://localhost:7001/api/customer/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        password,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      console.log("Login Success:", data);
+      alert("Login Successful!");
+      // You can redirect or store token here if needed
+    } else {
+      alert(data.message || "Login failed");
+    }
+  } catch (error) {
+    console.error("Login Error:", error);
+    alert("Something went wrong. Please try again.");
+  }
+};
 
   return (
     <form onSubmit={handleSubmit}>
