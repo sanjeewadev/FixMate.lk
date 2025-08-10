@@ -1,0 +1,58 @@
+.userregister-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 2px 0;
+}
+
+.userregister-form h2 {
+  margin-bottom: 10px;
+}
+
+.userregister-form input[type="text"],
+.userregister-form input[type="email"],
+.userregister-form input[type="password"],
+.userregister-form input[type="tel"],
+.userregister-form input[type="file"] {
+  padding: 8px 10px;
+  margin: 4px 0;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 15px;
+  background: #f9f9f9;
+}
+
+.userregister-form button[type="submit"] {
+  width: 90%;
+  max-width: 260px;
+  padding: 10px 0;
+  background: #0070f3;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.2s;
+}
+.userregister-form button[type="submit"]:hover {
+  background: #005bb5;
+}
+
+.profile-preview {
+  width: 100px;
+  height: 100px;
+  margin-top: 10px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+
+.userregister-link {
+  margin-top: 15px;
+  text-align: center;
+  font-size: 15px;
+}
