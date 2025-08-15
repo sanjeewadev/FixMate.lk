@@ -9,6 +9,9 @@ const coordinatorRoutes = require("./routes/coordinatorRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const technicianRoutes = require("./routes/technicianRoutes");
 
+// NEW: services routes
+const serviceRoutes = require("./routes/serviceRoutes");
+
 // Connect to MongoDB
 dbConnect();
 
@@ -16,7 +19,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: "http://localhost:5173", // your React dev server
+  origin: "http://localhost:5173",
   credentials: true
 }));
 app.use(express.json());
@@ -26,6 +29,9 @@ app.use("/api/customer", customerRoutes);
 app.use("/api/coordinator", coordinatorRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/technician", technicianRoutes);
+
+// NEW: mount services API
+app.use("/api", serviceRoutes);
 
 // Start server
 const PORT = process.env.PORT || 7002;
