@@ -1,5 +1,6 @@
 const Technician = require("../models/Technician");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 // Register new technician
 const registerTechnician = async (req, res) => {
@@ -66,8 +67,16 @@ const loginTechnician = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    // Generate JWT token
+            const token = jwt.sign(
+              { id: technician._id, role: "technician" },
+              process.env.JWT_SECRET,
+              { expiresIn: "2d" }
+            );
+
     res.status(200).json({
       message: "Login successful",
+      token,
       technician: {
         id: technician._id,
         full_name: technician.full_name,
