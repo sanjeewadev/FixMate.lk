@@ -1,48 +1,110 @@
 .service-card {
-  width: 260px;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 10px;
+  width: 100%;
+  max-width: 320px;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-  text-align: center;
-  padding-bottom: 20px;
-  transition: transform 0.3s ease;
+  box-shadow: 0 8px24px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  margin: 0 auto;
 }
 
 .service-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-8px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
 }
 
-.service-card img {
+.service-image {
   width: 100%;
-  height: 180px;
+  height: 200px;
   object-fit: cover;
-  border-bottom: 1px solid #eee;
+  display: block;
+  border-bottom: 2px solid rgba(74, 144, 226, 0.1);
 }
 
-.service-card h3 {
-  margin: 15px 0 10px;
-  font-size: 1.2rem;
-  color: #222;
+.service-content {
+  padding: 1.5rem;
 }
 
-.service-card p {
-  margin: 0 15px 15px;
+.service-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 0.75rem;
+  line-height: 1.4;
+}
+
+.service-description {
   font-size: 0.95rem;
-  color: #666;
+  color: #4a4a4a;
+  margin: 0 0 1.5rem;
+  line-height: 1.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
-.service-card button {
-  background-color: #007bff;
+.book-button {
+  background: #4a90e2;
   color: white;
-  padding: 8px 16px;
+  padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 20px;
+  border-radius: 25px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background 0.3s ease, transform 0.2s ease;
+  width: 100%;
+  text-align: center;
 }
 
-.service-card button:hover {
-  background-color: #0056b3;
+.book-button:hover {
+  background: #357abd;
+  transform: scale(1.05);
+}
+
+.book-button:active {
+  transform: scale(0.95);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .service-card {
+    max-width: 280px;
+  }
+
+  .service-title {
+    font-size: 1.3rem;
+  }
+
+  .service-image {
+    height: 180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .service-card {
+    max-width: 100%;
+  }
+
+  .service-image {
+    height: 160px;
+  }
+
+  .service-content {
+    padding: 1rem;
+  }
+
+  .service-title {
+    font-size: 1.2rem;
+  }
+
+  .service-description {
+    font-size: 0.9rem;
+  }
 }
