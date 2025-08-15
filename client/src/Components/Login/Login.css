@@ -2,3 +2,40 @@
     margin-top: 15px;
     text-align: center;
  }
+
+/* 1) reserve space so layout doesn't jump */
+.msg-slot {
+margin-top: 7px;
+  min-height: 40px;       /* adjust height to how tall your message usually is */
+  display: block;
+  position:relative;
+  text-align: center;
+}
+
+/* 2) base message styles (you can keep your earlier ones) */
+.msg {
+   padding: 9px 12px;
+   border-radius: 8px;
+   font-size: 14px;
+   border: 1px solid transparent;
+  /* no animation on the base class */
+}
+
+/* colors */
+.msg.success { background: #e6ffed; border-color: #34c759; color: #0b5d1e; }
+.msg.error   { background: #ffe9e9; border-color: #ff3b30; color: #6b1111; }
+.msg.info    { background: #eef6ff; border-color: #0a84ff; color: #094a93; }
+
+/* 3) play a tiny fade/slide-in when the message appears */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.msg.show {
+  animation: fadeSlideIn 220ms ease;
+}
+
+/* 4) respect reduced-motion users */
+@media (prefers-reduced-motion: reduce) {
+  .msg.show { animation: ease-in-out; }
+}
