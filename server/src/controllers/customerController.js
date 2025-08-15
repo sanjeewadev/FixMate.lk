@@ -48,7 +48,7 @@ const register = async (req, res) => {
     res.status(201).json({ message: "Customer registered successfully." });
 
   } catch (err) {
-    console.error("❌ Register error:", err);
+    console.error("Register error:", err);
     res.status(500).json({ message: "Server error during registration." });
   }
 };
@@ -60,17 +60,17 @@ const login = async (req, res) => {
 
     // Check required fields
     if (!email || !password) {
-      return res.status(400).json({ message: "Please provide email and password." });
+      return res.status(400).json({ message: "Please check your inputs 😣" });
     }
 
     const customer = await Customer.findOne({ email });
     if (!customer) {
-      return res.status(401).json({ message: "Invalid email or password." });
+      return res.status(401).json({ message: "Email or password is incorrect 😣" });
     }
 
     const isMatch = await bcrypt.compare(password, customer.password_hash);
     if (!isMatch) {
-      return res.status(401).json({ message: "Invalid email or password." });
+      return res.status(401).json({ message: "Email or password is incorrect 😣" });
     }
 
     // Generate JWT token
