@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../../Components/Navbar/Navbar.jsx";
 import ServiceCard from "../../Components/ServiceCard/ServiceCard.jsx";
-import Loader from "../../Components/Loaders/Loader.jsx"; // Import Loader
+import Loader from "../../Components/Loaders/SLoader.jsx"; // Import Loader
 import "./Services.css";
 
 const Services = () => {

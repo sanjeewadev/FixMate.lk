@@ -1,8 +1,8 @@
 // Loader.jsx
 import React from "react";
-import "./Loader.css"; // paste your loader CSS here
+import "./SLoader.css"; // paste your loader CSS here
 
-const Loader = () => {
+const SLoader = () => {
   return (
     <div class="loader">
       <div>
@@ -42,4 +42,4 @@ const Loader = () => {
   );
 };
 
-export default Loader;
+export default SLoader;
