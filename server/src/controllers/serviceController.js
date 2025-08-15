@@ -57,6 +57,11 @@ exports.createService = async (req, res) => {
       );
     }
 
+     const createdBy =
+      req.user?.role === 'admin' && mongoose.isValidObjectId(req.user.id)
+        ? req.user.id
+        : null; // super_admin => null
+
     const doc = await Service.create({
       name,
       slug: finalSlug,
@@ -65,12 +70,12 @@ exports.createService = async (req, res) => {
       category,
       serviceImages,
       isActive,
-      createdBy: req.user?.id || null
+      createdBy // null for super_admin (env), ObjectId for normal admin
     });
 
-    res.status(201).json(doc);
+    return res.status(201).json(doc);
   } catch (e) {
-    res.status(400).json({ message: e.message });
+    return res.status(400).json({ message: e.message });
   }
 };
 

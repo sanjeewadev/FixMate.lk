@@ -21,7 +21,7 @@ router.get('/services/:slug', getServiceBySlug);
 router.post(
   '/admin/services',
   verifyToken,
-  requireRole('admin'),
+  requireRole('admin','super_admin'),
   uploadServiceImages.array('images', 6), // allow up to 6 images; adjust as needed
   createService
 );
@@ -29,7 +29,7 @@ router.post(
 router.put(
   '/admin/services/:id',
   verifyToken,
-  requireRole('admin'),
+  requireRole('admin','super_admin'),
   uploadServiceImages.array('images', 6),
   updateService
 );
@@ -37,7 +37,7 @@ router.put(
 router.delete(
   '/admin/services/:id',
   verifyToken,
-  requireRole('admin'),
+  requireRole('admin','super_admin'),
   deleteService
 );
 
