@@ -2,8 +2,6 @@ const Admin = require("../models/Admin");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-
-
 // ✅ Admin Registration Function
 const registerAdmin = async (req, res) => {
   try {
@@ -48,22 +46,41 @@ const loginAdmin = async (req, res) => {
       email === process.env.SUPER_ADMIN_EMAIL &&
       password === process.env.SUPER_ADMIN_PASSWORD
     ) {
-      // You can generate a token here if needed
+      // Generate Super Admin JWT
+      const token = jwt.sign(
+        { id: "super_admin_id", role: "super_admin" }, // id can be static or from DB if stored
+        process.env.JWT_SECRET,
+        { expiresIn: "2d" }
+      );
+
       return res.status(200).json({
         message: "Super Admin login successful",
-        role: "super_admin"
+        role: "super_admin",
+        token
       });
     }
 
-    // 🔐 Check in DB for normal admin
+    // 🔍 Check DB for normal admin
     const admin = await Admin.findOne({ email });
-    if (!admin) return res.status(404).json({ message: "Admin not found" });
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
 
     const isMatch = await bcrypt.compare(password, admin.password_hash);
-    if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // Generate JWT token for normal admin
+    const token = jwt.sign(
+      { id: admin._id, role: "admin" },
+      process.env.JWT_SECRET,
+      { expiresIn: "2d" }
+    );
 
     res.status(200).json({
       message: "Admin login successful",
+      token,
       admin: {
         id: admin._id,
         full_name: admin.full_name,
@@ -76,6 +93,7 @@ const loginAdmin = async (req, res) => {
     res.status(500).json({ message: "Server error during admin login." });
   }
 };
+
 
 module.exports = {
   registerAdmin,

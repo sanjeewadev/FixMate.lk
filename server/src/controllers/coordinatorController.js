@@ -1,5 +1,6 @@
 const Coordinator = require("../models/Coordinator");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 // Register a new coordinator
 const registerCoordinator = async (req, res) => {
@@ -63,8 +64,16 @@ const loginCoordinator = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    // Generate JWT token
+        const token = jwt.sign(
+          { id: coordinator._id, role: "coordinator" },
+          process.env.JWT_SECRET,
+          { expiresIn: "2d" }
+        );
+
     res.status(200).json({
       message: "Login successful",
+      token,
       coordinator: {
         id: coordinator._id,
         full_name: coordinator.full_name,
