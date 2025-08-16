@@ -9,6 +9,7 @@ import UserDashboard from './Pages/UserDashboard/UserDashboard.jsx'
 import TechnicianDashboard from './Pages/TechnicianDashboard/TechnicianDashboard.jsx'
 import StaffDashboard from './Pages/StaffDashboard/StaffDashboard.jsx'
 import UserProfile from './Components/UserProfile/UserProfile.jsx';
+import BookService from "./Pages/BookService/BookService.jsx";
 
 import {
   createBrowserRouter,
@@ -51,6 +52,7 @@ const router = createBrowserRouter([
     path: "/StaffDashboard",
     element: <StaffDashboard />,
   },
+    { path: "/book", element: <BookService /> }, 
 ]);
 createRoot(document.getElementById('root')).render(
   <StrictMode>
