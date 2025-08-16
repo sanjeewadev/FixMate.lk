@@ -1,3 +1,64 @@
-.body {
-    height: auto;
+:root {
+  --primary: #1d74f5;
+  --primary-dark: #125bcf;
+  --bg-light: #f9fbff;
+  --text-dark: #111;
+  --text-light: #444;
+  --radius: 14px;
+  --shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", "Poppins", sans-serif;
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+  scroll-behavior: smooth;
+}
+
+section {
+  padding: 80px 20px; /* Adjusted to ensure consistency with other components */
+  position: relative;
+}
+
+h2 {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 25px;
+  color: var(--text-dark);
+}
+
+p {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text-light);
+}
+
+/* Additions for consistency */
+a, button {
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--primary);
+  transition: color 0.3s ease;
+}
+
+a:hover, button:hover {
+  color: var(--primary-dark);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  section {
+    padding: 60px 15px; /* Reduced padding for mobile */
+  }
+
+  h2 {
+    font-size: 28px; /* Slightly smaller for mobile */
+  }
+
+  p {
+    font-size: 15px; /* Slightly smaller for mobile */
+  }
 }

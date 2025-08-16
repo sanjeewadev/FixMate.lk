@@ -1,17 +1,28 @@
 .navbar-links {
   position: fixed;
   top: 0;
-  left: 0;
-  width: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 95%;
   height: 74px;
-  background-color: #fff;
-  border-bottom: 1px solid #eaecef;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 32px;
-
   z-index: 1000;
+
+  background: transparent;
+  transition: all 0.4s ease;
+}
+
+/* When scrolled */
+.navbar-links.scrolled {
+  background: #ffffffee; /* slightly transparent white */
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  top: 15px; /* moves down slightly */
+  width: 90%;
+  backdrop-filter: blur(10px); /* glass effect */
 }
 
 .navbar-menu {
@@ -40,66 +51,32 @@
   gap: 10px;
 }
 
-.login-button {
-  height: 50px;
-  width: 100%;
-  font-size: small;
+.login-button,
+.tasker-button {
+  height: 42px;
+  padding: 0 18px;
+  font-size: 14px;
   font-weight: 600;
-   border-radius: 500px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.login-button {
+  background: transparent;
+  border: 1px solid #0070f3;
+  color: #0070f3;
+}
+.login-button:hover {
+  background: #0070f3;
+  color: #fff;
 }
 
 .tasker-button {
-  height: 50px;
-  width: 100%;
-  font-size: small;
-  font-weight: 600;
-  border-radius: 500px;
-}
-
-.login-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-/* Modal box */
-.login-modal {
-  background-color: #fff;
-  padding: 30px;
-  border-radius: 12px;
-  position: relative;
-  width: 350px;
-  max-width: 90%;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-}
-
-/* Close button */
-.close-btn {
-  position: absolute;
-  top: 10px;
-  right: 14px;
-  font-size: 28px;
-  background: #f2f2f2;
-  border: none;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #333;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-.close-btn:hover {
   background: #0070f3;
   color: #fff;
+}
+.tasker-button:hover {
+  background: #005ac1;
 }
