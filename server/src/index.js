@@ -11,6 +11,11 @@ const technicianRoutes = require("./routes/technicianRoutes");
 
 // NEW: services routes
 const serviceRoutes = require("./routes/serviceRoutes");
+const bookingRoutes = require("./routes/bookingRoutes");
+const technicianJobRoutes = require('./routes/technicianJobRoutes');
+const ratingRoutes = require('./routes/ratingRoutes');
+const chatRoutes = require('./routes/chatRoutes');
+const complaintRoutes = require('./routes/complaintRoutes');
 
 // Connect to MongoDB
 dbConnect();
@@ -32,6 +37,11 @@ app.use("/api/technician", technicianRoutes);
 
 // NEW: mount services API
 app.use("/api", serviceRoutes);
+app.use("/api", bookingRoutes);
+app.use('/api', technicianJobRoutes);
+app.use('/api', ratingRoutes);
+app.use('/api', chatRoutes);
+app.use('/api', complaintRoutes);
 
 // Start server
 const PORT = process.env.PORT || 7002;
