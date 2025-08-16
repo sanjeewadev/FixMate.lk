@@ -55,6 +55,18 @@ function Login({ onSwitch }) {
     }
   };
 
+    // optional: clear message when typing again
+  const onChangeEmail = (e) => { setEmail(e.target.value); if (msg) setMsg({text: <div className="wave-container">
+    <p className="wave-text">
+        <span>T</span><span>y</span><span>p</span><span>i</span><span>n</span><span>g</span><span>.</span><span>.</span><span>.</span>
+    </p>
+  </div>}); };
+  const onChangePassword = (e) => { setPassword(e.target.value); if (msg) setMsg({text: <div className="wave-container">
+    <p className="wave-text">
+        <span>T</span><span>y</span><span>p</span><span>i</span><span>n</span><span>g</span><span>.</span><span>.</span><span>.</span>
+    </p>
+  </div>}); };
+
   return (
     <>
       <h2 className="login-title">Login</h2>
@@ -64,7 +76,7 @@ function Login({ onSwitch }) {
           type="email"
           placeholder="Email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={onChangeEmail}
           required
         />
 
@@ -72,7 +84,7 @@ function Login({ onSwitch }) {
           type="password"
           placeholder="Password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={onChangePassword}
           required
         />
 
