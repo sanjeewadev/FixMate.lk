@@ -98,8 +98,120 @@ const loginTechnician = async (req, res) => {
   }
 };
 
-module.exports = {
-  registerTechnician,
-  loginTechnician
+// GET /api/technician/me
+const getMyProfile = async (req, res) => {
+  try {
+    if (req.user?.role !== "technician") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    const me = await Technician.findById(req.user.id).select("-password_hash");
+    if (!me) return res.status(404).json({ message: "Technician not found" });
+    res.json(me);
+  } catch (e) {
+    console.error("Tech get profile error:", e);
+    res.status(500).json({ message: "Server error" });
+  }
 };
 
+// PATCH /api/technician/me
+// body: { full_name?, phone_number?, address?, district?, specialization?, experience_years?, availability_status? }
+const updateMyProfile = async (req, res) => {
+  try {
+    if (req.user?.role !== "technician") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const allowed = [
+      "full_name",
+      "phone_number",
+      "address",
+      "district",
+      "specialization",
+      "experience_years",
+      "availability_status"
+    ];
+    const updates = {};
+    allowed.forEach((k) => {
+      if (req.body[k] !== undefined) updates[k] = req.body[k];
+    });
+
+    // Optional: prevent email change by tech (safer). If you want to allow it, add 'email' to allowed and also check uniqueness.
+    if (req.body.email !== undefined) {
+      return res.status(400).json({ message: "Email cannot be changed here" });
+    }
+
+    const out = await Technician.findByIdAndUpdate(
+      req.user.id,
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).select("-password_hash");
+
+    if (!out) return res.status(404).json({ message: "Technician not found" });
+    res.json({ message: "Profile updated", technician: out });
+  } catch (e) {
+    console.error("Tech update profile error:", e);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// PATCH /api/technician/me/password
+// body: { currentPassword, newPassword }
+const changeMyPassword = async (req, res) => {
+  try {
+    if (req.user?.role !== "technician") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    const { currentPassword, newPassword } = req.body || {};
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: "currentPassword and newPassword are required" });
+    }
+
+    const me = await Technician.findById(req.user.id);
+    if (!me) return res.status(404).json({ message: "Technician not found" });
+
+    const ok = await bcrypt.compare(currentPassword, me.password_hash);
+    if (!ok) return res.status(400).json({ message: "Current password is incorrect" });
+
+    me.password_hash = await bcrypt.hash(newPassword, 10);
+    await me.save();
+
+    res.json({ message: "Password changed successfully" });
+  } catch (e) {
+    console.error("Tech change password error:", e);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// POST /api/technician/me/avatar  (form-data key: profile_image)
+// uses your Cloudinary uploader
+const changeMyProfileImage = async (req, res) => {
+  try {
+    if (req.user?.role !== "technician") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    const profile_image_url = req.file ? req.file.path : null;
+    if (!profile_image_url) {
+      return res.status(400).json({ message: "No image uploaded" });
+    }
+    const out = await Technician.findByIdAndUpdate(
+      req.user.id,
+      { profile_image_url },
+      { new: true }
+    ).select("-password_hash");
+
+    if (!out) return res.status(404).json({ message: "Technician not found" });
+    res.json({ message: "Profile image updated", technician: out });
+  } catch (e) {
+    console.error("Tech change avatar error:", e);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+module.exports = {
+  registerTechnician,
+  loginTechnician,
+  getMyProfile,
+  updateMyProfile,
+  changeMyPassword,
+  changeMyProfileImage
+};

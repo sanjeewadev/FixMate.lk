@@ -1,16 +1,40 @@
 const express = require("express");
-const { registerTechnician, loginTechnician } = require("../controllers/technicianController");
+const {
+  registerTechnician,
+  loginTechnician,
+  getMyProfile,
+  updateMyProfile,
+  changeMyPassword,
+  changeMyProfileImage
+} = require("../controllers/technicianController");
 
-
-// ✅ Import the middleware
-const getUploadMiddleware = require("../middleware/cloudinaryUploader"); // Adjust path if needed
+// ✅ Middlewares
+const verifyToken = require("../middleware/verifyToken");
+const requireRole = require("../middleware/requireRole");
+const getUploadMiddleware = require("../middleware/cloudinaryUploader");
 
 const router = express.Router();
 
-// ✅ Set up upload middleware for technicians
-const upload = getUploadMiddleware("technicians"); // 📁 uploads to fixmate/technicians
+// ✅ Upload middleware for technicians
+// Profile images go under: fixmate/technicians
+const upload = getUploadMiddleware("technicians");
 
+// Auth
 router.post("/register", upload.single("profile_image"), registerTechnician);
 router.post("/login", loginTechnician);
+
+// Technician self-account routes
+router.get("/me", verifyToken, requireRole("technician"), getMyProfile);
+router.patch("/me", verifyToken, requireRole("technician"), updateMyProfile);
+router.patch("/me/password", verifyToken, requireRole("technician"), changeMyPassword);
+
+// Change profile picture
+router.post(
+  "/me/avatar",
+  verifyToken,
+  requireRole("technician"),
+  upload.single("profile_image"),
+  changeMyProfileImage
+);
 
 module.exports = router;
