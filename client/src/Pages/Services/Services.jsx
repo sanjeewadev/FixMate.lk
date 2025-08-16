@@ -49,17 +49,18 @@ const Services = () => {
             </div>
 
             {error && <p className="services-error">{error}</p>}
-
-            <div className={`services-container ${services.length <= 3 ? "few-items" : ""}`}>
-              {services.map((service) => (
-                <ServiceCard
-                  key={service.slug}
-                  title={service.name}
-                  description={service.description}
-                  image={service.serviceImages?.[0]?.url || "/assets/default.jpg"}
-                />
-              ))}
-            </div>
+              <div className={`services-container ${services.length <= 3 ? "few-items" : ""}`}>
+                {services.map((service) => (
+                  <ServiceCard
+                    key={service.slug || service._id}
+                    id={service._id}
+                    slug={service.slug}
+                    title={service.name}
+                    description={service.description}
+                    image={service.serviceImages?.[0]?.url || "/assets/default.jpg"}
+                  />
+                ))}
+              </div>
           </>
         )}
       </div>
