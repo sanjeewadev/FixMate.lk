@@ -1,74 +1,60 @@
 .userregister-form {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  padding: 2px 0;
+  align-items: stretch;   /* full width inputs */
+  gap: 5px;
 }
 
-.userregister-form h2 {
-  margin-bottom: 10px;
-}
-
+/* Inputs inside the modal should fill width */
 .userregister-form input[type="text"],
 .userregister-form input[type="email"],
 .userregister-form input[type="password"],
 .userregister-form input[type="tel"],
 .userregister-form input[type="file"] {
-  padding: 10px 10px;
-  margin: 2px 0;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
   font-size: 15px;
   background: #f9f9f9;
+  margin: 4px;
 }
 
+/* Submit button matches login styles (login-modal button already styles it) */
 .userregister-form button[type="submit"] {
-  width: 90%;
-  max-width: 260px;
-  padding: 10px 0;
-  background: #0070f3;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 0px;
-  margin-bottom: 0px;
-  transition: background 0.2s;
-}
-.userregister-form button[type="submit"]:hover {
-  background: #005bb5;
+  margin-top: 6px;
 }
 
+/* Avatar preview */
 .profile-preview {
   width: 120px;
   height: 120px;
   object-fit: cover;
   border-radius: 12px;
-  margin: 8px 0 12px;
+  margin: 6px 0 8px;
   border: 1px solid #e5e7eb;
 }
 
+.register-text{
+  margin-top: 0px;
+  margin-bottom: 10px;
+  padding: 0px;
+}
+
+/* Link row */
 .userregister-link {
-  margin-top: 5px;
-  margin-bottom: 5px;
+  margin-top: 8px;
+  margin-bottom: 0;
   text-align: center;
   font-size: 15px;
 }
 
-/* Reserve space so layout doesn't jump */
+/* Messages (same tokens as Login) */
 .msg-slot {
   min-height: 38px;
-  display: block;
-  position: relative;
   text-align: center;
-  margin-top: opx;
-  margin-bottom: 0px; /* add a little gap above inputs */
 }
 
-/* Base message styles */
 .msg {
   padding: 9px 12px;
   border-radius: 8px;
@@ -76,22 +62,12 @@
   border: 1px solid transparent;
 }
 
-/* Variants */
 .msg.success { background: #e6ffed; border-color: #34c759; color: #0b5d1e; }
 .msg.error   { background: #ffe9e9; border-color: #ff3b30; color: #6b1111; }
 .msg.info    { background: #eef6ff; border-color: #0a84ff; color: #094a93; }
 
-/* Softer style for pre-submit/typing hints */
-.msg.pre     { background: #f7f9fc; border-color: #dde6f6; color: #4b5a72; }
-
-/* Tiny fade/slide animation */
 @keyframes fadeSlideIn {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 .msg.show { animation: fadeSlideIn 220ms ease; }
-
-/* Respect reduced-motion users */
-@media (prefers-reduced-motion: reduce) {
-  .msg.show { animation: none; }   /* <- not ease-in-out */
-}

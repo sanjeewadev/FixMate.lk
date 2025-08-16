@@ -19,7 +19,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: "http://localhost:5176",
+  origin: "http://localhost:5173",
   credentials: true
 }));
 app.use(express.json());
@@ -36,5 +36,5 @@ app.use("/api", serviceRoutes);
 // Start server
 const PORT = process.env.PORT || 7002;
 app.listen(PORT, () => {
-  console.log(`🚀 Server is running at port ${PORT}`);
+  console.log(`Server is running at port ${PORT}`);
 });

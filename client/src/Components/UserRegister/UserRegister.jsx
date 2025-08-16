@@ -89,7 +89,7 @@ function UserRegister({ onSwitch }) {
   return (
     <form onSubmit={handleSubmit}>
       <div className="userregister-form">
-        <h2>Register</h2>
+        <h2 className="register-text">Register</h2>
 
         <input type="text" name="fullName" placeholder="Full Name*" value={form.fullName}
                onChange={(e) => update("fullName", e.target.value)} required />
