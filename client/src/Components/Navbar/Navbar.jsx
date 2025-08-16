@@ -7,23 +7,45 @@ import TechnicianRegister from "../TechnicianRegister/TechnicianRegister.jsx";
 
 function Navbar() {
   const [modalType, setModalType] = useState(null);
-
-  // const [authentication, setauthentication] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   const openLogin = () => setModalType("login");
   const openRegister = () => setModalType("register");
   const closeModal = () => setModalType(null);
 
-  // useEffect(() => {
-  //   //inside
-  //   if (localStorage.getItem("auth")) {
-  //     setauthentication(true);
-  //   }
-  // }, []);
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Lock page scroll while modal is open
+  useEffect(() => {
+    const sb = window.innerWidth - document.documentElement.clientWidth;
+    if (modalType) {
+      document.body.style.overflow = "hidden";
+      document.body.style.paddingRight = sb ? `${sb}px` : "";
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    };
+  }, [modalType]);
+
+  // Close on ESC
+  useEffect(() => {
+    if (!modalType) return;
+    const onKey = (e) => e.key === "Escape" && closeModal();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [modalType]);
 
   return (
     <>
-      <div className="navbar-links">
+      <div className={`navbar-links ${scrolled ? "scrolled" : ""}`}>
         <a href="/" className="navlink">
           <img src="..." alt="FixMate" />
         </a>
@@ -40,7 +62,6 @@ function Navbar() {
             <button className="login-button" onClick={openLogin}>
               Login/Signup
             </button>
-
             <button
               className="tasker-button"
               onClick={() => setModalType("technician")}
@@ -52,11 +73,21 @@ function Navbar() {
       </div>
 
       {modalType && (
-        <div className="login-modal-overlay" onClick={closeModal}>
-          <div className="login-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="close-btn" onClick={closeModal}>
+        <div
+          className="login-modal-overlay"
+          onClick={closeModal}
+          role="dialog"
+          aria-modal="true"
+        >
+          {/* make the register modal a bit wider */}
+          <div
+            className={`login-modal ${modalType === "register" ? "wide" : ""}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button className="close-btn" onClick={closeModal} aria-label="Close">
               &times;
             </button>
+
             {modalType === "login" ? (
               <Login onSwitch={openRegister} />
             ) : modalType === "register" ? (

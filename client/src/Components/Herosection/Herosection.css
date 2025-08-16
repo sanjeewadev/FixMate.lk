@@ -1,0 +1,121 @@
+.hero-container {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  width: 100%;
+}
+
+.hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  max-width: 1920px; /* Prevent stretching on ultra-wide screens */
+  margin: 0 auto; /* Center image */
+}
+
+.hero-container::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45); /* dark overlay */
+}
+
+/* Centered overlay content */
+.hero-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  text-align: center;
+  z-index: 5;
+  max-width: 700px;
+  padding: 20px;
+}
+
+.hero-overlay h1 {
+  font-size: 52px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  animation: fadeInDown 1.2s ease;
+}
+
+.hero-overlay p {
+  font-size: 20px;
+  margin-bottom: 30px;
+  animation: fadeInUp 1.2s ease;
+}
+
+.hero-overlay button {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.hero-overlay button:hover {
+  background: var(--primary-dark);
+}
+
+/* Dots */
+.hero-dots {
+  position: absolute;
+  bottom: 30px;
+  width: 100%;
+  text-align: center;
+  z-index: 6;
+}
+
+.dot {
+  height: 14px;
+  width: 14px;
+  margin: 0 6px;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  display: inline-block;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.8); /* Added for visibility */
+}
+
+.dot.active {
+  background-color: #fff;
+  transform: scale(1.3);
+  box-shadow: 0 0 10px #fff;
+}
+
+/* Animations */
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translate(-50%, -70%); }
+  to   { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translate(-50%, -30%); }
+  to   { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hero-overlay h1 {
+    font-size: 36px; /* Smaller for mobile */
+  }
+
+  .hero-overlay p {
+    font-size: 16px; /* Smaller for mobile */
+  }
+
+  .hero-overlay button {
+    padding: 12px 24px; /* Slightly smaller button */
+  }
+
+  .dot {
+    height: 12px;
+    width: 12px;
+  }
+}

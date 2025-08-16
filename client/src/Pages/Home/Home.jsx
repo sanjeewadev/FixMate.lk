@@ -1,6 +1,6 @@
 import React from 'react'
 import './Home.css';
-import Slideshow from '../../Components/Slideshow/Slideshow';
+import Hero from '../../Components/Herosection/Herosection';
 import Navbar from '../../Components/Navbar/Navbar';
 import BodyContent from '../../Components/BodyContent/BodyContent';
 import ServicesSection from '../../Components/ServicesSection/ServicesSection';
@@ -11,7 +11,7 @@ function Home() {
   return (
     <div>
     <Navbar />
-    <Slideshow />
+    <Hero />
     <ServicesSection />
     <AboutSection />
     <ContactUs />

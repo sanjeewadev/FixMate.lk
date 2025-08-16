@@ -1,4 +1,132 @@
- .register-link{
-    margin-top: 15px;
-    text-align: center;
- }
+/* Overlay sits above navbar and blurs everything behind */
+.login-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 5000;
+}
+
+/* Modal is hard-centered from first paint */
+.login-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  z-index: 6000;
+  will-change: transform, opacity;
+  animation: modalPop 160ms ease;
+  contain: layout paint;
+}
+
+/* Pop in without breaking center */
+@keyframes modalPop {
+  from { opacity: 0; transform: translate(-50%, -52%) scale(0.98); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* Close button */
+.close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  font-size: 22px;
+  font-weight: bold;
+  color: #444;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color .2s, background .2s;
+}
+.close-btn:hover {
+  color: #0070f3;
+  background: rgba(0, 112, 243, 0.1);
+}
+
+/* Title */
+.login-title {
+  margin-bottom: 20px;
+  color: #1a1a1a;
+}
+
+/* Form styling */
+.login-modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.login-modal input {
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 15px;
+  outline: none;
+  transition: border 0.2s;
+}
+.login-modal input:focus {
+  border-color: #0070f3;
+}
+
+.login-modal button {
+  background: #0070f3;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.login-modal button:hover {
+  background: #005ac1;
+}
+.login-modal button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Register link */
+.register {
+  margin-top: 16px;
+  font-size: 14px;
+}
+.register .link {
+  color: #0070f3;
+  cursor: pointer;
+  font-weight: 600;
+}
+.register .link:hover {
+  text-decoration: underline;
+}
+
+/* Messages */
+.msg-slot {
+  margin-top: 7px;
+  min-height: 40px;
+  text-align: center;
+}
+.msg {
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  border: 1px solid transparent;
+}
+.msg.success { background: #e6ffed; border-color: #34c759; color: #0b5d1e; }
+.msg.error   { background: #ffe9e9; border-color: #ff3b30; color: #6b1111; }
+.msg.info    { background: #eef6ff; border-color: #0a84ff; color: #094a93; }

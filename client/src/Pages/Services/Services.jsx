@@ -1,45 +1,67 @@
-import React from "react";
-import Navbar from "../../Components/Navbar/Navbar.jsx"; // ✅ Import Navbar
+import React, { useEffect, useState } from "react";
+import Navbar from "../../Components/Navbar/Navbar.jsx";
 import ServiceCard from "../../Components/ServiceCard/ServiceCard.jsx";
+import Loader from "../../Components/Loaders/SLoader.jsx"; // Import Loader
 import "./Services.css";
 
 const Services = () => {
-  return (
-    <div>
-      <Navbar /> 
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  useEffect(() => {
+    const startTime = Date.now();
+
+    const fetchServices = async () => {
+      try {
+        const res = await fetch("http://localhost:7001/api/services?page=1&limit=10");
+        if (!res.ok) throw new Error("Failed to fetch services");
+        const data = await res.json();
+        setServices(data.data || []);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        const elapsed = Date.now() - startTime;
+        const delay = Math.max(2500 - elapsed, 0); // Ensure 3 sec min
+        setTimeout(() => setLoading(false), delay);
+      }
+    };
+
+    fetchServices();
+  }, []);
+
+  return (
+    <div className="services-page">
+      <Navbar />
       <div className="services-wrapper">
-        <h2 className="services-title">Our Services</h2>
-        <p>Explore our comprehensive range of home maintenance and repair 
-          services, designed to keep your home in top condition. 
-          From electrical work to plumbing, we've got you covered.</p>
-        <div className="services-container">
-          <ServiceCard
-            title="Electrical Repair"
-            description="Expert troubleshooting and wiring repair services."
-            image="/assets/electrician.jpg"
-          />
-          <ServiceCard
-            title="Bike Maintenance"
-            description="Full-service bike inspection and repair."
-            image="/assets/bike.jpg"
-          />
-          <ServiceCard
-            title="Plumbing"
-            description="Leak fixing, pipe fitting and installations."
-            image="/assets/plumbing.jpg"
-          />
-          <ServiceCard
-            title="Roof Repairs"
-            description="Quality roofing repair and inspection services."
-            image="/assets/roof.jpg"
-          />
-          <ServiceCard
-            title="Cleaning"
-            description="Home and office cleaning by professionals."
-            image="/assets/cleaning.jpg"
-          />
-        </div>
+        {loading ? (
+          <div style={{ display: "flex", justifyContent: "center", marginTop: "4rem" }}>
+            <Loader />
+          </div>
+        ) : (
+          <>
+            <div className="services-header">
+              <h2 className="services-title">Our Services</h2>
+              <p className="services-subtitle">
+                Explore our comprehensive range of home maintenance and repair services.
+                From electrical work to plumbing, we've got you covered.
+              </p>
+            </div>
+
+            {error && <p className="services-error">{error}</p>}
+
+            <div className={`services-container ${services.length <= 3 ? "few-items" : ""}`}>
+              {services.map((service) => (
+                <ServiceCard
+                  key={service.slug}
+                  title={service.name}
+                  description={service.description}
+                  image={service.serviceImages?.[0]?.url || "/assets/default.jpg"}
+                />
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
