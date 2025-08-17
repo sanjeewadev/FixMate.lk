@@ -26,8 +26,6 @@ const registerCoordinator = async (req, res) => {
       return res.status(400).json({ message: "Coordinator already exists with this email." });
     }
 
-    
-
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(password, salt);
 
@@ -49,6 +47,7 @@ const registerCoordinator = async (req, res) => {
     res.status(500).json({ message: "Server error during coordinator registration." });
   }
 };
+
 // Coordinator login
 const loginCoordinator = async (req, res) => {
   try {
@@ -65,11 +64,11 @@ const loginCoordinator = async (req, res) => {
     }
 
     // Generate JWT token
-        const token = jwt.sign(
-          { id: coordinator._id, role: "coordinator" },
-          process.env.JWT_SECRET,
-          { expiresIn: "2d" }
-        );
+    const token = jwt.sign(
+      { id: coordinator._id, role: "coordinator" },
+      process.env.JWT_SECRET,
+      { expiresIn: "2d" }
+    );
 
     res.status(200).json({
       message: "Login successful",
@@ -90,7 +89,108 @@ const loginCoordinator = async (req, res) => {
   }
 };
 
+
+
+// GET /api/coordinator/me
+const getMyProfile = async (req, res) => {
+  try {
+    if (req.user?.role !== "coordinator") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    const me = await Coordinator.findById(req.user.id).select("-password_hash");
+    if (!me) return res.status(404).json({ message: "Coordinator not found" });
+    res.json(me);
+  } catch (e) {
+    console.error("Get profile error:", e);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// PATCH /api/coordinator/me
+// body: { full_name?, phone_number?, address?, district? }
+const updateMyProfile = async (req, res) => {
+  try {
+    if (req.user?.role !== "coordinator") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    const allowed = ["full_name", "phone_number", "address", "district"];
+    const updates = {};
+    allowed.forEach((k) => {
+      if (req.body[k] !== undefined) updates[k] = req.body[k];
+    });
+
+    const out = await Coordinator.findByIdAndUpdate(
+      req.user.id,
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).select("-password_hash");
+
+    if (!out) return res.status(404).json({ message: "Coordinator not found" });
+    res.json({ message: "Profile updated", coordinator: out });
+  } catch (e) {
+    console.error("Update profile error:", e);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// PATCH /api/coordinator/me/password
+// body: { currentPassword, newPassword }
+const changeMyPassword = async (req, res) => {
+  try {
+    if (req.user?.role !== "coordinator") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    const { currentPassword, newPassword } = req.body || {};
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: "currentPassword and newPassword are required" });
+    }
+
+    const me = await Coordinator.findById(req.user.id);
+    if (!me) return res.status(404).json({ message: "Coordinator not found" });
+
+    const ok = await bcrypt.compare(currentPassword, me.password_hash);
+    if (!ok) return res.status(400).json({ message: "Current password is incorrect" });
+
+    me.password_hash = await bcrypt.hash(newPassword, 10);
+    await me.save();
+
+    res.json({ message: "Password changed successfully" });
+  } catch (e) {
+    console.error("Change password error:", e);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// POST /api/coordinator/me/avatar  (form-data key: profile_image)
+// requires your Cloudinary uploader middleware
+const changeMyProfileImage = async (req, res) => {
+  try {
+    if (req.user?.role !== "coordinator") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    const profile_image_url = req.file ? req.file.path : null;
+    if (!profile_image_url) {
+      return res.status(400).json({ message: "No image uploaded" });
+    }
+    const out = await Coordinator.findByIdAndUpdate(
+      req.user.id,
+      { profile_image_url },
+      { new: true }
+    ).select("-password_hash");
+
+    if (!out) return res.status(404).json({ message: "Coordinator not found" });
+    res.json({ message: "Profile image updated", coordinator: out });
+  } catch (e) {
+    console.error("Change avatar error:", e);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   registerCoordinator,
-  loginCoordinator
+  loginCoordinator,
+  getMyProfile,
+  updateMyProfile,
+  changeMyPassword,
+  changeMyProfileImage
 };

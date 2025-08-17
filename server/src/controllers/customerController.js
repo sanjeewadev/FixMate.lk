@@ -161,10 +161,37 @@ const changePassword = async (req, res) => {
 };
 
 
+const changeProfileImage = async (req, res) => {
+  try {
+    if (req.user?.role !== "customer") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const profile_image_url = req.file ? req.file.path : null; // Cloudinary secure URL
+    if (!profile_image_url) {
+      return res.status(400).json({ message: "No image uploaded" });
+    }
+
+    const updated = await Customer.findByIdAndUpdate(
+      req.user.id,
+      { profile_image_url },
+      { new: true }
+    ).select("-password_hash");
+
+    if (!updated) return res.status(404).json({ message: "Customer not found" });
+
+    res.json({ message: "Profile picture updated", customer: updated });
+  } catch (err) {
+    console.error("Change avatar error:", err);
+    res.status(500).json({ message: "Server error while changing profile picture" });
+  }
+};
+
 module.exports = {
   register,
   login,
   getProfile,
   updateProfile,
-  changePassword
+  changePassword,
+  changeProfileImage, 
 };

@@ -339,3 +339,40 @@ exports.getBooking = async (req, res) => {
     return res.status(500).json({ message: e.message });
   }
 };
+
+exports.cancelMyBooking = async (req, res) => {
+  try {
+    if (req.user?.role !== 'customer' || !mongoose.isValidObjectId(req.user.id)) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const { id } = req.params;
+    const { reason = '' } = req.body || {};
+
+    const booking = await Booking.findById(id);
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+    // Must be the owner
+    if (String(booking.customer) !== String(req.user.id)) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    // ❗Allowed ONLY before coordinator approval
+    const cancellableStatuses = ['pending', 'awaiting_coordinator'];
+    if (!cancellableStatuses.includes(booking.status)) {
+      return res
+        .status(409)
+        .json({ message: `Cannot cancel after approval. Current status: ${booking.status}` });
+    }
+
+    // Optional audit fields if you added them in the schema
+    booking.status = 'cancelled';
+    booking.cancelledAt = new Date();
+    booking.cancelReason = reason;
+    await booking.save();
+
+    return res.json({ message: 'Booking cancelled', bookingId: booking._id });
+  } catch (e) {
+    return res.status(400).json({ message: e.message });
+  }
+};

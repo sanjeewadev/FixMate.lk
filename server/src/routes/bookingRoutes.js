@@ -16,7 +16,8 @@ const {
   getTechnicianBooking,
   listPendingApproval,
   coordinatorApprove,
-  getBooking
+  getBooking,
+  cancelMyBooking
 } = require('../controllers/bookingController');
 
 // CUSTOMER
@@ -38,6 +39,12 @@ router.get(
   '/bookings/:id',
   verifyToken,
   getBooking
+);
+
+router.post(
+  '/bookings/:id/cancel',
+  verifyToken, requireRole('customer'),
+  cancelMyBooking
 );
 
 // TECHNICIAN
