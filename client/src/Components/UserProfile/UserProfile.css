@@ -1,7 +1,6 @@
-
 .user-profile {
   max-width: 700px;
-  margin: 50px auto;
+  margin: 0px auto;
   background: #ffffff;
   padding: 40px 50px;
   border-radius: 14px;
@@ -14,7 +13,30 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
+}
+
+.btn-save-btn{
+  background: none;
+}
+
+.btn-save-btn:hover{
+  background: none;
+}
+
+.image-save-row {
+  color: #0077ff;
+  background-color: none;
+  border: 2px solid #0077ff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  border-radius: 50px;
+  transition: background-color 0.3s ease;
+}
+
+.image-save-row:hover {
+  background-color: rgba(0, 119, 255, 0.1);
 }
 
 .profile-img {
@@ -26,13 +48,10 @@
   box-shadow: 0 4px 15px rgb(0 119 255 / 0.3);
   transition: transform 0.25s ease;
 }
-
-.profile-img:hover {
-  transform: scale(1.05);
-}
+.profile-img:hover { transform: scale(1.05); }
 
 .change-pic {
-  margin-top: 12px;
+  margin-top: 7px;
   background: none;
   border: none;
   color: #0077ff;
@@ -44,37 +63,50 @@
 
 .change-pic:hover {
   color: #005fcc;
+  background: none;
 }
 
 .profile-header h3 {
-  margin-top: 18px;
+  margin-top: 5px;
+  margin-bottom: 6px;
   font-size: 28px;
   font-weight: 700;
 }
-
-.profile-header p {
-  margin-top: 6px;
+.profile-email {
+  margin-top: 0;
   font-size: 15px;
   color: #555;
   font-style: italic;
 }
 
-/* View mode user info cards */
+/* Message slot */
+.profile-msg-slot { min-height: 40px; text-align: center; margin: 8px 0 12px; }
+.msg {
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  border: 1px solid transparent;
+  display: inline-block;
+  animation: msgIn .25s ease both;
+}
+.msg.success { background:#e6ffed; border-color:#34c759; color:#0b5d1e; }
+.msg.error   { background:#ffe9e9; border-color:#ff3b30; color:#6b1111; }
+.msg.info    { background:#eef6ff; border-color:#0a84ff; color:#094a93; }
+@keyframes msgIn { from {opacity:0; transform:translateY(-6px);} to {opacity:1; transform:translateY(0);} }
 
+/* View mode user info cards */
 .user-info-view {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 25px 40px;
   margin-bottom: 35px;
 }
-
 .user-info-view .info-item {
   background: #f9fafc;
   border-radius: 10px;
   padding: 20px 25px;
   box-shadow: 0 3px 12px rgb(0 0 0 / 0.05);
 }
-
 .user-info-view .info-label {
   font-size: 13px;
   font-weight: 600;
@@ -83,7 +115,6 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
-
 .user-info-view .info-value {
   font-size: 17px;
   font-weight: 500;
@@ -92,14 +123,12 @@
 }
 
 /* Edit mode form */
-
 .profile-form {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 22px 36px;
   margin-bottom: 35px;
 }
-
 .profile-form input {
   font-size: 15px;
   padding: 14px 18px;
@@ -107,13 +136,11 @@
   border: 1.6px solid #ccc;
   transition: border-color 0.3s ease;
 }
-
 .profile-form input:focus {
   outline: none;
   border-color: #0077ff;
   box-shadow: 0 0 8px rgb(0 119 255 / 0.4);
 }
-
 .profile-form input[readonly] {
   background-color: #eee;
   cursor: not-allowed;
@@ -132,32 +159,24 @@
   transition: background-color 0.3s ease;
   box-shadow: 0 6px 18px rgb(0 119 255 / 0.35);
 }
-
 .btn-save:hover {
   background-color: #005fcc;
   box-shadow: 0 8px 20px rgb(0 95 204 / 0.6);
 }
 
 /* Change Password Section */
-
-.password-section {
-  border-top: 1px solid #eee;
-  padding-top: 30px;
-}
-
+.password-section { border-top: 1px solid #eee; padding-top: 30px; }
 .password-section h3 {
   font-weight: 700;
   font-size: 21px;
   margin-bottom: 28px;
   color: #0077ff;
 }
-
 .password-form {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px 34px;
 }
-
 .password-form input {
   font-size: 15px;
   padding: 13px 16px;
@@ -165,13 +184,11 @@
   border: 1.6px solid #ccc;
   transition: border-color 0.3s ease;
 }
-
 .password-form input:focus {
   outline: none;
   border-color: #0077ff;
   box-shadow: 0 0 8px rgb(0 119 255 / 0.4);
 }
-
 .btn-password {
   grid-column: span 2;
   background-color: #0077ff;
@@ -185,14 +202,9 @@
   transition: background-color 0.3s ease;
   box-shadow: 0 6px 18px rgb(0 119 255 / 0.35);
 }
-
-.btn-password:hover {
-  background-color: #005fcc;
-  box-shadow: 0 8px 20px rgb(0 95 204 / 0.6);
-}
+.btn-password:hover { background-color: #005fcc; box-shadow: 0 8px 20px rgb(0 95 204 / 0.6); }
 
 /* Edit Toggle Button */
-
 .edit-toggle-btn {
   display: block;
   margin: 0 auto 40px;
@@ -206,29 +218,70 @@
   cursor: pointer;
   transition: background-color 0.25s ease, color 0.25s ease;
 }
+.edit-toggle-btn:hover { background-color: #0077ff; color: white; }
 
-.edit-toggle-btn:hover {
-  background-color: #0077ff;
-  color: white;
+/* =========================
+   Cropper modal (no libs)
+   ========================= */
+.crop-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  display: grid; place-items: center; z-index: 9999;
+}
+.crop-modal {
+  width: min(92vw, 520px);
+  background: #fff; border-radius: 14px; padding: 20px 20px 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+}
+.crop-modal h4 { margin: 4px 0 12px; }
+
+.crop-viewport {
+  position: relative;
+  width: 360px; height: 360px;
+  margin: 0 auto;
+  overflow: hidden; border-radius: 12px;
+  background: #f3f4f6;
+  cursor: grab;
+}
+.crop-viewport.dragging { cursor: grabbing; }
+
+.crop-img {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  transform-origin: 50% 50%;
+  max-width: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none; /* drag handled by viewport */
 }
 
-/* Responsive for Mobile */
+.crop-circle {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  width: 320px; height: 320px;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+  box-shadow:
+    0 0 0 9999px rgba(0,0,0,.45),
+    0 0 0 2px rgba(255,255,255,.9);
+  pointer-events: none;
+}
 
+.crop-controls { margin-top: 14px; }
+.crop-controls input[type="range"] { width: 100%; }
+.crop-actions { margin-top: 12px; display: flex; justify-content: flex-end; gap: 10px; }
+.btn-secondary, .btn-primary {
+  border: none; border-radius: 8px; padding: 10px 16px; font-weight: 600; cursor: pointer;
+}
+.btn-secondary { background: #eef2f7; color: #1f2937; }
+.btn-secondary:hover { background: #e6ebf2; }
+.btn-primary { background: #1d4ed8; color: #fff; }
+.btn-primary:hover { background: #1647c9; }
+
+/* Responsive */
 @media (max-width: 600px) {
-  .user-profile {
-    padding: 30px 20px;
-  }
+  .user-profile { padding: 30px 20px; }
   .user-info-view,
   .profile-form,
-  .password-form {
-    grid-template-columns: 1fr;
-  }
-  .btn-save,
-  .btn-password {
-    grid-column: span 1;
-  }
-  .profile-img {
-    width: 110px;
-    height: 110px;
-  }
+  .password-form { grid-template-columns: 1fr; }
+  .btn-save, .btn-password { grid-column: span 1; }
+  .profile-img { width: 110px; height: 110px; }
 }

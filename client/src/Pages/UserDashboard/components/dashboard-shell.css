@@ -1,0 +1,6 @@
+.dash { display: flex; flex-direction: column; min-height: 100vh; background: #f6f7fb; }
+.dash__body { display: grid; grid-template-columns: 240px 1fr; gap: 0; flex: 1; }
+.dash__content { padding: 24px; min-width: 0; }
+@media (max-width: 900px) {
+  .dash__body { grid-template-columns: 64px 1fr; }
+}

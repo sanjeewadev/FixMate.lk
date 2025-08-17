@@ -1,43 +1,48 @@
 import React from "react";
 import "./DashboardLayout.css";
-import { Outlet } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { Outlet, NavLink } from "react-router-dom";
 
 const Sidebar = ({ role }) => {
-  const menuItems = {
+  // Real routes per role
+  const menu = {
     admin: [
-      { name: "Service Request" },
-      { name: "Manage Users" },
-      { name: "Manage Services" },
-      { name: "View Reports" },
-      { name: "Manage Staff" },
-      { name: "Manage Technician" },
+      { name: "Service Request", to: "/AdminDashboard/requests" },
+      { name: "Manage Users", to: "/AdminDashboard/users" },
+      { name: "Manage Services", to: "/AdminDashboard/services" },
+      { name: "View Reports", to: "/AdminDashboard/reports" },
+      { name: "Manage Staff", to: "/AdminDashboard/staff" },
+      { name: "Manage Technician", to: "/AdminDashboard/technicians" },
     ],
     technician: [
-      { name: "Assigned Tasks" },
-      { name: "Profile" },
+      { name: "Assigned Tasks", to: "/TechnicianDashboard/tasks" },
+      { name: "Profile", to: "/TechnicianDashboard/profile" },
     ],
     staff: [
-      { name: "Verify Requests" },
-      { name: "Assign Technicians" },
+      { name: "Verify Requests", to: "/StaffDashboard/verify" },
+      { name: "Assign Technicians", to: "/StaffDashboard/assign" },
     ],
     user: [
-      { name: "Book Service" },
-      { name: "Service History" },
-      { name: "Profile" },
+      { name: "Overview", to: "/UserDashboard/overview" },
+      { name: "Book Service", to: "/UserDashboard/book" }, // uses same BookService page
+      { name: "Service History", to: "/UserDashboard/history" },
+      { name: "Profile", to: "/UserDashboard/profile" },
     ],
   };
+
+  const items = menu[role] || [];
 
   return (
     <div className="sidebar">
       <h2>Fixmate {role.charAt(0).toUpperCase() + role.slice(1)}</h2>
-      <p className="role-label">{role}</p>
       <ul>
-        {menuItems[role].map((item, index) => (
-          <li key={index}>
-            <Link to={`/UserDashboard/${item.name.replace(/\s+/g, '').toLowerCase()}`}>
+        {items.map((item, i) => (
+          <li key={i}>
+            <NavLink
+              to={item.to}
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
               {item.name}
-            </Link>
+            </NavLink>
           </li>
         ))}
       </ul>
@@ -45,7 +50,7 @@ const Sidebar = ({ role }) => {
   );
 };
 
-const DashboardLayout = ({ role = " " }) => {
+const DashboardLayout = ({ role = "user" }) => {
   return (
     <div className="dashboard-wrapper">
       <Sidebar role={role} />

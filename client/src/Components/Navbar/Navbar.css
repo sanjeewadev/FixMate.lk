@@ -80,3 +80,10 @@
 .tasker-button:hover {
   background: #005ac1;
 }
+
+.navbar-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.navbar-buttons .tswitch-wrap { margin-right: 6px; }
