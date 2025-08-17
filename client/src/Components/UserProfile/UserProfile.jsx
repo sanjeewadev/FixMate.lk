@@ -1,9 +1,12 @@
-// src/Components/UserProfile/UserProfile.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./UserProfile.css";
-import axios from "axios";
+import "../TypingAnimation/ta.css"; // optional
+import api from "../../lib/api";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 function UserProfile() {
+  const { user, updateUser } = useAuth();
+
   const [userData, setUserData] = useState({
     full_name: "",
     email: "",
@@ -21,105 +24,271 @@ function UserProfile() {
 
   const [imagePreview, setImagePreview] = useState(null);
   const [editMode, setEditMode] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  // ───────────────────────────────────────────
-  // Fetch profile on mount
-  // ───────────────────────────────────────────
+  // --- message banner: { type: 'success'|'error'|'info', text: ReactNode }
+  const [msg, setMsg] = useState(null);
+
+  // greet once we know a (first) name
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+    const name = (userData.full_name || "").split(" ")[0] || "there";
+    setMsg({
+      type: "info",
+      text: (
+        <span className="msg-hello">
+          Hey <strong>{name}</strong> - hope your day's going great! ✨
+        </span>
+      ),
+    });
+  }, [userData.full_name]);
 
-    axios
-      .get("/api/customer/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        setUserData(res.data);
-        setImagePreview(res.data.profile_image_url || "/default-profile.png");
-      })
-      .catch((err) => console.error("Profile fetch error:", err));
-  }, []);
+  // Prefill from context immediately
+  useEffect(() => {
+    if (!user) return;
+    setUserData({
+      full_name: user.full_name || "",
+      email: user.email || "",
+      phone_number: user.phone_number || "",
+      address: user.address || "",
+      district: user.district || "",
+      profile_image_url: user.profile_image_url || "",
+    });
+    setImagePreview(user.profile_image_url || "/default-profile.png");
+  }, [user]);
 
-  // ───────────────────────────────────────────
-  // Handlers
-  // ───────────────────────────────────────────
+  // Then fetch fresh copy to stay in sync
+  useEffect(() => {
+    let cancel = false;
+    (async () => {
+      try {
+        const { data } = await api.get("/api/customer/me");
+        if (cancel) return;
+        setUserData({
+          full_name: data.full_name || "",
+          email: data.email || "",
+          phone_number: data.phone_number || "",
+          address: data.address || "",
+          district: data.district || "",
+          profile_image_url: data.profile_image_url || "",
+        });
+        setImagePreview(data.profile_image_url || "/default-profile.png");
+        updateUser?.(data);
+      } catch {}
+    })();
+    return () => {
+      cancel = true;
+    };
+  }, [updateUser]);
+
+  // ---------- Handlers ----------
   const handleUserChange = (e) => {
     const { name, value } = e.target;
     setUserData((prev) => ({ ...prev, [name]: value }));
   };
-
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
     setPasswords((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Optional: let user paste an image URL (backend expects profile_image_url string)
-  const handleChangePicture = () => {
-    const url = window.prompt("Paste a public image URL for your profile picture:");
-    if (url) {
-      setUserData((prev) => ({ ...prev, profile_image_url: url }));
-      setImagePreview(url);
+  // Save profile
+  const handleProfileSave = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setMsg(null);
+
+    try {
+      const payload = {
+        full_name: userData.full_name,
+        phone_number: userData.phone_number,
+        address: userData.address,
+        district: userData.district,
+        profile_image_url: userData.profile_image_url, // base64 or URL
+      };
+      const { data } = await api.put("/api/customer/profile", payload);
+      const updated = data.customer || payload;
+
+      setUserData((prev) => ({ ...prev, ...updated, email: prev.email }));
+      setImagePreview(updated.profile_image_url || imagePreview);
+      updateUser?.(updated);
+      setEditMode(false);
+
+      setMsg({ type: "success", text: " Profile updated successfully 😃" });
+    } catch (err) {
+      setMsg({
+        type: "error",
+        text: err?.response?.data?.message || "Failed to update profile 😓",
+      });
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleProfileSave = (e) => {
+  // Change password
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
-    // send only allowed fields
-    const payload = {
-      full_name: userData.full_name,
-      phone_number: userData.phone_number,
-      address: userData.address,
-      district: userData.district,
-      profile_image_url: userData.profile_image_url,
-    };
-
-    axios
-      .put("/api/customer/profile", payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        alert("✅ Profile updated!");
-        setUserData(res.data.customer);
-        setImagePreview(res.data.customer?.profile_image_url || imagePreview);
-        setEditMode(false);
-      })
-      .catch((err) => {
-        console.error("Update error:", err?.response?.data || err.message);
-        alert("❌ Failed to update profile.");
-      });
-  };
-
-  const handlePasswordSubmit = (e) => {
-    e.preventDefault();
+    setMsg(null);
 
     if (passwords.newPassword !== passwords.confirmNewPassword) {
-      alert("❌ New passwords do not match!");
+      setMsg({ type: "error", text: "New passwords do not match 😣" });
       return;
     }
-
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
-    axios
-      .post("/api/customer/change-password", passwords, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(() => {
-        alert("✅ Password changed successfully!");
-        setPasswords({ currentPassword: "", newPassword: "", confirmNewPassword: "" });
-      })
-      .catch((err) => {
-        console.error("Change password error:", err?.response?.data || err.message);
-        alert("❌ Password update failed!");
+    try {
+      await api.post("/api/customer/change-password", passwords);
+      setPasswords({ currentPassword: "", newPassword: "", confirmNewPassword: "" });
+      setMsg({ type: "success", text: " Password changed successfully 😃" });
+    } catch (err) {
+      setMsg({
+        type: "error",
+        text: err?.response?.data?.message || " Password update failed 😣",
       });
+    }
   };
 
-  // ───────────────────────────────────────────
-  // Render
-  // ───────────────────────────────────────────
+  // ===============================
+  // Avatar upload + crop (no libs)
+  // ===============================
+  const fileRef = useRef(null);
+  const [cropOpen, setCropOpen] = useState(false);
+  const [cropSrc, setCropSrc] = useState(null);
+  const [zoom, setZoom] = useState(1);
+
+  // NEW: start fitted & support panning
+  const [base, setBase] = useState(1); // “fit” scale to fill circle
+  const [offX, setOffX] = useState(0);
+  const [offY, setOffY] = useState(0);
+  const dragRef = useRef({ active: false, startX: 0, startY: 0, startOffX: 0, startOffY: 0 });
+  const imgMeta = useRef({ w: 0, h: 0 });
+
+  const pickFile = () => fileRef.current?.click();
+  const onPick = (e) => {
+    const f = e.target.files?.[0];
+    if (!f || !f.type?.startsWith("image/")) return;
+    const url = URL.createObjectURL(f);
+    setCropSrc(url);
+    setCropOpen(true);
+  };
+
+  // when preview img loads, compute “fit” scale
+  const onPreviewLoad = (e) => {
+    const img = e.currentTarget;
+    imgMeta.current = { w: img.naturalWidth, h: img.naturalHeight };
+    const circle = 320; // same as CSS .crop-circle size
+    const fit = Math.max(circle / img.naturalWidth, circle / img.naturalHeight);
+    setBase(fit);
+    setZoom(1);
+    setOffX(0);
+    setOffY(0);
+  };
+
+  // limit panning so the circle is never empty
+  function clampPan(x, y, z) {
+    const size = 320;
+    const scaledW = imgMeta.current.w * base * z;
+    const scaledH = imgMeta.current.h * base * z;
+    const maxX = Math.max(0, (scaledW - size) / 2);
+    const maxY = Math.max(0, (scaledH - size) / 2);
+    return { x: Math.max(-maxX, Math.min(maxX, x)), y: Math.max(-maxY, Math.min(maxY, y)) };
+  }
+
+  const onDragStart = (e) => {
+    e.preventDefault();
+    const pt = e.touches ? e.touches[0] : e;
+    dragRef.current = {
+      active: true,
+      startX: pt.clientX,
+      startY: pt.clientY,
+      startOffX: offX,
+      startOffY: offY,
+    };
+  };
+  const onDragMove = (e) => {
+    if (!dragRef.current.active) return;
+    const pt = e.touches ? e.touches[0] : e;
+    const dx = pt.clientX - dragRef.current.startX;
+    const dy = pt.clientY - dragRef.current.startY;
+    const next = clampPan(dragRef.current.startOffX + dx, dragRef.current.startOffY + dy, zoom);
+    setOffX(next.x);
+    setOffY(next.y);
+  };
+  const onDragEnd = () => {
+    dragRef.current.active = false;
+  };
+
+  const [isImageDirty, setIsImageDirty] = useState(false);
+
+  // export exactly what you see
+  const confirmCrop = async () => {
+    if (!cropSrc) return;
+    const img = new Image();
+    img.src = cropSrc;
+    await new Promise((res) => (img.onload = res));
+
+    const size = 320;
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext("2d");
+
+    const scale = base * zoom;
+    const drawW = img.naturalWidth * scale;
+    const drawH = img.naturalHeight * scale;
+    const dx = (size - drawW) / 2 + offX;
+    const dy = (size - drawH) / 2 + offY;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(img, dx, dy, drawW, drawH);
+    ctx.restore();
+
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.9); // smaller than PNG
+    setImagePreview(dataUrl);
+    setUserData((prev) => ({ ...prev, profile_image_url: dataUrl }));
+    setIsImageDirty(true);
+
+    setImagePreview(dataUrl);
+    setUserData((prev) => ({ ...prev, profile_image_url: dataUrl }));
+    cleanupCrop();
+
+    setMsg({ type: "success", text: "Photo updated (remember to Save Changes 😊)." });
+  };
+
+    // dedicated saver for just the image in VIEW MODE
+  const saveNewImage = async () => {
+    if (!userData.profile_image_url) return;
+    setSaving(true);
+    setMsg(null);
+    try {
+      const { data } = await api.put("/api/customer/profile", {
+        profile_image_url: userData.profile_image_url,
+      });
+      const updated = data.customer || {};
+      setUserData((p) => ({ ...p, profile_image_url: updated.profile_image_url || p.profile_image_url }));
+      setImagePreview(updated.profile_image_url || imagePreview);
+      updateUser?.(updated);
+      setIsImageDirty(false);
+      setMsg({ type: "success", text: " Photo updated 😃" });
+    } catch (err) {
+      setMsg({
+        type: "error",
+        text: err?.response?.data?.message || "Failed to save photo 😓",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const cleanupCrop = () => {
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    setCropSrc(null);
+    setCropOpen(false);
+  };
+
   return (
     <div className="user-profile">
       {/* Header */}
@@ -129,18 +298,23 @@ function UserProfile() {
           alt="Profile"
           className="profile-img"
         />
-        <button type="button" className="change-pic" onClick={handleChangePicture}>
+
+        <input ref={fileRef} type="file" accept="image/*" hidden onChange={onPick} />
+        <button type="button" className="change-pic" onClick={pickFile}>
           Change Profile Picture
         </button>
+
         <h3>{userData.full_name || "User Name"}</h3>
-        <p>{userData.email || "email@example.com"}</p>
+        <p className="profile-email">{userData.email || "email@example.com"}</p>
+
+        {/* message slot */}
+        <div className="profile-msg-slot" aria-live="polite" aria-atomic="true">
+          {msg?.text && <div className={`msg ${msg.type} show`}>{msg.text}</div>}
+        </div>
       </div>
 
       {/* Toggle Edit */}
-      <button
-        className="edit-toggle-btn"
-        onClick={() => setEditMode((v) => !v)}
-      >
+      <button className="edit-toggle-btn" onClick={() => setEditMode((v) => !v)}>
         {editMode ? "Cancel Edit" : "Edit Profile"}
       </button>
 
@@ -167,8 +341,23 @@ function UserProfile() {
             <div className="info-label">District</div>
             <div className="info-value">{userData.district || "-"}</div>
           </div>
+
+          {/* Only show the button if a new image is staged */}
+          {isImageDirty && (
+            <div className="image-save-row">
+              <button
+                type="button"
+                className="btn-save-btn"
+                onClick={saveNewImage}
+                disabled={saving}
+              >
+                {saving ? "Saving..." : "Save New Image 🤝"}
+              </button>
+            </div>
+          )}
         </div>
       )}
+
 
       {/* EDIT MODE */}
       {editMode && (
@@ -181,13 +370,7 @@ function UserProfile() {
             placeholder="Full Name"
             required
           />
-          <input
-            type="email"
-            name="email"
-            value={userData.email}
-            placeholder="Email"
-            readOnly
-          />
+          <input type="email" name="email" value={userData.email} placeholder="Email" readOnly />
           <input
             type="tel"
             name="phone_number"
@@ -209,8 +392,8 @@ function UserProfile() {
             onChange={handleUserChange}
             placeholder="District"
           />
-          <button type="submit" className="btn-save">
-            Save Changes
+          <button type="submit" className="btn-save" disabled={saving}>
+            {saving ? "Saving..." : "Save Changes"}
           </button>
         </form>
       )}
@@ -248,6 +431,59 @@ function UserProfile() {
           </button>
         </form>
       </div>
+
+      {/* Crop modal */}
+      {cropOpen && (
+        <div className="crop-overlay" onClick={cleanupCrop} role="dialog" aria-modal="true">
+          <div className="crop-modal" onClick={(e) => e.stopPropagation()}>
+            <h4>Adjust your photo</h4>
+
+            <div
+              className={`crop-viewport ${dragRef.current.active ? "dragging" : ""}`}
+              onMouseDown={onDragStart}
+              onMouseMove={onDragMove}
+              onMouseUp={onDragEnd}
+              onMouseLeave={onDragEnd}
+              onTouchStart={onDragStart}
+              onTouchMove={onDragMove}
+              onTouchEnd={onDragEnd}
+            >
+              {cropSrc && (
+                <img
+                  src={cropSrc}
+                  alt="Crop preview"
+                  className="crop-img"
+                  onLoad={onPreviewLoad}
+                  style={{
+                    transform: `translate(calc(-50% + ${offX}px), calc(-50% + ${offY}px)) scale(${base *
+                      zoom})`,
+                  }}
+                />
+              )}
+              <div className="crop-circle" />
+            </div>
+
+            <div className="crop-controls">
+              <input
+                type="range"
+                min="1"
+                max="3"
+                step="0.01"
+                value={zoom}
+                onChange={(e) => setZoom(parseFloat(e.target.value))}
+              />
+              <div className="crop-actions">
+                <button type="button" className="btn-secondary" onClick={cleanupCrop}>
+                  Cancel
+                </button>
+                <button type="button" className="btn-primary" onClick={confirmCrop}>
+                  Use Photo
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

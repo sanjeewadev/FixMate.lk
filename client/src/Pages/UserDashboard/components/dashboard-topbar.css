@@ -1,0 +1,56 @@
+.db-topbar {
+  position: sticky; top: 0; z-index: 20;
+  height: 64px; background: #fff; border-bottom: 1px solid #eaecef;
+  display: flex; align-items: center; gap: 16px; padding: 0 16px;
+}
+
+.db-topbar__left { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.db-brand { font-weight: 800; font-size: 18px; letter-spacing: .2px; }
+
+.db-topbar__nav { display: flex; gap: 12px; flex: 1; }
+.db-link { padding: 8px 12px; border-radius: 8px; color: #333; text-decoration: none; }
+.db-link.active { background: #eef5ff; color: #2363eb; }
+
+.db-topbar__right { display: flex; gap: 10px; flex-wrap: nowrap; }
+
+/* Reset + style ONLY the dashboard buttons */
+.db-topbar .db-btn {
+  width: auto !important;      /* defeat any global width:100% */
+  padding: 0 12px !important;  /* defeat any global padding */
+  margin: 0 !important;
+  height: 36px;
+  border-radius: 8px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  background: #fff;
+  color: #111;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.db-topbar .db-btn.outline {
+  background: #fff; border-color: #d0d7de;
+}
+.db-topbar .db-btn.outline:hover {
+  background: #f6f8fa;
+}
+
+.db-topbar .db-btn.primary2 {
+  background: #2363eb; color: #fff; border-color: #2363eb;
+  /* no fixed width here */
+}
+.db-topbar .db-btn.primary2:hover {
+  background: #1b4fc0;
+}
+
+.db-topbar .db-btn.danger {
+  background: #fff3f3; color: #c62828; border-color: #ffcdd2;
+}
+.db-topbar .db-btn.danger:hover {
+  background: #ffe5e5;
+}
