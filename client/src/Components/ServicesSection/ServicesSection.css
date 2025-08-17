@@ -1,53 +1,59 @@
 .services-section-wrapper {
-  padding: 40px;
+  padding: 80px 60px;
   text-align: center;
 }
 
 .services-section-title {
-  font-size: 36px;
-  font-weight: bold;
-  color: #111;
-  text-align: left;
-  padding-left: 80px;
+  font-size: 34px;
+  font-weight: 700;
+  margin-bottom: 50px;
+  color: var(--text-dark);
 }
 
 .services-section-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); 
-  gap: 30px;
-  justify-items: center;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 35px;
+  max-width: 1200px; /* Added to constrain width */
+  margin: 0 auto; /* Center the grid */
 }
 
 .services-section-card {
-  width: 160px;
-  text-align: center;
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
+  border: 1px solid transparent; /* Added for hover effect */
+}
+
+.services-section-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+  border: 1px solid var(--primary); /* Subtle border on hover */
 }
 
 .services-section-card img {
   width: 100%;
   height: 160px;
-  border-radius: 10px;
+  border-radius: var(--radius);
   object-fit: cover;
-  margin-bottom: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 15px;
 }
 
 .services-section-card p {
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--text-dark);
 }
 
-.services-section-link {
-  padding-right: 80px;
-  text-align: right;
-}
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .services-section-wrapper {
+    padding: 60px 15px; /* Reduced padding for mobile */
+  }
 
-.services-section-link a {
-  color: #007BFF;
-  font-weight: bold;
-  text-decoration: none;
-}
-
-.services-section-link a:hover {
-  text-decoration: underline;
+  .services-section-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Smaller cards for mobile */
+  }
 }
