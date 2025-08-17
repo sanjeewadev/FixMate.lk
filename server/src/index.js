@@ -32,7 +32,7 @@ app.use(cors({
 app.use(express.json());
 
 // Routes
-app.use("/api/customer", customerRoutes);
+app.use("/api", customerRoutes);
 app.use("/api/coordinator", coordinatorRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/technician", technicianRoutes);
