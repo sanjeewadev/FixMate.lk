@@ -1,16 +1,38 @@
 const express = require("express");
-const router = express.Router();
-const { register, login, getProfile, updateProfile, changePassword } = require("../controllers/customerController");
+const verifyToken = require("../middleware/verifyToken");
+const requireRole = require("../middleware/requireRole");
 const getUploadMiddleware = require("../middleware/cloudinaryUploader");
-const verifyToken = require("../middleware/verifyToken"); // If using JWT
 
+const {
+  register,
+  login,
+  getProfile,
+  updateProfile,
+  changePassword,
+  changeProfileImage
+} = require("../controllers/customerController");
 
-const upload = getUploadMiddleware("customers"); // folder: fixmate/customers
+const router = express.Router();
 
-router.post("/register", upload.single("profileImage"), register);
-router.post("/login", login);
-router.get("/profile", verifyToken, getProfile);
-router.put("/profile", verifyToken, updateProfile);
-router.post("/change-password", verifyToken, changePassword);
+// Save customer avatars under: fixmate/profiles/customers
+const uploadCustomerAvatar = getUploadMiddleware("profiles/customers");
+
+// Auth
+router.post("/customer/register", uploadCustomerAvatar.single("profile_image"), register);
+router.post("/customer/login", login);
+
+// Profile
+router.get("/customer/me", verifyToken, requireRole("customer"), getProfile);
+router.patch("/customer/me", verifyToken, requireRole("customer"), updateProfile);
+router.patch("/customer/me/password", verifyToken, requireRole("customer"), changePassword);
+
+// Change profile picture (form-data: profile_image)
+router.post(
+  "/customer/me/avatar",
+  verifyToken,
+  requireRole("customer"),
+  uploadCustomerAvatar.single("profile_image"),
+  changeProfileImage
+);
 
 module.exports = router;
