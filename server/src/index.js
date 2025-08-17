@@ -16,6 +16,9 @@ const technicianJobRoutes = require('./routes/technicianJobRoutes');
 const ratingRoutes = require('./routes/ratingRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const complaintRoutes = require('./routes/complaintRoutes');
+const publicApplyRoutes = require('./routes/publicApplyRoutes');
+const technicianViewsRoutes = require("./routes/technicianViewsRoutes");
+
 
 // Connect to MongoDB
 dbConnect();
@@ -41,6 +44,8 @@ app.use('/api', technicianJobRoutes);
 app.use('/api', ratingRoutes);
 app.use('/api', chatRoutes);
 app.use('/api', complaintRoutes);
+app.use('/api', publicApplyRoutes);
+app.use("/api", technicianViewsRoutes);
 
 // Start server
 const PORT = process.env.PORT || 7002;
