@@ -17,7 +17,13 @@ const {
   listPendingApproval,
   coordinatorApprove,
   getBooking,
-  cancelMyBooking
+  cancelMyBooking,
+
+  // NEW (visibility + actions for coordinator/admin)
+  listForCoordinator,
+  coordinatorDashboard,
+  coordinatorAssign,
+  coordinatorReassign,
 } = require('../controllers/bookingController');
 
 // CUSTOMER
@@ -73,6 +79,8 @@ router.post(
 );
 
 // COORDINATOR / ADMIN / SUPER ADMIN
+
+// Existing focused list: only items with accepts (awaiting coordinator)
 router.get(
   '/coordinator/bookings/pending-approval',
   verifyToken, requireRole('coordinator', 'admin', 'super_admin'),
@@ -83,6 +91,34 @@ router.post(
   '/coordinator/bookings/:id/approve',
   verifyToken, requireRole('coordinator', 'admin', 'super_admin'),
   coordinatorApprove
+);
+
+// NEW: see ALL unassigned (includes brand-new 'pending')
+router.get(
+  '/coordinator/bookings',
+  verifyToken, requireRole('coordinator', 'admin', 'super_admin'),
+  listForCoordinator
+);
+
+// NEW: dashboard buckets (unclaimed vs awaitingCoordinator)
+router.get(
+  '/coordinator/bookings/dashboard',
+  verifyToken, requireRole('coordinator', 'admin', 'super_admin'),
+  coordinatorDashboard
+);
+
+// NEW: manual assign (even if no tech has accepted yet)
+router.post(
+  '/coordinator/bookings/:id/assign',
+  verifyToken, requireRole('coordinator', 'admin', 'super_admin'),
+  coordinatorAssign
+);
+
+// NEW: reassign to a different technician
+router.post(
+  '/coordinator/bookings/:id/reassign',
+  verifyToken, requireRole('coordinator', 'admin', 'super_admin'),
+  coordinatorReassign
 );
 
 module.exports = router;
