@@ -47,6 +47,9 @@ app.use('/api', complaintRoutes);
 app.use('/api', publicApplyRoutes);
 app.use("/api", technicianViewsRoutes);
 
+app.use("/api/apply/technician", require("./routes/becomeTechnicianRoutes"));
+
+
 // Start server
 const PORT = process.env.PORT || 7002;
 app.listen(PORT, () => {
