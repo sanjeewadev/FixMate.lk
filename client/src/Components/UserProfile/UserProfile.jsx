@@ -90,7 +90,7 @@ function UserProfile() {
     setPasswords((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Save profile
+  // Save profile (NON-IMAGE PART UPDATED: use PATCH /api/customer/me)
   const handleProfileSave = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -104,7 +104,7 @@ function UserProfile() {
         district: userData.district,
         profile_image_url: userData.profile_image_url, // base64 or URL
       };
-      const { data } = await api.put("/api/customer/profile", payload);
+      const { data } = await api.patch("/api/customer/me", payload);
       const updated = data.customer || payload;
 
       setUserData((prev) => ({ ...prev, ...updated, email: prev.email }));
@@ -123,7 +123,7 @@ function UserProfile() {
     }
   };
 
-  // Change password
+  // Change password (NON-IMAGE PART UPDATED: use PATCH /api/customer/me/password)
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     setMsg(null);
@@ -133,7 +133,10 @@ function UserProfile() {
       return;
     }
     try {
-      await api.post("/api/customer/change-password", passwords);
+      await api.patch("/api/customer/me/password", {
+        currentPassword: passwords.currentPassword,
+        newPassword: passwords.newPassword,
+      });
       setPasswords({ currentPassword: "", newPassword: "", confirmNewPassword: "" });
       setMsg({ type: "success", text: " Password changed successfully 😃" });
     } catch (err) {
@@ -258,17 +261,38 @@ function UserProfile() {
     setMsg({ type: "success", text: "Photo updated (remember to Save Changes 😊)." });
   };
 
-    // dedicated saver for just the image in VIEW MODE
+  // ---- helper: convert dataURL to File (so multer gets req.file) ----
+  function dataURLtoFile(dataUrl, filename = "avatar.jpg") {
+    const arr = dataUrl.split(",");
+    const mime = arr[0].match(/:(.*?);/)[1] || "image/jpeg";
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8 = new Uint8Array(n);
+    while (n--) u8[n] = bstr.charCodeAt(n);
+    return new File([u8], filename, { type: mime });
+  }
+
+  // dedicated saver for just the image in VIEW MODE
+  // (IMAGE PART ONLY CHANGED HERE to use multipart/form-data to /me/avatar)
   const saveNewImage = async () => {
-    if (!userData.profile_image_url) return;
+    if (!userData.profile_image_url) return; // should be a dataURL from cropper
     setSaving(true);
     setMsg(null);
     try {
-      const { data } = await api.put("/api/customer/profile", {
-        profile_image_url: userData.profile_image_url,
+      // Build multipart/form-data with field name 'profile_image'
+      const file = dataURLtoFile(userData.profile_image_url, "avatar.jpg");
+      const form = new FormData();
+      form.append("profile_image", file);
+
+      const { data } = await api.post("/api/customer/me/avatar", form, {
+        // Let axios set the Content-Type boundary automatically
       });
-      const updated = data.customer || {};
-      setUserData((p) => ({ ...p, profile_image_url: updated.profile_image_url || p.profile_image_url }));
+
+      const updated = data?.customer || {};
+      setUserData((p) => ({
+        ...p,
+        profile_image_url: updated.profile_image_url || p.profile_image_url,
+      }));
       setImagePreview(updated.profile_image_url || imagePreview);
       updateUser?.(updated);
       setIsImageDirty(false);
@@ -357,7 +381,6 @@ function UserProfile() {
           )}
         </div>
       )}
-
 
       {/* EDIT MODE */}
       {editMode && (
