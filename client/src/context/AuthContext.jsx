@@ -10,7 +10,7 @@ export function AuthProvider({ children }) {
   const [user, setUser]   = useState(null);
   const [loading, setLoading] = useState(!!token);
 
-  // Ensure axios sends the token on page load/refresh
+  // Ensure Axios always has the token header
   useEffect(() => {
     if (token) {
       api.defaults.headers.common.Authorization = `Bearer ${token}`;
@@ -19,78 +19,39 @@ export function AuthProvider({ children }) {
     }
   }, [token]);
 
-  // Load profile for current token
+  // Load profile
   useEffect(() => {
     let cancelled = false;
-
     async function loadProfile() {
-      if (!token) { setLoading(false); return; }
+      if (!token || !role) { setLoading(false); return; }
 
-      const tryFetch = async (endpoint, roleName) => {
-        try {
-          const { data } = await api.get(endpoint);
-          if (!cancelled) {
-            setUser({ ...data, role: roleName });
-            setRole(roleName);
-            localStorage.setItem("role", roleName);
-          }
-          return true;
-        } catch (e) {
-          return false;
-        }
+      const endpoints = {
+        customer: "/api/customer/me",
+        technician: "/api/technician/me",
+        admin: "/api/admin/me",
       };
 
-      setLoading(true);
+      const endpoint = endpoints[role];
+      if (!endpoint) { setLoading(false); return; }
 
-      // If we already know the role, check only that endpoint.
-      if (role === "technician") {
-        const ok = await tryFetch("/api/technician/me", "technician");
-        if (!ok && !cancelled) setLoading(false);
-        if (!ok && !cancelled) { /* keep token, maybe stale role; next render can re-login */ }
-        return;
-      }
-      if (role === "customer") {
-        const ok = await tryFetch("/api/customer/me", "customer");
-        if (!ok && !cancelled) setLoading(false);
-        return;
-      }
-      if (role === "admin") {
-        const ok = await tryFetch("/api/admin/me", "admin");
-        if (!ok && !cancelled) setLoading(false);
-        return;
-      }
-
-      // Unknown role → probe in order WITHOUT clearing token on single 401s
-      const probers = [
-        () => tryFetch("/api/technician/me", "technician"),
-        () => tryFetch("/api/customer/me", "customer"),
-        () => tryFetch("/api/admin/me", "admin"),
-      ];
-
-      let authed = false;
-      for (const p of probers) {
-        // stop if one succeeded
-        // eslint-disable-next-line no-await-in-loop
-        if (await p()) { authed = true; break; }
-      }
-
-      if (!cancelled) {
-        setLoading(false);
-        if (!authed) {
-          // only now we know the token is invalid
-          localStorage.removeItem("token");
-          localStorage.removeItem("role");
-          delete api.defaults.headers.common.Authorization;
-          setToken(null);
-          setRole(null);
-          setUser(null);
+      try {
+        const { data } = await api.get(endpoint);
+        if (!cancelled) {
+          setUser({ ...data, role });
         }
+      } catch (e) {
+        if (!cancelled) {
+          // Token invalid or expired → force logout
+          logout();
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     }
 
     loadProfile();
     return () => { cancelled = true; };
-  }, [token]); // role is set inside after success
+  }, [token, role]);
 
   const login = (newToken, userObj) => {
     if (!newToken || !userObj?.role) return;
@@ -114,7 +75,7 @@ export function AuthProvider({ children }) {
     delete api.defaults.headers.common.Authorization;
   };
 
-  // Keep multiple tabs in sync
+  // Sync across tabs
   useEffect(() => {
     const onStorage = (e) => {
       if (e.key === "token") {
