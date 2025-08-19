@@ -8,15 +8,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sanjeewa-dev/FixMate.lk.git"
+    "url": "git+https://github.com/sanjeewadev/FixMate.lk.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/sanjeewa-dev/FixMate.lk/issues"
+    "url": "https://github.com/sanjeewadev/FixMate.lk/issues"
   },
-  "homepage": "https://github.com/sanjeewa-dev/FixMate.lk#readme",
+  "homepage": "https://github.com/sanjeewadev/FixMate.lk#readme",
   "dependencies": {
     "react": "^19.1.0",
     "react-dom": "^19.1.0"

@@ -47,7 +47,7 @@ export default function Support() {
   const sendMessage = async () => {
     if (!active?._id || !draft.trim()) return;
     try {
-      const { data } = await api.patch(`/api/complaints/${active._id}/respond`, {
+      const { data } = await api.post(`/api/complaints/${active._id}/respond`, {
         text: draft.trim()
       });
       // server returns { complaint } or { message, complaint }
