@@ -157,29 +157,36 @@ exports.technicianAccept = async (req, res) => {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const [booking, tech] = await Promise.all([
-      Booking.findById(req.params.id),
-      Technician.findById(req.user.id).lean()
-    ]);
-    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+    const tech = await Technician.findById(req.user.id).lean();
     if (!tech) return res.status(404).json({ message: 'Technician not found' });
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
     if (booking.assignedTechnician) {
       return res.status(409).json({ message: 'Already assigned' });
     }
-    // Only displayable list is by district; guard anyway
-    if (tech.district !== booking.customerSnapshot.district) {
-      return res.status(403).json({ message: 'Forbidden: district mismatch' });
-    }
 
-    booking.technicianResponses = (booking.technicianResponses || [])
-      .filter(r => String(r.technician) !== String(tech._id));
-    booking.technicianResponses.push({ technician: tech._id, status: 'accepted' });
+    // Remove any previous responses from this tech
+    await Booking.updateOne(
+      { _id: booking._id },
+      {
+        $pull: { technicianResponses: { technician: tech._id } }
+      }
+    );
 
-    if (booking.status === 'pending') booking.status = 'awaiting_coordinator';
+    // Add accepted response
+    await Booking.updateOne(
+      { _id: booking._id },
+      {
+        $push: { technicianResponses: { technician: tech._id, status: 'accepted' } },
+        $set: { status: booking.status === 'pending' ? 'awaiting_coordinator' : booking.status }
+      }
+    );
 
-    await booking.save();
     return res.json({ message: 'Accepted', bookingId: booking._id });
   } catch (e) {
+    console.error("technicianAccept error:", e);
     return res.status(400).json({ message: e.message });
   }
 };
@@ -192,24 +199,27 @@ exports.technicianDecline = async (req, res) => {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const [booking, tech] = await Promise.all([
-      Booking.findById(req.params.id),
-      Technician.findById(req.user.id).lean()
-    ]);
-    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+    const tech = await Technician.findById(req.user.id).lean();
     if (!tech) return res.status(404).json({ message: 'Technician not found' });
 
-    if (tech.district !== booking.customerSnapshot.district) {
-      return res.status(403).json({ message: 'Forbidden: district mismatch' });
-    }
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
 
-    booking.technicianResponses = (booking.technicianResponses || [])
-      .filter(r => String(r.technician) !== String(tech._id));
-    booking.technicianResponses.push({ technician: tech._id, status: 'declined' });
+    // Remove any previous responses from this tech
+    await Booking.updateOne(
+      { _id: booking._id },
+      { $pull: { technicianResponses: { technician: tech._id } } }
+    );
 
-    await booking.save();
+    // Add declined response
+    await Booking.updateOne(
+      { _id: booking._id },
+      { $push: { technicianResponses: { technician: tech._id, status: 'declined' } } }
+    );
+
     return res.json({ message: 'Declined', bookingId: booking._id });
   } catch (e) {
+    console.error("technicianDecline error:", e);
     return res.status(400).json({ message: e.message });
   }
 };

@@ -19,9 +19,8 @@ export function AuthProvider({ children }) {
       try {
         // 1) Try /api/customer/me
         const { data } = await api.get("/api/customer/me");
-        if (!cancelled) setUser(data);
+        if (!cancelled) setUser({ ...data, role: "customer" });
       } catch (err1) {
-        // If 401/403 -> real auth failure: clear auth
         const status = err1?.response?.status;
         if (status === 401 || status === 403) {
           if (!cancelled) {
@@ -30,15 +29,24 @@ export function AuthProvider({ children }) {
             setUser(null);
           }
         } else {
-          // 2) Fallback to /api/customer/profile if the first URL doesn't exist
           try {
+            // 2) Try /api/customer/profile
             const { data: data2 } = await api.get("/api/customer/profile");
-            if (!cancelled) setUser(data2);
+            if (!cancelled) setUser({ ...data2, role: "customer" });
           } catch (err2) {
-            // On network/404/etc. — DON'T clear token.
-            // Keep whatever `user` you already have (e.g., from login()).
-            // Just log and continue.
-            // console.warn("Profile fetch failed, keeping token:", err2?.message);
+            try {
+              // 3) Try /api/technician/me
+              const { data: data3 } = await api.get("/api/technician/me");
+              if (!cancelled) setUser({ ...data3, role: "technician" });
+            } catch (err3) {
+              try {
+                // 4) (optional) Try /api/admin/me later if you add admin
+                const { data: data4 } = await api.get("/api/admin/me");
+                if (!cancelled) setUser({ ...data4, role: "admin" });
+              } catch (err4) {
+                // no role found, keep token but no user info
+              }
+            }
           }
         }
       } finally {
@@ -50,15 +58,20 @@ export function AuthProvider({ children }) {
     return () => { cancelled = true; };
   }, [token]);
 
-  const login = (newToken, customer) => {
+  const login = (newToken, userObj) => {
     localStorage.setItem("token", newToken);
     setToken(newToken);
-    if (customer) setUser(customer); // immediate UI update
+    api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
+    if (userObj) {
+      // role will be attached at login() if backend provides it
+      setUser(userObj);
+    }
   };
 
   const logout = () => {
     localStorage.removeItem("token");
     setToken(null);
+    delete api.defaults.headers.common.Authorization;
     setUser(null);
   };
 
@@ -78,6 +91,7 @@ export function AuthProvider({ children }) {
   const value = useMemo(() => ({
     token,
     user,
+    role: user?.role || null,   // 👈 easy access to role
     isAuth: !!user,
     loading,
     login,
