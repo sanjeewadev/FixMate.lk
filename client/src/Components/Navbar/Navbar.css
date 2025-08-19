@@ -18,7 +18,7 @@
 /* When scrolled */
 .navbar-links.scrolled {
   background: #ffffffee; /* slightly transparent white */
-  border-radius: 16px;
+  border-radius: 30px;
   box-shadow: 0 6px 20px rgba(0,0,0,0.1);
   top: 15px; /* moves down slightly */
   width: 90%;
@@ -28,6 +28,7 @@
 .navbar-menu {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 20px;
   padding-inline-end: 50px;
 }
@@ -53,6 +54,7 @@
 
 .login-button,
 .tasker-button {
+  width: 100px;
   height: 42px;
   padding: 0 18px;
   font-size: 14px;

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { SHA256 } from 'crypto-js';
-import './TechnicianRegister.css'; 
+import { useState } from 'react';
+import SHA256 from 'crypto-js/sha256'; // Assuming crypto-js is used
 
-function TechnicianRegister() {
+const TechnicianRegister = () => {
+  // Initialize form state
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -14,22 +14,32 @@ function TechnicianRegister() {
     specialization: '',
     experienceYears: '',
   });
-
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+    if (file) {
+      // Optional: Validate file size and type
+      if (!file.type.startsWith('image/')) {
+        alert('Please upload a valid image file.');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) { // Limit to 5MB
+        alert('Image size must be less than 5MB.');
+        return;
+      }
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
   };
 
   const handleSubmit = (e) => {
@@ -37,37 +47,49 @@ function TechnicianRegister() {
 
     // Password match validation
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match!");
+      alert('Passwords do not match!');
       return;
     }
 
-    // Phone number validation (+94 followed by 9 digits)
+    // Phone number validation
     const phoneRegex = /^\+94\d{9}$/;
     if (!phoneRegex.test(formData.phone)) {
-      alert("Invalid phone number format. Use +94XXXXXXXXX");
+      alert('Invalid phone number format. Use +94XXXXXXXXX');
       return;
     }
 
-    // Hash password
+    // Hash password (move to backend in production)
     const hashedPassword = SHA256(formData.password).toString();
 
-    // Final form data
+    // Prepare data for submission
     const technicianData = {
       ...formData,
       password: hashedPassword,
       profileImage: imageFile ? imageFile.name : null,
     };
 
-    console.log("Technician Registration Data:", technicianData);
-    alert("Technician registered successfully!");
+    console.log('Technician Registration Data:', technicianData);
+    alert('Technician registered successfully!');
 
-    // You can now send `technicianData` to your backend API
+    // Reset form after submission
+    setFormData({
+      fullName: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      phone: '',
+      address: '',
+      district: '',
+      specialization: '',
+      experienceYears: '',
+    });
+    setImageFile(null);
+    setImagePreview(null);
   };
 
   return (
     <form onSubmit={handleSubmit} className="technician-register-form">
       <h2>Technician Registration</h2>
-
       <input
         type="text"
         name="fullName"
@@ -75,8 +97,7 @@ function TechnicianRegister() {
         value={formData.fullName}
         onChange={handleChange}
         required
-      /><br />
-
+      />
       <input
         type="email"
         name="email"
@@ -84,8 +105,7 @@ function TechnicianRegister() {
         value={formData.email}
         onChange={handleChange}
         required
-      /><br />
-
+      />
       <input
         type="password"
         name="password"
@@ -93,8 +113,7 @@ function TechnicianRegister() {
         value={formData.password}
         onChange={handleChange}
         required
-      /><br />
-
+      />
       <input
         type="password"
         name="confirmPassword"
@@ -102,8 +121,7 @@ function TechnicianRegister() {
         value={formData.confirmPassword}
         onChange={handleChange}
         required
-      /><br />
-
+      />
       <input
         type="tel"
         name="phone"
@@ -113,8 +131,7 @@ function TechnicianRegister() {
         pattern="^\+94\d{9}$"
         title="Phone number must be in format +94XXXXXXXXX"
         required
-      /><br />
-
+      />
       <input
         type="text"
         name="address"
@@ -122,8 +139,7 @@ function TechnicianRegister() {
         value={formData.address}
         onChange={handleChange}
         required
-      /><br />
-
+      />
       <input
         type="text"
         name="district"
@@ -131,8 +147,7 @@ function TechnicianRegister() {
         value={formData.district}
         onChange={handleChange}
         required
-      /><br />
-
+      />
       <input
         type="text"
         name="specialization"
@@ -140,8 +155,7 @@ function TechnicianRegister() {
         value={formData.specialization}
         onChange={handleChange}
         required
-      /><br />
-
+      />
       <input
         type="number"
         name="experienceYears"
@@ -150,27 +164,24 @@ function TechnicianRegister() {
         onChange={handleChange}
         min="0"
         required
-      /><br />
-
+      />
       <input
         type="file"
         accept="image/*"
         onChange={handleImageChange}
         required
-      /><br />
-
+      />
       {imagePreview && (
         <img
           className="profile-preview"
           src={imagePreview}
           alt="Profile Preview"
-          style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "8px", marginBottom: "10px" }}
+          style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px', marginBottom: '10px' }}
         />
-      )}<br />
-
+      )}
       <button type="submit">Register</button>
     </form>
   );
-}
+};
 
 export default TechnicianRegister;

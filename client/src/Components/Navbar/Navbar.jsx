@@ -78,31 +78,22 @@ function Navbar() {
         </a>
 
         <div className="navbar-menu">
-          <MenuLink linkName="StaffDashboard" url="/StaffDashboard" />
-          <MenuLink linkName="TechnicianDashboard" url="/TechnicianDashboard" />
-          {/* 👇 require auth here */}
-          <MenuLink linkName="UserDashboard" url="/UserDashboard" requireAuth />
-          <MenuLink linkName="AdminDashboard" url="/AdminDashboard" />
           <MenuLink linkName="Home" url="/" />
           <MenuLink linkName="AboutUs" url="/AboutUs" />
           <MenuLink linkName="Services" url="/Services" />
-
+          <MenuLink linkName="Dashboard" url="/UserDashboard" requireAuth />
+        </div>
           <div className="navbar-buttons">
             {!isAuth ? (
               <button className="login-button" onClick={openLogin}>
-                Login/Signup
+                Login
               </button>
             ) : (
               <button className="login-button" onClick={logout}>
                 Logout
               </button>
             )}
-
-            <button className="tasker-button" onClick={openTech}>
-              Become a Tasker
-            </button>
           </div>
-        </div>
       </div>
 
       {modalType && (

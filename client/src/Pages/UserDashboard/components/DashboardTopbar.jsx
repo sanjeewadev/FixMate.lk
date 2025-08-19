@@ -23,10 +23,10 @@ export default function DashboardTopbar() {
       </nav>
 
       <div className="db-topbar__right">
-        <button className="db-btn outline" onClick={goHome}>Home</button>
-        <button className="db-btn primary2" style={{  }} onClick={() => alert("We’ll onboard you soon!")}>
-          Be a Tasker
+        <button className="db-btn primary2" style={{  }} onClick={() => navigate("/TechnicianRegisterForm")}>
+          Become a Tasker
         </button>
+        <button className="db-btn outline" onClick={goHome}>Home</button>
         <button className="db-btn danger" onClick={logout}>Logout</button>
       </div>
     </header>

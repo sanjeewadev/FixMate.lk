@@ -26,6 +26,8 @@ const Sidebar = ({ role }) => {
       { name: "Book Service", to: "/UserDashboard/book" }, // uses same BookService page
       { name: "Service History", to: "/UserDashboard/history" },
       { name: "Profile", to: "/UserDashboard/profile" },
+      { name: "Chat", to: "/UserDashboard/chat" },
+      { name: "Support", to: "/UserDashboard/support" },
     ],
   };
 

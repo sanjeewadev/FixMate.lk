@@ -1,20 +1,179 @@
+/* ===== TechnicianRegister — simple auth-style card (matches Login/Booking) ===== */
 
-
-.technician-register-form input {
-  width: 100%;
-  padding: 8px;
-  margin: 6px 0;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+:root {
+  --ink: #111827;         /* main text */
+  --muted: #6b7280;       /* placeholders/help */
+  --line: #e5e7eb;        /* borders */
+  --panel: #ffffff;       /* card bg */
+  --page: #f5f6fa;        /* page bg like booking */
+  --primary: #2563eb;     /* brand blue */
+  --primary-2: #1d4ed8;   /* hover blue */
+  --error: #dc2626;       /* error messages */
 }
 
-.technician-register-form button {
+/* Page feel similar to booking */
+body:has(.technician-register-form) {
+  background: var(--page);
+}
+
+/* Centered card, same radii/shadow language as Booking */
+.technician-register-form {
+  box-sizing: border-box;
+  width: min(460px, 92vw);
+  margin: clamp(96px, 12vh, 120px) auto 72px; /* clears navbar, centers */
+  padding: 28px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 10px 20px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.04);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Hide <br/> tags, use gap spacing */
+.technician-register-form br {
+  display: none;
+}
+
+/* Title (match Login modal style) */
+.technician-register-form h2 {
+  margin: 0 0 8px;
+  text-align: center;
+  font-size: 34px;
+  line-height: 1.15;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+/* Inputs: same tone as Login + Booking */
+.technician-register-form input[type="text"],
+.technician-register-form input[type="email"],
+.technician-register-form input[type="password"],
+.technician-register-form input[type="tel"],
+.technician-register-form input[type="number"],
+.technician-register-form select {
   width: 100%;
-  padding: 10px;
-  background-color: #1a73e8;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-weight: bold;
+  height: 48px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #f9fafb;
+  color: var(--ink);
+  font: inherit;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+.technician-register-form input::placeholder,
+.technician-register-form select:invalid {
+  color: var(--muted);
+}
+
+.technician-register-form input:focus,
+.technician-register-form select:focus {
+  border-color: var(--primary);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(37,99,235,.20);
+}
+
+/* Custom file input */
+.technician-register-form .file-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.technician-register-form .file-input-label {
+  display: inline-block;
+  width: 100%;
+  height: 48px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #f3f4f6;
+  color: var(--ink);
   cursor: pointer;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.technician-register-form .file-input {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.technician-register-form .file-input-label:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+}
+
+/* Preview image (when selected) */
+.technician-register-form .profile-preview {
+  width: min(72px, 20vw);
+  height: min(72px, 20vw);
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  margin-top: 4px;
+}
+
+/* Error messages */
+.technician-register-form .error-message {
+  color: var(--error);
+  font-size: 14px;
+  margin-top: 4px;
+  margin-bottom: 0;
+}
+
+/* Submit button — same blue as Login/Booking */
+.technician-register-form button[type="submit"] {
+  margin-top: 6px;
+  height: 48px;
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background .15s ease, transform .06s ease, box-shadow .15s ease;
+}
+
+.technician-register-form button[type="submit"]:hover {
+  background: var(--primary-2);
+}
+
+.technician-register-form button[type="submit"]:active {
+  transform: translateY(1px);
+}
+
+.technician-register-form button[type="submit"]:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+}
+
+/* Accessibility: focus styles for keyboard navigation */
+.technician-register-form input:focus,
+.technician-register-form select:focus,
+.technician-register-form button:focus,
+.technician-register-form .file-input-label:focus-within {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Small nudge on very small screens */
+@media (max-width: 420px) {
+  .technician-register-form {
+    padding: 22px;
+    gap: 12px;
+  }
+  .technician-register-form h2 {
+    font-size: 30px;
+  }
 }

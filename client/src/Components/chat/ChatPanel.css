@@ -1,0 +1,70 @@
+/* Container (bottom-right sheet) */
+.chat-wrap{
+  position: fixed;
+  right: 16px; bottom: 16px;
+  width: min(380px, 92vw);
+  height: 520px;
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 18px 36px rgba(0,0,0,.16);
+  display:flex; flex-direction:column;
+  z-index: 4000;
+  animation: chatIn .18s ease;
+}
+@keyframes chatIn{
+  from{ transform: translateY(8px); opacity:0; }
+  to  { transform: translateY(0); opacity:1; }
+}
+
+.chat-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 10px 12px;
+  border-bottom:1px solid #eef1f4;
+}
+.chat-head__title{ display:flex; gap:10px; align-items:center; }
+.dot{ width:10px;height:10px;border-radius:50%;background:#9ca3af; }
+.dot.online{ background:#10b981; }
+.t1{ font-weight:800; font-size:14px; color:#0f172a; }
+.t2{ font-size:12px; color:#6b7280; }
+.x{
+  width:28px;height:28px;border-radius:50%;
+  border:0;background:#f3f4f6;color:#111; cursor:pointer; font-size:18px;
+}
+
+.chat-empty{
+  padding: 18px; color:#374151; font-size:14px;
+}
+
+/* List */
+.chat-list{
+  flex:1; overflow:auto; padding: 12px;
+  background: linear-gradient(180deg,#f9fafb,#ffffff);
+}
+.bubble{
+  max-width: 80%;
+  border:1px solid #e5e7eb; border-radius: 14px;
+  padding: 8px 10px; margin: 6px 0;
+  display:inline-flex; flex-direction:column; gap:4px;
+  box-shadow: 0 1px 0 rgba(0,0,0,.03);
+}
+.bubble .tx{ color:#111827; font-size:14px; }
+.bubble .tm{ color:#64748b; font-size:11px; align-self:flex-end; }
+.bubble.me{ margin-left:auto; background:#eef6ff; border-color:#bfdbfe; }
+.bubble.them{ margin-right:auto; background:#f8fafc; }
+.bubble.ghost{ opacity:.6; }
+
+/* Input row */
+.chat-input{
+  display:flex; gap:8px; padding:10px; border-top:1px solid #eef1f4;
+}
+.chat-input input{
+  flex:1; border:1px solid #d1d5db; border-radius:12px; padding:10px 12px;
+  outline:none; font-size:14px; background:#fff;
+}
+.chat-input input:focus{ border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,.18); }
+.chat-input button{
+  border:0; border-radius:12px; padding: 0 14px; font-weight:700;
+  background:#2563eb; color:#fff; cursor:pointer;
+}
+.chat-input button:disabled{ opacity:.6; cursor:not-allowed; }

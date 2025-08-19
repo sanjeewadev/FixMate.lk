@@ -1,5 +1,6 @@
 import React from 'react'
 import './Home.css';
+import PublicNavBar from "../../Components/nav/PublicNavBar.jsx";
 import Hero from '../../Components/Herosection/Herosection';
 import Navbar from '../../Components/Navbar/Navbar';
 import BodyContent from '../../Components/BodyContent/BodyContent';
@@ -10,7 +11,7 @@ import AboutSection from '../../Components/AboutSection/AboutSection';
 function Home() {
   return (
     <div>
-    <Navbar />
+    <PublicNavBar />
     <Hero />
     <ServicesSection />
     <AboutSection />

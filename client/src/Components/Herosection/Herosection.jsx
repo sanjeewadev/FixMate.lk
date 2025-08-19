@@ -1,52 +1,68 @@
-import React, { useState, useEffect } from "react";
+// src/Components/HeroSection/Herosection.jsx
+import React from "react";
+import { NavLink } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext.jsx";
 import "./Herosection.css";
 
-import img1 from "../../assets/Slideshowimages/img1.jpg";
-import img2 from "../../assets/Slideshowimages/img2.jpg";
-import img3 from "../../assets/Slideshowimages/img3.jpg";
+export default function Herosection() {
+  const { isAuth } = useAuth();
 
-const images = [img1, img2, img3];
-
-function Herosection() {
-  const [current, setCurrent] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % images.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
+  const handleBookClick = (e) => {
+    if (!isAuth) {
+      e.preventDefault();
+      // your PublicNavBar listens for this and opens the Login modal
+      window.dispatchEvent(new Event("fm:open-login"));
+    }
+  };
 
   return (
-    <div className="hero-container">
-      <img
-        src={images[current]}
-        alt="Hero Slide"
-        className="hero-image fade-in"
-        key={current}
-      />
+    <section id="hero" className="hero">
+      <div className="hero__inner">
+        <div className="hero__eyebrow">
+          On-demand maintenance for
+          <span className="chip">Homes</span>
+          <span className="chip">Offices</span>
+          <span className="chip">Apartments</span>
+        </div>
 
-      {/* Overlay content */}
-      <div className="hero-overlay">
-        <h1>Welcome to FixMate</h1>
-        <p>Reliable home & office maintenance services, just a click away.</p>
-        <button onClick={() => window.location.href = "/services"}>
-          Explore Services
-        </button>
+        <h1 className="hero__title">
+          Your reliable <span className="hl">Maintenance&nbsp;Partner</span>
+          <br />
+          that provides experienced <span className="underline">Technicians</span>
+        </h1>
+
+        <p className="hero__sub">
+          Book vetted electricians, plumbers, AC and repair experts-fast, fair and
+          guaranteed. Available across Colombo & suburbs.
+        </p>
+
+        <div className="hero__cta">
+          <NavLink
+            to="/book"
+            className="cta cta--primary"
+            onClick={handleBookClick}
+            aria-label="Book a technician"
+          >
+            <span className="cta__arrow" aria-hidden>↘</span>
+            Book a technician
+          </NavLink>
+
+          <NavLink to="/Services" className="cta cta--ghost">
+            Explore services
+          </NavLink>
+        </div>
+
+        <div className="hero__meta">
+          <span className="pill">24/7 Support</span>
+          <span className="pill">Background-checked</span>
+          <span className="pill">Same-day visits</span>
+        </div>
       </div>
 
-      {/* Dots navigation */}
-      <div className="hero-dots">
-        {images.map((_, index) => (
-          <span
-            key={index}
-            className={`dot ${index === current ? "active" : ""}`}
-            onClick={() => setCurrent(index)}
-          ></span>
-        ))}
-      </div>
-    </div>
+      <aside className="hero__note">
+        Subscribe to a monthly plan and get a dedicated technician on call-like an
+        in-house pro, without the overhead.
+      </aside>
+    </section>
   );
 }
-
-export default Herosection;
