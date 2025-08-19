@@ -3,6 +3,7 @@ import Navbar from "../../Components/Navbar/Navbar.jsx";
 import './AboutUs.css';
 import TeamCards from "../../Components/TeamCards/TeamCards.jsx";
 import PhotoGallery from '../../Components/PhotoGallery/PhotoGallery.jsx';
+import Footer from "../../Components/Footer/Footer.jsx";
 
 function AboutUs() {
   return (
@@ -49,6 +50,7 @@ function AboutUs() {
       <div>
          <h2 >Gallery</h2>
          <PhotoGallery />
+         <Footer variant="light" />
       </div>
     </div>
   );

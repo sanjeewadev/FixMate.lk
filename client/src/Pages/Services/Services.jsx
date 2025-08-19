@@ -3,6 +3,7 @@ import Navbar from "../../Components/Navbar/Navbar.jsx";
 import ServiceCard from "../../Components/ServiceCard/ServiceCard.jsx";
 import Loader from "../../Components/Loaders/SLoader.jsx"; // Import Loader
 import "./Services.css";
+import Footer from "../../Components/Footer/Footer.jsx";
 
 const Services = () => {
   const [services, setServices] = useState([]);
@@ -64,6 +65,7 @@ const Services = () => {
           </>
         )}
       </div>
+      <Footer variant="light" />
     </div>
   );
 };

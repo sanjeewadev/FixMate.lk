@@ -4,16 +4,16 @@
    Public Nav (base wrapper)
    ========================= */
 .pubnav{
-  position: absolute;         /* scrolls with the page at top */
+  position: absolute;
   top:0; left:0; right:0;
-  z-index: 1100;              /* above page content */
+  z-index: 1100;
   transition: all var(--t-med) var(--ease-out);
   will-change: transform, opacity;
 }
 
-/* ---- TOP: transparent, not fixed, sits over hero and scrolls away ---- */
+/* ---- TOP ---- */
 .pubnav.is-top{
-  position: absolute;         /* explicit for Safari */
+  position: absolute;
   background: transparent;
 }
 .pubnav.is-top .pubnav__inner{
@@ -22,14 +22,13 @@
   box-shadow: none;
 }
 
-/* ---- STICKY: becomes fixed after hero threshold ---- */
+/* ---- STICKY ---- */
 .pubnav.is-sticky{
   position: fixed;
   top:0; left:0; right:0;
   background: transparent;
   transform: translateY(-8px);
-  opacity: 0;                 /* will fade in */
-  /* DO NOT disable pointer events here */
+  opacity: 0;
 }
 .pubnav.is-sticky .pubnav__inner{
   margin: 10px auto 0;
@@ -41,7 +40,6 @@
   transform: scale(1.0);
   animation: bubble 800ms var(--ease-snap);
 }
-/* smooth reveal */
 .pubnav.is-sticky,
 .pubnav.is-sticky .pubnav__inner{
   transition:
@@ -49,10 +47,7 @@
     opacity var(--t-med) var(--ease-out),
     box-shadow var(--t-med) var(--ease-out);
 }
-.pubnav.is-sticky{
-  transform: translateY(0);
-  opacity: 1;
-}
+.pubnav.is-sticky{ transform: translateY(0); opacity: 1; }
 
 @keyframes bubble{
   0%{ transform: scale(.98); }
@@ -75,7 +70,7 @@
   align-items:center;
   gap:10px;
   cursor:pointer;
-  color: #ebf1ff;       /* visible on dark hero + gradient bar */
+  color: #ebf1ff;
   font-weight:800;
 }
 .pubnav.is-sticky .pubnav__brand{ color: var(--c-white); }
@@ -89,14 +84,12 @@
 /* =========================
    Links
    ========================= */
-.pubnav__links{
-  display:flex; align-items:center; gap:18px;
-}
+.pubnav__links{ display:flex; align-items:center; gap:18px; }
 .navlink{
   color: #ebf1ff;
   text-decoration:none;
   font-weight:600;
-  padding:8px 10px;
+  padding:14px 10px;
   border-radius: var(--r-1);
   position:relative;
 }
@@ -111,9 +104,7 @@
 }
 .navlink:hover::after{ width:80%; }
 
-/* Make the Services trigger look like a normal nav link */
 .service-btn-nav-dropdown{
-  -webkit-appearance: none;
   appearance: none;
   background: transparent;
   border: 0;
@@ -126,33 +117,26 @@
   cursor: pointer;
   position: relative;
 }
-.pubnav.is-sticky .service-btn-nav-dropdown{
-  color: var(--c-white);
-}
+.pubnav.is-sticky .service-btn-nav-dropdown{ color: var(--c-white); }
 .service-btn-nav-dropdown::after{
   content: "";
   position: absolute;
-  left: 50%;
-  bottom: 6px;
-  width: 0;
-  height: 2px;
+  left: 50%; bottom: 6px;
+  width: 0; height: 2px;
   background: currentColor;
   transform: translateX(-50%);
   transition: all var(--t-fast) var(--ease-out);
 }
-.service-btn-nav-dropdown:hover::after{
-  width: 80%;
-}
+.service-btn-nav-dropdown:hover::after{ width: 80%; }
 .service-btn-nav-dropdown:focus-visible{
   outline: 2px solid rgba(96,165,250,.9);
   outline-offset: 2px;
 }
-
 .navlink--menu{ position:relative; }
 .chev{ margin-left:6px; font-size:12px; opacity:.8; }
 
 /* =========================
-   Mega Panel (Services)
+   Mega Panel
    ========================= */
 .pubnav .mega{
   position: absolute;
@@ -177,12 +161,9 @@
   transition:
     opacity var(--t-med) var(--ease-out),
     transform var(--t-med) var(--ease-out);
-  z-index: 1200; /* always above content */
+  z-index: 1200; /* above hover pad */
 }
-.pubnav.is-sticky .mega{
-  background: rgba(255,255,255,.98);
-}
-
+.pubnav.is-sticky .mega{ background: rgba(255,255,255,.98); }
 .pubnav .mega.show{
   display: block;
   opacity: 1;
@@ -190,7 +171,19 @@
   pointer-events: auto;
 }
 
-/* “SERVICES” pill tag */
+/* ⬇️ Invisible bridge zone that keeps the menu open */
+.mega-hoverpad{
+  position: fixed;
+  left: 0; right: 0;
+  top: 63px;             /* match .mega top */
+  height: 64px;          /* adjust to taste */
+  z-index: 1150;         /* below panel, above page */
+  pointer-events: auto;
+  background: transparent; /* for debug: rgba(255,0,0,.06) */
+  cursor: default;
+}
+
+/* Tag */
 .mega__tag{
   position: absolute;
   top: 12px; left: 14px;
@@ -204,59 +197,26 @@
   border-radius: 999px;
 }
 
-/* Grid layout: 3 columns desktop */
+/* Grid + items */
 .mega__grid{
   margin-top: 8px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px 10px;
 }
-
-/* Section title */
 .mega__title{
-  padding-bottom: 0;
-  padding-top: 0;
   margin: 6px 6px 5px;
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: .08em;
-  color: #1a2b3b;
-  text-transform: uppercase;
+  font-size: 12px; font-weight: 900; letter-spacing: .08em; color: #1a2b3b; text-transform: uppercase;
 }
-.mega__section{
-  padding-bottom: 0;
-  padding-top: 50px;
-  padding-left: 0;
-  padding-right: 0;
-}
-
-/* Service rows */
+.mega__section{ padding-top: 50px; }
 .mega__row{
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 10px 5px;
-  border-radius: 12px;
-  text-decoration: none;
-  color: inherit;
-  transition:
-    transform var(--t-fast) var(--ease-out),
-    background var(--t-fast) var(--ease-out),
-    box-shadow var(--t-fast) var(--ease-out);
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 10px 5px; border-radius: 12px; text-decoration: none; color: inherit;
+  transition: transform var(--t-fast) var(--ease-out), background var(--t-fast) var(--ease-out), box-shadow var(--t-fast) var(--ease-out);
 }
-.mega__row:hover{
-  background: #F3F8FF;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(2,6,23,.06);
-}
+.mega__row:hover{ background: #F3F8FF; transform: translateY(-1px); box-shadow: 0 6px 14px rgba(2,6,23,.06); }
 
-/* Icon chips */
-.mega__icon{
-  width: 28px; height: 28px;
-  border-radius: 10px;
-  flex: 0 0 28px;
-  filter: drop-shadow(0 2px 6px rgba(2,6,23,.12));
-}
+.mega__icon{ width: 28px; height: 28px; border-radius: 10px; flex: 0 0 28px; filter: drop-shadow(0 2px 6px rgba(2,6,23,.12)); }
 .mega__icon.i-1{ background: linear-gradient(180deg, #B9E6FF, #A7F3D0); }
 .mega__icon.i-2{ background: linear-gradient(180deg, #D8B4FE, #93C5FD); }
 .mega__icon.i-3{ background: linear-gradient(180deg, #FBCFE8, #C7D2FE); }
@@ -264,85 +224,38 @@
 .mega__icon.i-5{ background: linear-gradient(180deg, #93C5FD, #FDE68A); }
 .mega__icon.i-6{ background: linear-gradient(180deg, #A7F3D0, #FBCFE8); }
 
-/* Text stack */
-.mega__text strong{
-  display: block;
-  font-size: 14px;
-  line-height: 1.15;
-  margin-top: 1px;
-  font-weight: 800;
-  color: #0f2433;
-}
-.mega__text small{
-  display: block;
-  margin-top: 2px;
-  font-size: 12px;
-  line-height: 1.25;
-  color: #5b6b79;
-}
+.mega__text strong{ display:block; font-size:14px; line-height:1.15; margin-top:1px; font-weight:800; color:#0f2433; }
+.mega__text small{ display:block; margin-top:2px; font-size:12px; line-height:1.25; color:#5b6b79; }
 
-/* Footer row */
 .mega__foot{
   grid-column: 1 / -1;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display:flex; justify-content: space-between; align-items:center;
   border-top: 1px solid rgba(2,6,23,.06);
-  padding-top: 12px;
-  margin-top: 6px;
+  padding-top: 12px; margin-top: 6px;
 }
 .mega__cta{
   background: linear-gradient(90deg, var(--c-brand, #6EE7B7), var(--c-brand-2, #60A5FA));
-  color:#fff;
-  padding:10px 16px;
-  border-radius: 999px;
-  text-decoration:none;
-  font-weight: 800;
+  color:#fff; padding:10px 16px; border-radius:999px; text-decoration:none; font-weight:800;
 }
-.mega__link{
-  color:#0f2433;
-  text-decoration:none;
-  font-weight:700;
-}
+.mega__link{ color:#0f2433; text-decoration:none; font-weight:700; }
 
 /* =========================
    Actions (buttons)
    ========================= */
-.pubnav__actions{
-  display:flex; align-items:center; gap:10px;
-}
+.pubnav__actions{ display:flex; align-items:center; gap:10px; }
 .btn{
-  height:38px; padding:0 14px;
-  border-radius: var(--pill);
-  font-weight:700; cursor:pointer;
-  border:1px solid transparent;
+  height:38px; padding:0 14px; border-radius: var(--pill); font-weight:700; cursor:pointer; border:1px solid transparent;
 }
-.btn.outline{
-  background:transparent;
-  color: #ebf1ff;
-  border-color: rgba(255,255,255,.5);
-}
-.pubnav:not(.is-sticky) .btn.outline{
-  border-color: var(--c-mist);
-  color: #ebf1ff;
-}
-.btn.primary{
-  background: linear-gradient(90deg, var(--c-sage), var(--c-brand-2));
-  color:#ebf1ff;
-  border:0;
-}
+.btn.outline{ background:transparent; color: #ebf1ff; border-color: rgba(255,255,255,.5); width: 100px; }
+.pubnav:not(.is-sticky) .btn.outline{ border-color: var(--c-mist); color: #ebf1ff; }
+.btn.primary{ background: linear-gradient(90deg, var(--c-sage), var(--c-brand-2)); color:#ebf1ff; border:0; }
 .btn.primary:hover{ filter: brightness(.98); }
 
 /* =========================
    Burger (mobile)
    ========================= */
-.pubnav__burger{
-  display:none; flex-direction:column; gap:4px;
-  background:transparent; border:0; cursor:pointer;
-}
-.pubnav__burger span{
-  width:22px; height:2px; background: currentColor; display:block;
-}
+.pubnav__burger{ display:none; flex-direction:column; gap:4px; background:transparent; border:0; cursor:pointer; }
+.pubnav__burger span{ width:22px; height:2px; background: currentColor; display:block; }
 .pubnav.is-top .pubnav__burger{ color: #ebf1ff; }
 .pubnav.is-sticky .pubnav__burger{ color: var(--c-white); }
 
@@ -361,7 +274,7 @@
   }
   .pubnav__links.open{ display:flex; }
 
-  .navlink{ color:#0f2433; }             /* dark text in mobile panel */
+  .navlink{ color:#0f2433; }
   .service-btn-nav-dropdown{ color:#0f2433; }
 
   .pubnav .mega{
@@ -371,33 +284,21 @@
     box-shadow: none;
     padding: 16px 14px 12px;
   }
+  .mega-hoverpad{ display:none; }  /* no bridge on mobile */
   .mega__grid{ grid-template-columns: 1fr 1fr; }
   .mega__tag{ position: static; margin-bottom: 6px; }
 }
-
 @media (max-width: 560px){
   .mega__grid{ grid-template-columns: 1fr; }
 }
 
 /* =========================
-   Small helpers
-   ========================= */
-.btn-sign-up-nav{
-  width: 200px;
-  color: #ebf1ff;
-  border-radius: 50px;
-}
-.btn-sign-up-nav:hover{ color: #ebf1ff; }
-.btn.outline{ width: 100px; }
-button{ margin-top: 0; }
-
-/* =========================
    Exit animation when leaving sticky
    ========================= */
 .pubnav.is-leaving {
-  position: fixed;    /* keep it fixed during the short exit */
+  position: fixed;
   top: 0; left: 0; right: 0;
-  animation: navExit 260ms var(--ease-out) forwards;  /* match JS timeout */
+  animation: navExit 260ms var(--ease-out) forwards;
   z-index: 1100;
 }
 .pubnav.is-leaving .pubnav__inner{
@@ -408,8 +309,6 @@ button{ margin-top: 0; }
   color: var(--c-white);
   box-shadow: var(--sh-1);
 }
-
-/* slide up + fade out */
 @keyframes navExit {
   0%   { opacity: 1; transform: translateY(0); }
   100% { opacity: 0; transform: translateY(-14px); }
