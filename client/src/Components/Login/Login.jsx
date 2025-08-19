@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import "./Login.css";
 import "../TypingAnimation/ta.css";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useNavigate } from "react-router-dom";
 
 function Login({ onSwitch }) {
-  const { login } = useAuth(); // <-- use the auth context
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,7 +30,9 @@ function Login({ onSwitch }) {
 
     try {
       setLoading(true);
-      const response = await fetch("/api/customer/login", {
+
+      // 🔹 Step 1: Try customer login
+      let response = await fetch("/api/customer/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -36,6 +40,16 @@ function Login({ onSwitch }) {
 
       let data = {};
       try { data = await response.json(); } catch {}
+
+      if (!response.ok) {
+        // 🔹 Step 2: If customer login fails, try technician login
+        response = await fetch("/api/technician/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        try { data = await response.json(); } catch {}
+      }
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -48,15 +62,26 @@ function Login({ onSwitch }) {
         return;
       }
 
-      // ✅ Update global auth state immediately (no page reload needed)
+      // ✅ Update global auth state immediately
       if (data.token) {
-        // data.customer is returned by your backend login controller
-        login(data.token, data.customer);
+        // Role detection: customer or technician
+        const userObj = data.customer
+          ? { ...data.customer, role: "customer" }
+          : data.technician
+          ? { ...data.technician, role: "technician" }
+          : null;
+
+        login(data.token, userObj);
+
+        // Redirect based on role
+        if (userObj?.role === "technician") {
+          navigate("/TechnicianDashboard");
+        } else {
+          navigate("/user-dashboard");
+        }
       }
 
-      // Keep the modal open so you can see the success message
       setMsg({ type: "success", text: "Login Successful! 😃" });
-
     } catch (error) {
       setMsg({ type: "error", text: "Network error. Is the server running? 🤔" });
     } finally {

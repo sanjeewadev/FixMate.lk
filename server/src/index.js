@@ -49,6 +49,9 @@ app.use("/api", technicianViewsRoutes);
 
 app.use("/api/apply/technician", require("./routes/becomeTechnicianRoutes"));
 
+const aiRoutes = require('./routes/aiRoutes');
+app.use('/api', aiRoutes);
+
 
 // Start server
 const PORT = process.env.PORT || 7002;

@@ -13,6 +13,18 @@ function filesToMedia(files = []) {
     .filter(m => !!m.url);
 }
 
+// ---- lightweight notify helper (optional) ----
+// If you set app.locals.notify = (event, payload) => {...}, you'll receive these events.
+// Otherwise this safely no-ops.
+function notify(app, event, payload) {
+  try {
+    const fn = app?.locals?.notify;
+    if (typeof fn === 'function') fn(event, payload);
+  } catch (e) {
+    console.warn('notify() failed:', e?.message || e);
+  }
+}
+
 // CUSTOMER: Create a new booking
 // POST /api/bookings
 exports.createBooking = async (req, res) => {
@@ -72,6 +84,16 @@ exports.createBooking = async (req, res) => {
       specialInstructions,
       media,
       status: 'pending'
+    });
+
+    // NEW: lightweight notification so techs/coordinators/admins can be alerted and list immediately
+    notify(req.app, 'booking:new', {
+      bookingId: doc._id,
+      district: snapshot.district,
+      serviceId: String(service._id),
+      serviceName: service.name,
+      problemTitle,
+      createdAt: doc.createdAt
     });
 
     return res.status(201).json(doc);
@@ -211,6 +233,48 @@ exports.technicianDecline = async (req, res) => {
     return res.json({ message: 'Declined', bookingId: booking._id });
   } catch (e) {
     return res.status(400).json({ message: e.message });
+  }
+};
+
+// TECHNICIAN: my bookings by status (for dashboard tabs)
+// GET /api/technician/bookings/mine?status=awaiting_coordinator|coordinator_approved|completed|in_progress
+exports.listMineForTechnician = async (req, res) => {
+  try {
+    if (req.user?.role !== 'technician' || !mongoose.isValidObjectId(req.user?.id)) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    const techId = new mongoose.Types.ObjectId(String(req.user.id));
+    const status = String(req.query?.status || '').trim();
+
+    if (status === 'awaiting_coordinator') {
+      const items = await Booking.find({
+        assignedTechnician: null,
+        status: 'awaiting_coordinator',
+        technicianResponses: { $elemMatch: { technician: techId, status: 'accepted' } }
+      }).populate('service', 'name category').sort({ createdAt: -1 }).lean();
+      return res.json(items);
+    }
+
+    if (status === 'coordinator_approved') {
+      const items = await Booking.find({
+        assignedTechnician: techId,
+        status: { $in: ['coordinator_approved', 'in_progress'] }
+      }).populate('service', 'name category').sort({ createdAt: -1 }).lean();
+      return res.json(items);
+    }
+
+    if (status === 'completed') {
+      const items = await Booking.find({
+        assignedTechnician: techId,
+        status: 'completed'
+      }).populate('service', 'name category').sort({ createdAt: -1 }).lean();
+      return res.json(items);
+    }
+
+    return res.json([]);
+  } catch (e) {
+    console.error('listMineForTechnician error', e);
+    return res.status(500).json({ message: e.message || 'Server error' });
   }
 };
 
@@ -372,6 +436,177 @@ exports.cancelMyBooking = async (req, res) => {
     await booking.save();
 
     return res.json({ message: 'Booking cancelled', bookingId: booking._id });
+  } catch (e) {
+    return res.status(400).json({ message: e.message });
+  }
+};
+
+/* -------------------- NEW: Coordinator/Admin visibility & actions -------------------- */
+
+// COORDINATOR/ADMIN: see ALL unassigned requests (including brand-new 'pending')
+// GET /api/coordinator/bookings?status=pending|awaiting_coordinator&district=Colombo&q=leak
+exports.listForCoordinator = async (req, res) => {
+  try {
+    const allowed = ['coordinator','admin','super_admin'].includes(req.user?.role);
+    if (!allowed) return res.status(403).json({ message: 'Forbidden' });
+
+    const { status, district, q } = req.query || {};
+    const statusFilter = status ? [status] : ['pending','awaiting_coordinator'];
+
+    const find = {
+      assignedTechnician: null,
+      status: { $in: statusFilter }
+    };
+    if (district) find['customerSnapshot.district'] = district;
+    if (q) find.problemTitle = { $regex: q, $options: 'i' };
+
+    const items = await Booking.find(find)
+      .populate('service', 'name category')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const out = items.map(b => ({
+      ...b,
+      acceptedCount: (b.technicianResponses || []).filter(r => r.status === 'accepted').length
+    }));
+
+    return res.json(out);
+  } catch (e) {
+    return res.status(500).json({ message: e.message });
+  }
+};
+
+// COORDINATOR/ADMIN: summarized dashboard buckets (unclaimed vs awaiting approval)
+// GET /api/coordinator/bookings/dashboard?district=Colombo
+exports.coordinatorDashboard = async (req, res) => {
+  try {
+    const allowed = ['coordinator','admin','super_admin'].includes(req.user?.role);
+    if (!allowed) return res.status(403).json({ message: 'Forbidden' });
+
+    const { district } = req.query || {};
+    const base = { assignedTechnician: null, status: { $in: ['pending','awaiting_coordinator'] } };
+    if (district) base['customerSnapshot.district'] = district;
+
+    const [unclaimed, awaiting] = await Promise.all([
+      Booking.find({ ...base, status: 'pending' })
+        .populate('service', 'name category')
+        .sort({ createdAt: -1 })
+        .lean(),
+      Booking.find({
+        ...base,
+        status: 'awaiting_coordinator',
+        'technicianResponses.status': 'accepted'
+      })
+        .populate('service', 'name category')
+        .populate('technicianResponses.technician', 'full_name phone_number district specialization experience_years profile_image_url')
+        .sort({ createdAt: -1 })
+        .lean()
+    ]);
+
+    const addCounts = b => ({
+      ...b,
+      acceptedCount: (b.technicianResponses || []).filter(r => r.status === 'accepted').length
+    });
+
+    return res.json({
+      unclaimed: unclaimed.map(addCounts),                 // brand new – no accepted tech yet
+      awaitingCoordinator: awaiting.map(addCounts)         // at least one tech accepted
+    });
+  } catch (e) {
+    return res.status(500).json({ message: e.message });
+  }
+};
+
+// COORDINATOR/ADMIN: manual assign (even if no tech accepted yet)
+// POST /api/coordinator/bookings/:id/assign
+// body: { technicianId }
+exports.coordinatorAssign = async (req, res) => {
+  try {
+    const allowed = ['coordinator','admin','super_admin'].includes(req.user?.role);
+    if (!allowed) return res.status(403).json({ message: 'Forbidden' });
+
+    const { id } = req.params;
+    const { technicianId } = req.body || {};
+    if (!mongoose.isValidObjectId(technicianId)) {
+      return res.status(400).json({ message: 'technicianId is required' });
+    }
+
+    const [booking, tech] = await Promise.all([
+      Booking.findById(id),
+      Technician.findById(technicianId)
+    ]);
+
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+    if (!tech) return res.status(404).json({ message: 'Technician not found' });
+
+    // Set/overwrite assignment
+    booking.assignedTechnician = tech._id;
+    // Treat this as approval to proceed (align with your current coordinatorApprove status)
+    booking.status = 'coordinator_approved';
+
+    // Optional audit: reflect that coordinator chose this tech, independent of accept flow
+    booking.technicianResponses = booking.technicianResponses || [];
+    const idx = booking.technicianResponses.findIndex(r => String(r.technician) === String(tech._id));
+    if (idx === -1) booking.technicianResponses.push({ technician: tech._id, status: 'assigned_by_coordinator' });
+
+    await booking.save();
+
+    notify(req.app, 'booking:assigned', {
+      bookingId: booking._id,
+      technicianId: String(tech._id),
+      assignedBy: req.user?.id || null
+    });
+
+    return res.json({ message: 'Assigned by coordinator', bookingId: booking._id });
+  } catch (e) {
+    return res.status(400).json({ message: e.message });
+  }
+};
+
+// COORDINATOR/ADMIN: reassign to a different technician (before job completion)
+// POST /api/coordinator/bookings/:id/reassign
+// body: { technicianId }
+exports.coordinatorReassign = async (req, res) => {
+  try {
+    const allowed = ['coordinator','admin','super_admin'].includes(req.user?.role);
+    if (!allowed) return res.status(403).json({ message: 'Forbidden' });
+
+    const { id } = req.params;
+    const { technicianId } = req.body || {};
+    if (!mongoose.isValidObjectId(technicianId)) {
+      return res.status(400).json({ message: 'technicianId is required' });
+    }
+
+    const [booking, tech] = await Promise.all([
+      Booking.findById(id),
+      Technician.findById(technicianId)
+    ]);
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+    if (!tech) return res.status(404).json({ message: 'Technician not found' });
+
+    // Guard: only allow reassign while in pre-work states
+    const lockedStatuses = ['cancelled','completed']; // extend if you track 'in_progress'
+    if (lockedStatuses.includes(booking.status)) {
+      return res.status(409).json({ message: `Cannot reassign in status: ${booking.status}` });
+    }
+
+    booking.assignedTechnician = tech._id;
+    if (booking.status !== 'coordinator_approved') booking.status = 'coordinator_approved';
+
+    // Optional audit trail in responses
+    booking.technicianResponses = booking.technicianResponses || [];
+    const idx = booking.technicianResponses.findIndex(r => String(r.technician) === String(tech._id));
+    if (idx === -1) booking.technicianResponses.push({ technician: tech._id, status: 'reassigned_by_coordinator' });
+
+    await booking.save();
+
+    notify(req.app, 'booking:reassigned', {
+      bookingId: booking._id,
+      technicianId: String(tech._id),
+      reassignedBy: req.user?.id || null
+    });
+
+    return res.json({ message: 'Reassigned', bookingId: booking._id });
   } catch (e) {
     return res.status(400).json({ message: e.message });
   }
