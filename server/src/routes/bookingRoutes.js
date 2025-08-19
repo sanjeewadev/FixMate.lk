@@ -18,7 +18,11 @@ const {
   coordinatorApprove,
   getBooking,
   cancelMyBooking,
-  listMineForTechnician
+  listMineForTechnician,
+  listForCoordinator,
+  coordinatorDashboard,
+  coordinatorAssign,
+  coordinatorReassign
 } = require('../controllers/bookingController');
 
 // CUSTOMER
