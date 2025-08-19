@@ -1,7 +1,6 @@
-// src/Components/ServicesSection/ServicesSection.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import api from "../../lib/api";              // <-- your axios instance
+import api from "../../lib/api";
 import "./ServicesSection.css";
 
 const pickRandom = (arr, n = 8) => {
@@ -22,7 +21,6 @@ const ServicesSection = () => {
     let dead = false;
     (async () => {
       try {
-        // pull a generous page, then sample 8 client-side
         const { data } = await api.get("/api/services?limit=200");
         const list = data?.data || data || [];
         if (!dead) setAll(list);
@@ -40,27 +38,26 @@ const ServicesSection = () => {
   const onImgErr = (e) => { e.currentTarget.src = "/assets/default.jpg"; };
 
   return (
-    <div className="services-section-wrapper">
-      <h2 className="services-section-title">Our Services</h2>
+    <div className="servicesSection fontBody">
+      <h2 className="servicesTitle fontHeading">Our Services</h2>
 
       {loading ? (
-        <div className="services-section-grid">
+        <div className="servicesGrid">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div className="services-section-card skeleton" key={i} />
+            <div className="servicesCard skeleton" key={i} />
           ))}
         </div>
       ) : err ? (
-        <p className="services-error">{err}</p>
+        <p className="servicesError">{err}</p>
       ) : items.length === 0 ? (
-        <p className="services-empty">No services available yet.</p>
+        <p className="servicesEmpty">No services available yet.</p>
       ) : (
-        <div className="services-section-grid">
+        <div className="servicesGrid">
           {items.map((s) => (
             <NavLink
               key={s._id || s.slug}
-              // Deep-link to booking (your BookService supports serviceId/slug)
               to={s._id ? `/book?serviceId=${s._id}` : `/book?slug=${encodeURIComponent(s.slug)}`}
-              className="services-section-card"
+              className="servicesCard"
               title={s.name}
             >
               <img
@@ -68,9 +65,9 @@ const ServicesSection = () => {
                 alt={s.name || "Service"}
                 onError={onImgErr}
               />
-              <p className="services-card-title">{s.name}</p>
+              <p className="serviceTitle">{s.name}</p>
               {s.category || s.description ? (
-                <span className="services-card-blurb">
+                <span className="serviceBlurb">
                   {s.category || String(s.description || "").slice(0, 80)}
                 </span>
               ) : null}
@@ -79,7 +76,7 @@ const ServicesSection = () => {
         </div>
       )}
 
-      <div className="services-section-link">
+      <div className="servicesLink">
         <Link to="/Services">View All Services &gt;&gt;</Link>
       </div>
     </div>

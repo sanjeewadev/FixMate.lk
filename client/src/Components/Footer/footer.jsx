@@ -1,4 +1,3 @@
-// src/Components/Footer/Footer.jsx
 import React from "react";
 import { NavLink } from "react-router-dom";
 import "./footer.css";
@@ -9,45 +8,49 @@ import footerx from "../../assets/footer-twitter.svg";
 import footeryt from "../../assets/footer-youtube.svg";
 
 export default function Footer({ variant = "dark" }) {
-  const cls = `site-footer ${variant === "light" ? "is-light" : "is-dark"}`;
+  const cls = `siteFooter ${variant === "light" ? "isLight" : "isDark"} fontBody`;
 
   return (
     <footer className={cls}>
-      <div className="foot__inner">
-        <nav className="foot__grid" aria-label="Footer">
-          <section className="foot__col">
-            <h4 className="foot__head">The Good</h4>
-            <NavLink to="/" className="foot__link">Home</NavLink>
-            <NavLink to="/AboutUs" className="foot__link">About</NavLink>
-            <NavLink to="/Services" className="foot__link">Services</NavLink>
-            <a className="foot__link" href="/#contact">Contact Us</a>
+      <div className="footerInner">
+        <nav className="footerGrid" aria-label="Footer">
+          <section className="footerCol">
+            <h4 className="footerHead fontHeading">The Good</h4>
+            <NavLink to="/" className="footerLink">Home</NavLink>
+            <NavLink to="/AboutUs" className="footerLink">About</NavLink>
+            <NavLink to="/Services" className="footerLink">Services</NavLink>
+            <a className="footerLink" href="/#contact">Contact Us</a>
           </section>
 
-          <section className="foot__col">
-            <h4 className="foot__head">The Boring</h4>
-            <a className="foot__link" href="/terms">Terms</a>
-            <a className="foot__link" href="/privacy">Privacy</a>
-            <a className="foot__link" href="/refunds">Refunds & Policies</a>
+          <section className="footerCol">
+            <h4 className="footerHead fontHeading">The Boring</h4>
+            <a className="footerLink" href="/terms">Terms</a>
+            <a className="footerLink" href="/privacy">Privacy</a>
+            <a className="footerLink" href="/refunds">Refunds & Policies</a>
           </section>
 
-          <section className="foot__col">
-            <h4 className="foot__head">The Cool</h4>
-            <a className="foot__link foot__social" href="https://x.com" target="_blank" rel="noreferrer">
-              <img src={footerx} alt="" aria-hidden /> <span>X</span>
+          <section className="footerCol">
+            <h4 className="footerHead fontHeading">The Cool</h4>
+            <a className="footerLink footerSocial" href="https://x.com" target="_blank" rel="noreferrer">
+              <img src={footerx} alt="" aria-hidden />
+              <span>X</span>
             </a>
-            <a className="foot__link foot__social" href="https://instagram.com" target="_blank" rel="noreferrer">
-              <img src={footerinsta} alt="" aria-hidden /> <span>Instagram</span>
+            <a className="footerLink footerSocial" href="https://instagram.com" target="_blank" rel="noreferrer">
+              <img src={footerinsta} alt="" aria-hidden />
+              <span>Instagram</span>
             </a>
-            <a className="foot__link foot__social" href="https://facebook.com" target="_blank" rel="noreferrer">
-              <img src={footerfb} alt="" aria-hidden /> <span>Facebook</span>
+            <a className="footerLink footerSocial" href="https://facebook.com" target="_blank" rel="noreferrer">
+              <img src={footerfb} alt="" aria-hidden />
+              <span>Facebook</span>
             </a>
-            <a className="foot__link foot__social" href="https://youtube.com" target="_blank" rel="noreferrer">
-              <img src={footeryt} alt="" aria-hidden /> <span>YouTube</span>
+            <a className="footerLink footerSocial" href="https://youtube.com" target="_blank" rel="noreferrer">
+              <img src={footeryt} alt="" aria-hidden />
+              <span>YouTube</span>
             </a>
           </section>
         </nav>
 
-        <div className="foot__bar">
+        <div className="footerBar">
           <p>© 2025 FixMate.lk. All rights reserved.</p>
         </div>
       </div>

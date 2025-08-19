@@ -12,21 +12,18 @@ import "./nav.css";
 export default function PublicNavBar() {
   const scrolled = useScrollGate("#hero", 0.6, 96);
 
-  // mobile menu + services mega
   const [open, setOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // auth modal
-  const [modalType, setModalType] = useState(null); // 'login' | 'register' | 'technician' | null
+  const [modalType, setModalType] = useState(null);
 
   const { isAuth, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const panelRef = useRef(null);
-  const menuWrapRef = useRef(null);   // ⬅️ wraps trigger + panel + hover pad
+  const menuWrapRef = useRef(null);
 
-  // animate when leaving sticky state (fade out nicely)
   const [leaving, setLeaving] = useState(false);
   const prevScrolled = useRef(scrolled);
 
@@ -40,7 +37,6 @@ export default function PublicNavBar() {
     return () => clearTimeout(timer);
   }, [scrolled]);
 
-  // close mega on outside click (now checks the WHOLE wrapper)
   useEffect(() => {
     const onDoc = (e) => {
       if (!menuWrapRef.current) return;
@@ -50,14 +46,12 @@ export default function PublicNavBar() {
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
-  // open-login global hook
   useEffect(() => {
     const onOpen = () => setModalType("login");
     window.addEventListener("fm:open-login", onOpen);
     return () => window.removeEventListener("fm:open-login", onOpen);
   }, []);
 
-  // ProtectedRoute -> open login modal
   useEffect(() => {
     if (location.state?.openLogin) {
       setModalType("login");
@@ -65,7 +59,6 @@ export default function PublicNavBar() {
     }
   }, [location, navigate]);
 
-  // Lock page scroll while modal open
   useEffect(() => {
     const sb = window.innerWidth - document.documentElement.clientWidth;
     if (modalType) {
@@ -81,7 +74,6 @@ export default function PublicNavBar() {
     };
   }, [modalType]);
 
-  // ESC closes modal
   useEffect(() => {
     if (!modalType) return;
     const onKey = (e) => e.key === "Escape" && setModalType(null);
@@ -89,14 +81,13 @@ export default function PublicNavBar() {
     return () => window.removeEventListener("keydown", onKey);
   }, [modalType]);
 
-  const closeMenus   = () => { setOpen(false); setMenuOpen(false); };
-  const openLogin    = () => setModalType("login");
+  const closeMenus = () => { setOpen(false); setMenuOpen(false); };
+  const openLogin = () => setModalType("login");
   const openRegister = () => setModalType("register");
-  const openTech     = () => setModalType("technician");
-  const closeModal   = () => setModalType(null);
-  const doLogout     = () => { logout(); closeMenus(); };
+  const openTech = () => setModalType("technician");
+  const closeModal = () => setModalType(null);
+  const doLogout = () => { logout(); closeMenus(); };
 
-  // --- robust hover for mega (with a small delayed close)
   const hoverTimer = useRef(null);
   const cancelClose = () => { if (hoverTimer.current) clearTimeout(hoverTimer.current); };
   const openMega = () => { cancelClose(); setMenuOpen(true); };
@@ -108,15 +99,15 @@ export default function PublicNavBar() {
 
   return (
     <>
-      <header className={`pubnav ${scrolled ? "is-sticky" : "is-top"} ${leaving ? "is-leaving" : ""}`}>
-        <div className="pubnav__inner">
-          <div className="pubnav__brand" onClick={() => { navigate("/"); closeMenus(); }}>
-            <span className="brand-dot" />
-            <span className="brand-name">FixMate.lk</span>
+      <header className={`publicNav fontBody ${scrolled ? "isSticky" : "isTop"} ${leaving ? "isLeaving" : ""}`}>
+        <div className="navInner">
+          <div className="brand" onClick={() => { navigate("/"); closeMenus(); }}>
+            <span className="brandDot" />
+            <span className="brandName">FixMate.lk</span>
           </div>
 
           <button
-            className="pubnav__burger"
+            className="navBurger"
             aria-label="Open menu"
             aria-expanded={open}
             onClick={() => setOpen(v => !v)}
@@ -126,15 +117,15 @@ export default function PublicNavBar() {
             <span />
           </button>
 
-          <nav className={`pubnav__links ${open ? "open" : ""}`}>
-            <NavLink to="/" end className="navlink" onClick={closeMenus}>Home</NavLink>
-            <NavLink to="/AboutUs" className="navlink" onClick={closeMenus}>About</NavLink>
-            <NavLink to="/Contact" className="navlink" onClick={closeMenus}>Contact</NavLink>
-            <NavLink to="/FAQ" className="navlink" onClick={closeMenus}>FAQ</NavLink>
+          <nav className={`navLinks ${open ? "open" : ""}`}>
+            <NavLink to="/" end className="navLink" onClick={closeMenus}>Home</NavLink>
+            <NavLink to="/AboutUs" className="navLink" onClick={closeMenus}>About</NavLink>
+            <NavLink to="/Contact" className="navLink" onClick={closeMenus}>Contact</NavLink>
+            <NavLink to="/FAQ" className="navLink" onClick={closeMenus}>FAQ</NavLink>
 
             <NavLink
               to={isAuth ? "/UserDashboard" : "#"}
-              className="navlink"
+              className="navLink"
               onClick={(e) => {
                 if (!isAuth) {
                   e.preventDefault();
@@ -148,15 +139,14 @@ export default function PublicNavBar() {
               Dashboard
             </NavLink>
 
-            {/* Services trigger + mega + HOVER PAD */}
             <div
               ref={menuWrapRef}
-              className="navlink--menu"
+              className="navLinkMenu"
               onMouseEnter={openMega}
               onMouseLeave={scheduleCloseMega}
             >
               <button
-                className="service-btn-nav-dropdown"
+                className="serviceMenuBtn"
                 aria-haspopup="true"
                 aria-expanded={menuOpen}
                 onClick={() => setMenuOpen(v => !v)}
@@ -166,133 +156,128 @@ export default function PublicNavBar() {
 
               <div
                 ref={panelRef}
-                className={`mega ${menuOpen ? "show" : ""}`}
+                className={`megaPanel ${menuOpen ? "show" : ""}`}
                 role="menu"
                 aria-label="Services"
                 onMouseEnter={cancelClose}
                 onMouseLeave={scheduleCloseMega}
               >
-                <div className="mega__tag">POPULAR SERVICES</div>
-                <div className="mega__grid">
-                  {/* ELECTRICAL + PLUMBING */}
-                  <section className="mega__section">
-                    <div className="mega__title">Electrical & Plumbing</div>
+                <div className="megaTag">POPULAR SERVICES</div>
+                <div className="megaGrid">
+                  <section className="megaSection">
+                    <div className="megaTitle">Electrical & Plumbing</div>
 
-                    <NavLink className="mega__row" to="/Services?cat=electrical" onClick={closeMenus}>
-                      <span className="mega__icon i-1" />
-                      <div className="mega__text">
+                    <NavLink className="megaRow" to="/Services?cat=electrical" onClick={closeMenus}>
+                      <span className="megaIcon i-1" />
+                      <div className="megaText">
                         <strong>Electrical Services</strong>
                         <small>Wiring, lighting, power upgrades & fault fixing</small>
                       </div>
                     </NavLink>
 
-                    <NavLink className="mega__row" to="/Services?cat=plumbing" onClick={closeMenus}>
-                      <span className="mega__icon i-2" />
-                      <div className="mega__text">
+                    <NavLink className="megaRow" to="/Services?cat=plumbing" onClick={closeMenus}>
+                      <span className="megaIcon i-2" />
+                      <div className="megaText">
                         <strong>Plumbing Services</strong>
                         <small>Repairs, fittings, lines, leaks, kitchen & bath</small>
                       </div>
                     </NavLink>
 
-                    <NavLink className="mega__row" to="/Services?cat=ac-repair" onClick={closeMenus}>
-                      <span className="mega__icon i-3" />
-                      <div className="mega__text">
+                    <NavLink className="megaRow" to="/Services?cat=ac-repair" onClick={closeMenus}>
+                      <span className="megaIcon i-3" />
+                      <div className="megaText">
                         <strong>AC Maintenance & Repair</strong>
                         <small>Servicing, cleaning, gas refilling & repairs</small>
                       </div>
                     </NavLink>
                   </section>
 
-                  {/* SECURITY + LOW VOLTAGE */}
-                  <section className="mega__section">
-                    <div className="mega__title">Security & Low-Voltage</div>
+                  <section className="megaSection">
+                    <div className="megaTitle">Security & Low-Voltage</div>
 
-                    <NavLink className="mega__row" to="/Services?cat=cctv" onClick={closeMenus}>
-                      <span className="mega__icon i-4" />
-                      <div className="mega__text">
+                    <NavLink className="megaRow" to="/Services?cat=cctv" onClick={closeMenus}>
+                      <span className="megaIcon i-4" />
+                      <div className="megaText">
                         <strong>CCTV Installation</strong>
                         <small>Cameras, DVR/NVR setup & maintenance</small>
                       </div>
                     </NavLink>
 
-                    <NavLink className="mega__row" to="/Services?cat=fire-alarm" onClick={closeMenus}>
-                      <span className="mega__icon i-5" />
-                      <div className="mega__text">
+                    <NavLink className="megaRow" to="/Services?cat=fire-alarm" onClick={closeMenus}>
+                      <span className="megaIcon i-5" />
+                      <div className="megaText">
                         <strong>Fire Alarm Systems</strong>
                         <small>Install, inspect, maintain & commission</small>
                       </div>
                     </NavLink>
 
-                    <NavLink className="mega__row" to="/Services?cat=networking" onClick={closeMenus}>
-                      <span className="mega__icon i-6" />
-                      <div className="mega__text">
+                    <NavLink className="megaRow" to="/Services?cat=networking" onClick={closeMenus}>
+                      <span className="megaIcon i-6" />
+                      <div className="megaText">
                         <strong>Networking Solutions</strong>
                         <small>Cabling, Wi-Fi, secure LAN/WAN</small>
                       </div>
                     </NavLink>
 
-                    <NavLink className="mega__row" to="/Services?cat=low-voltage" onClick={closeMenus}>
-                      <span className="mega__icon i-1" />
-                      <div className="mega__text">
+                    <NavLink className="megaRow" to="/Services?cat=low-voltage" onClick={closeMenus}>
+                      <span className="megaIcon i-1" />
+                      <div className="megaText">
                         <strong>Low Voltage Maintenance</strong>
                         <small>Intercoms, access control, data cabling</small>
                       </div>
                     </NavLink>
                   </section>
 
-                  {/* CARPENTRY + FINISHES */}
-                  <section className="mega__section">
-                    <div className="mega__title">Carpentry & Finishes</div>
+                  <section className="megaSection">
+                    <div className="megaTitle">Carpentry & Finishes</div>
 
-                    <NavLink className="mega__row" to="/Services?cat=carpentry" onClick={closeMenus}>
-                      <span className="mega__icon i-2" />
-                      <div className="mega__text">
+                    <NavLink className="megaRow" to="/Services?cat=carpentry" onClick={closeMenus}>
+                      <span className="megaIcon i-2" />
+                      <div className="megaText">
                         <strong>Carpentry Services</strong>
                         <small>Repairs, custom woodwork, doors & cabinetry</small>
                       </div>
                     </NavLink>
 
-                    <NavLink className="mega__row" to="/Services?cat=painting" onClick={closeMenus}>
-                      <span className="mega__icon i-3" />
-                      <div className="mega__text">
+                    <NavLink className="megaRow" to="/Services?cat=painting" onClick={closeMenus}>
+                      <span className="megaIcon i-3" />
+                      <div className="megaText">
                         <strong>Painting Services</strong>
                         <small>Interior, exterior & decorative finishes</small>
                       </div>
                     </NavLink>
 
-                    <NavLink className="mega__row" to="/Services?cat=aluminium" onClick={closeMenus}>
-                      <span className="mega__icon i-4" />
-                      <div className="mega__text">
+                    <NavLink className="megaRow" to="/Services?cat=aluminium" onClick={closeMenus}>
+                      <span className="megaIcon i-4" />
+                      <div className="megaText">
                         <strong>Aluminium Works</strong>
                         <small>Doors, windows, partitions & custom</small>
                       </div>
                     </NavLink>
 
-                    <NavLink className="mega__row" to="/Services?cat=upvc" onClick={closeMenus}>
-                      <span className="mega__icon i-5" />
-                      <div className="mega__text">
+                    <NavLink className="megaRow" to="/Services?cat=upvc" onClick={closeMenus}>
+                      <span className="megaIcon i-5" />
+                      <div className="megaText">
                         <strong>uPVC Works</strong>
                         <small>Modern, durable windows & doors</small>
                       </div>
                     </NavLink>
                   </section>
 
-                  {/* Footer row */}
-                  <div className="mega__foot">
-                    <NavLink to="/Services" className="mega__cta" onClick={closeMenus}>
+                  <div className="megaFoot">
+                    <NavLink to="/Services" className="megaCta" onClick={closeMenus}>
                       Explore all services
                     </NavLink>
-                    <NavLink to="/AboutUs#contact" className="mega__link" onClick={closeMenus}>
+                    <NavLink to="/AboutUs#contact" className="megaLink" onClick={closeMenus}>
                       Need help? Contact us →
                     </NavLink>
                   </div>
                 </div>
-
               </div>
-              {/* ⬇️ Invisible “bridge” area that keeps menu open */}
+
               {menuOpen && (
                 <div
-                  className="mega-hoverpad"
+                  className="megaHoverPad"
                   onMouseEnter={cancelClose}
                   onMouseLeave={scheduleCloseMega}
                 />
@@ -300,7 +285,7 @@ export default function PublicNavBar() {
             </div>
           </nav>
 
-          <div className="pubnav__actions">
+          <div className="navActions">
             {!isAuth ? (
               <button className="btn outline" onClick={openLogin}>Login</button>
             ) : (
@@ -310,7 +295,6 @@ export default function PublicNavBar() {
         </div>
       </header>
 
-      {/* Modals */}
       {modalType && (
         <div className="login-modal-overlay" onClick={closeModal} role="dialog" aria-modal="true">
           <div className={`login-modal ${modalType === "register" ? "wide" : ""}`} onClick={(e) => e.stopPropagation()}>

@@ -17,11 +17,11 @@ import Support from "./Pages/UserDashboard/Support.jsx";
 import Overview from "./Pages/UserDashboard/Overview.jsx";
 import MyBookings from "./Pages/UserDashboard/MyBookings.jsx";
 import BookingDetails from "./Pages/UserDashboard/BookingDetails.jsx";
-import Chatwithtechni from "./Components/chat/ChatPanel.jsx"
+import Chatwithtechni from "./Components/chat/ChatPanel.jsx";
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-// 🔐 Auth context + route guard
+// Auth context + route guard
 import { AuthProvider } from "./context/AuthContext.jsx";
 import ProtectedRoute from "./Components/ProtectedRoute.jsx";
 
@@ -30,7 +30,6 @@ const router = createBrowserRouter([
   { path: "/AboutUs", element: <AboutUs /> },
   { path: "/Services", element: <Services /> },
 
-  // Only logged-in customers should access booking
   {
     path: "/book",
     element: (
@@ -42,7 +41,6 @@ const router = createBrowserRouter([
 
   { path: "/AdminDashboard", element: <AdminDashboard /> },
 
-  // FULL User Dashboard with nested pages (all protected)
   {
     path: "/UserDashboard",
     element: (
@@ -63,15 +61,17 @@ const router = createBrowserRouter([
   },
 
   { path: "/TechnicianRegisterForm", element: <TechnicianRegisterForm /> },
-
   { path: "/TechnicianDashboard", element: <TechnicianDashboard /> },
   { path: "/StaffDashboard", element: <StaffDashboard /> },
 ]);
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    {/* This single wrapper applies Inter site-wide */}
+    <div className="fontBody">
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </div>
   </StrictMode>
 );

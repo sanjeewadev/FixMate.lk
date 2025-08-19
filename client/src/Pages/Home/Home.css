@@ -11,7 +11,6 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: "Segoe UI", "Poppins", sans-serif;
   background-color: #ebf1ff;
   color: var(--text-dark);
   scroll-behavior: smooth;
@@ -23,7 +22,7 @@ section {
 }
 
 h2 {
-  font-size: 36px;
+  font-size: 50px;
   font-weight: 700;
   margin-bottom: 25px;
   color: var(--text-dark);

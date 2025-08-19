@@ -1,38 +1,55 @@
 import React from "react";
 import "./AboutSection.css";
 import { useNavigate } from "react-router-dom";
+import AboutImage from "../../assets/AboutImage/about-section-image.png";
 
-const AboutSection = () => {
+export default function AboutSection() {
   const navigate = useNavigate();
 
-  const handleExploreMore = () => {
-    navigate("/aboutus");
-  };
-
   return (
-    <div className="fixmate-about-wrapper">
-      <h2 className="fixmate-about-heading">About FixMate</h2>
-      <div className="fixmate-about-container">
-        <div className="fixmate-about-image">
-          {/* <img src={AboutImage} alt="About illustration" /> */}
+    <section className="aboutWrap fontBody" aria-labelledby="about-title">
+      <h2 id="about-title" className="aboutHeading fontHeading">About FixMate</h2>
+
+      <div className="aboutCard">
+        <div className="aboutMedia">
+          <img
+            src={AboutImage}
+            alt="FixMate technician helping a homeowner"
+            loading="lazy"
+          />
         </div>
-        <div className="fixmate-about-text">
-          <h3>How to design your site footer like we did</h3>
-          <p>
-            Donec a eros justo. Fusce egestas tristique ultrices. Nam tempor, augue nec tincidunt molestie,
-            massa nunc varius arcu, at scelerisque elit erat a magna. Donec quis erat at libero ultrices
-            mollis. In hac habitasse platea dictumst. Vivamus vehicula leo dui, at porta nisi facilisis finibus.
-            In euismod augue vitae nisi ultricies, non aliquet urna tincidunt. Integer in nisi eget nulla
-            commodo faucibus efficitur quis massa. Praesent felis est, finibus et nisi ac, hendrerit venenatis
-            libero. Donec consectetur faucibus ipsum id gravida.
+
+        <div className="aboutBody">
+          <h3 className="aboutTitle fontHeading">Home services made easy</h3>
+          <p className="aboutText">
+            FixMate connects you with verified technicians for everyday repairs and
+            bigger projects. Book online, get quick updates, and track everything
+            in one place - simple, transparent, and reliable.
           </p>
-          <button className="fixmate-about-btn" onClick={handleExploreMore}>
-            Explore More
-          </button>
+
+          <ul className="aboutList">
+            <li>Verified & experienced technicians</li>
+            <li>Clear pricing and easy scheduling</li>
+            <li>Chat and updates in your dashboard</li>
+            <li>Full history of jobs & receipts</li>
+          </ul>
+
+          <div className="ctaRow">
+            <button
+              onClick={() => navigate("/AboutUs")}
+              className="ctaButton primary"
+            >
+              Explore More
+            </button>
+            <button
+              onClick={() => navigate("/Services")}
+              className="ctaButton ghost"
+            >
+              Browse Services →
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   );
-};
-
-export default AboutSection;
+}

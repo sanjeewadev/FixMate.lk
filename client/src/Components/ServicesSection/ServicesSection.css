@@ -1,39 +1,43 @@
-.services-section-wrapper {
-  padding: 80px 60px;
+.servicesSection {
+  background-color: #f7f9fc;
+  padding: 60px 60px;
   text-align: center;
 }
 
-.services-section-title {
-  font-size: 34px;
+.servicesTitle {
+  font-size: 50px;
   font-weight: 700;
   margin-bottom: 50px;
   color: var(--text-dark);
 }
 
-.services-section-grid {
+.servicesGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 35px;
-  max-width: 1200px; /* Added to constrain width */
-  margin: 0 auto; /* Center the grid */
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.services-section-card {
+.servicesCard {
   background: #fff;
   border-radius: var(--radius);
   padding: 20px;
   box-shadow: var(--shadow);
-  transition: transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
-  border: 1px solid transparent; /* Added for hover effect */
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border 0.3s ease;
+  border: 1px solid transparent;
 }
 
-.services-section-card:hover {
+.servicesCard:hover {
   transform: translateY(-6px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
-  border: 1px solid var(--primary); /* Subtle border on hover */
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--primary);
 }
 
-.services-section-card img {
+.servicesCard img {
   width: 100%;
   height: 160px;
   border-radius: var(--radius);
@@ -41,39 +45,46 @@
   margin-bottom: 15px;
 }
 
-.services-section-card p {
+.serviceTitle {
   font-size: 15px;
   font-weight: 600;
   color: var(--text-dark);
 }
 
-.services-section-link{
+.serviceBlurb {
+  display: block;
+  margin-top: 6px;
+  font-size: 13.5px;
+  color: #5a6570;
+}
+
+.servicesLink {
   display: flex;
   flex-direction: column;
   align-items: end;
   margin-top: 30px;
 }
 
-/* simple skeletons that reuse your card size */
-.services-section-card.skeleton {
+/* skeleton */
+.servicesCard.skeleton {
   background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
   background-size: 200% 100%;
   border-radius: 12px;
   animation: svcShine 1.1s linear infinite;
-  height: 200px; /* match your card height if different */
+  height: 200px;
 }
+
 @keyframes svcShine {
-  0% { background-position: 200% 0; }
+  0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
-  .services-section-wrapper {
-    padding: 60px 15px; /* Reduced padding for mobile */
+  .servicesSection {
+    padding: 60px 15px;
   }
 
-  .services-section-grid {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Smaller cards for mobile */
+  .servicesGrid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   }
 }

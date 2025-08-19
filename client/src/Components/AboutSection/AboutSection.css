@@ -1,53 +1,121 @@
-.fixmate-about-wrapper {
-  padding: 80px 20px;
-  background: linear-gradient(to right, #f0f7ff, #ffffff);
+.aboutWrap {
+  padding: 60px 16px;
+  background: #f7f9fc;
 }
 
-.fixmate-about-heading {
-  font-size: 34px;
+.aboutHeading {
+  margin: 0 0 18px;
   text-align: center;
-  margin-bottom: 50px;
+  color: #0f172a;
+  font-size: 50px;
+  font-weight: 800;
+  line-height: 1.2;
 }
 
-.fixmate-about-container {
+.aboutCard {
+  max-width: 1300px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 24px;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #e6e8ee;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.aboutMedia {
   display: flex;
-  gap: 40px;
   align-items: center;
   justify-content: center;
+}
+
+.aboutMedia img {
+  width: 45%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.aboutBody {
+  max-width: 560px;
+}
+
+.aboutTitle {
+  margin: 0 0 8px;
+  color: #0f172a;
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.aboutText {
+  margin: 0 0 12px;
+  color: #334155;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.aboutList {
+  margin: 0 0 16px;
+  padding-left: 18px;
+  color: #0f2433;
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+
+.ctaRow {
+  display: flex;
+  gap: 10px;
   flex-wrap: wrap;
-  max-width: 1100px;
-  margin: 0 auto;
-  background: #fff;
-  border-radius: var(--radius);
-  padding: 40px;
-  box-shadow: var(--shadow);
 }
 
-.fixmate-about-image img {
-  max-width: 320px;
-  border-radius: var(--radius);
-}
-
-.fixmate-about-text {
-  max-width: 550px;
-}
-
-.fixmate-about-text h3 {
-  font-size: 22px;
-  margin-bottom: 15px;
-}
-
-.fixmate-about-btn {
-  background: var(--primary);
-  color: #fff;
-  padding: 12px 24px;
-  border: none;
-  border-radius: 25px;
+.ctaButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid transparent;
   font-weight: 600;
+  line-height: 1;
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease, border-color 120ms ease;
+  user-select: none;
 }
 
-.fixmate-about-btn:hover {
-  background: var(--primary-dark);
+.ctaButton:hover {
+  transform: translateY(-1px);
+}
+
+.ctaButton:active {
+  transform: translateY(0);
+}
+
+.ctaButton.primary {
+  background: var(--c-brand, #1e698d);
+  color: #ffffff;
+}
+
+.ctaButton.primary:hover {
+  filter: brightness(0.98);
+}
+
+.ctaButton.ghost {
+  background: #ffffff;
+  color: var(--c-brand, #1e698d);
+  border-color: #d7dee6;
+}
+
+.ctaButton.ghost:hover {
+  background: #f4f8fc;
+}
+
+@media (max-width: 900px) {
+  .aboutCard {
+    grid-template-columns: 1fr;
+  }
 }
