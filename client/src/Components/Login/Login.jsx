@@ -31,7 +31,7 @@ function Login({ onSwitch }) {
     try {
       setLoading(true);
 
-      // 🔹 Step 1: Try customer login
+      // 1) Try CUSTOMER login first (keeps your original order)
       let response = await fetch("/api/customer/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -41,8 +41,8 @@ function Login({ onSwitch }) {
       let data = {};
       try { data = await response.json(); } catch {}
 
+      // 2) If customer fails, try TECHNICIAN login (friend's logic)
       if (!response.ok) {
-        // 🔹 Step 2: If customer login fails, try technician login
         response = await fetch("/api/technician/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -51,6 +51,7 @@ function Login({ onSwitch }) {
         try { data = await response.json(); } catch {}
       }
 
+      // 3) Handle errors (same style as before)
       if (!response.ok) {
         if (response.status === 401) {
           setMsg({ type: "error", text: data.message || "Email or password is incorrect 😣" });
@@ -62,9 +63,9 @@ function Login({ onSwitch }) {
         return;
       }
 
-      // ✅ Update global auth state immediately
+      // 4) Success: set auth state immediately
       if (data.token) {
-        // Role detection: customer or technician
+        // Role detection (friend’s approach preserved)
         const userObj = data.customer
           ? { ...data.customer, role: "customer" }
           : data.technician
@@ -73,15 +74,15 @@ function Login({ onSwitch }) {
 
         login(data.token, userObj);
 
-        // Redirect based on role
+        // ✅ Technician behavior (friend’s): redirect to Technician Dashboard
         if (userObj?.role === "technician") {
           navigate("/TechnicianDashboard");
-        } else {
-          navigate("/user-dashboard");
         }
-      }
 
-      setMsg({ type: "success", text: "Login Successful! 😃" });
+        // ✅ Customer behavior (your original): DO NOT redirect.
+        // Keep modal open, show success; user can close and continue manually.
+        setMsg({ type: "success", text: "Login Successful! 😃" });
+      }
     } catch (error) {
       setMsg({ type: "error", text: "Network error. Is the server running? 🤔" });
     } finally {
@@ -91,28 +92,34 @@ function Login({ onSwitch }) {
 
   const onChangeEmail = (e) => {
     setEmail(e.target.value);
-    if (msg) setMsg({
-      text: (
-        <div className="wave-container">
-          <p className="wave-text">
-            <span>T</span><span>y</span><span>p</span><span>i</span><span>n</span><span>g</span><span>.</span><span>.</span><span>.</span>
-          </p>
-        </div>
-      )
-    });
+    if (msg) {
+      setMsg({
+        text: (
+          <div className="wave-container">
+            <p className="wave-text">
+              <span>T</span><span>y</span><span>p</span><span>i</span>
+              <span>n</span><span>g</span><span>.</span><span>.</span><span>.</span>
+            </p>
+          </div>
+        ),
+      });
+    }
   };
 
   const onChangePassword = (e) => {
     setPassword(e.target.value);
-    if (msg) setMsg({
-      text: (
-        <div className="wave-container">
-          <p className="wave-text">
-            <span>T</span><span>y</span><span>p</span><span>i</span><span>n</span><span>g</span><span>.</span><span>.</span><span>.</span>
-          </p>
-        </div>
-      )
-    });
+    if (msg) {
+      setMsg({
+        text: (
+          <div className="wave-container">
+            <p className="wave-text">
+              <span>T</span><span>y</span><span>p</span><span>i</span>
+              <span>n</span><span>g</span><span>.</span><span>.</span><span>.</span>
+            </p>
+          </div>
+        ),
+      });
+    }
   };
 
   return (
