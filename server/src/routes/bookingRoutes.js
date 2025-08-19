@@ -18,12 +18,7 @@ const {
   coordinatorApprove,
   getBooking,
   cancelMyBooking,
-
-  // NEW (visibility + actions for coordinator/admin)
-  listForCoordinator,
-  coordinatorDashboard,
-  coordinatorAssign,
-  coordinatorReassign,
+  listMineForTechnician
 } = require('../controllers/bookingController');
 
 // CUSTOMER
@@ -53,11 +48,19 @@ router.post(
   cancelMyBooking
 );
 
+
+
 // TECHNICIAN
 router.get(
   '/technician/bookings/available',
   verifyToken, requireRole('technician'),
   listAvailableForTechnician
+);
+
+router.get(
+  '/technician/bookings/mine',
+  verifyToken, requireRole('technician'),
+  listMineForTechnician
 );
 
 router.get(
@@ -77,6 +80,8 @@ router.post(
   verifyToken, requireRole('technician'),
   technicianDecline
 );
+
+
 
 // COORDINATOR / ADMIN / SUPER ADMIN
 

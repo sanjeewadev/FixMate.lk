@@ -236,6 +236,48 @@ exports.technicianDecline = async (req, res) => {
   }
 };
 
+// TECHNICIAN: my bookings by status (for dashboard tabs)
+// GET /api/technician/bookings/mine?status=awaiting_coordinator|coordinator_approved|completed|in_progress
+exports.listMineForTechnician = async (req, res) => {
+  try {
+    if (req.user?.role !== 'technician' || !mongoose.isValidObjectId(req.user?.id)) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    const techId = new mongoose.Types.ObjectId(String(req.user.id));
+    const status = String(req.query?.status || '').trim();
+
+    if (status === 'awaiting_coordinator') {
+      const items = await Booking.find({
+        assignedTechnician: null,
+        status: 'awaiting_coordinator',
+        technicianResponses: { $elemMatch: { technician: techId, status: 'accepted' } }
+      }).populate('service', 'name category').sort({ createdAt: -1 }).lean();
+      return res.json(items);
+    }
+
+    if (status === 'coordinator_approved') {
+      const items = await Booking.find({
+        assignedTechnician: techId,
+        status: { $in: ['coordinator_approved', 'in_progress'] }
+      }).populate('service', 'name category').sort({ createdAt: -1 }).lean();
+      return res.json(items);
+    }
+
+    if (status === 'completed') {
+      const items = await Booking.find({
+        assignedTechnician: techId,
+        status: 'completed'
+      }).populate('service', 'name category').sort({ createdAt: -1 }).lean();
+      return res.json(items);
+    }
+
+    return res.json([]);
+  } catch (e) {
+    console.error('listMineForTechnician error', e);
+    return res.status(500).json({ message: e.message || 'Server error' });
+  }
+};
+
 // TECHNICIAN: View one booking (reveal phone if accepted or assigned to this tech)
 // GET /api/technician/bookings/:id
 exports.getTechnicianBooking = async (req, res) => {
