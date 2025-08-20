@@ -183,3 +183,20 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Single-pane layout for Support */
+.supportSingle {
+  display: flex;
+  padding: 16px;
+  min-height: calc(100vh - 120px); /* adjust if your dashboard header is different */
+}
+
+/* Let the chat box expand */
+.supportSingle .chatBox {
+  flex: 1;
+  min-height: 520px; /* same feel as before */
+}
+
+/* Optional: if old grid styles are still loaded, prevent surprises */
+.supportGrid, .supportLeft, .supportRight { display: none; }
