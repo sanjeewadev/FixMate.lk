@@ -1,0 +1,60 @@
+.ai-fab{
+  position: fixed; right: 18px; bottom: 18px;
+  width: 56px; height: 56px; border-radius: 50%;
+  border: 0; background: #2563eb; color: #fff; font-weight: 800; font-size: 16px;
+  box-shadow: 0 12px 28px rgba(0,0,0,.18);
+  cursor: pointer; z-index: 5000;
+}
+.ai-fab:active{ transform: translateY(1px); }
+
+.ai-panel{
+  position: fixed; right: 18px; bottom: 86px;
+  width: min(420px, 94vw); height: 560px;
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 16px;
+  display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: 0 20px 48px rgba(0,0,0,.18); z-index: 5000;
+  animation: aiIn .18s ease;
+}
+@keyframes aiIn{ from{ transform: translateY(8px); opacity:0 } to{ transform: translateY(0); opacity:1 } }
+
+.ai-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 10px 12px; border-bottom: 1px solid #eef1f4;
+}
+.ai-title{ display:flex; align-items:center; gap:8px; font-weight:800; color:#0f172a; }
+.dot{ width:10px;height:10px;border-radius:50%;background:#9ca3af }
+.dot.online{ background:#10b981 }
+.x{ width:28px;height:28px;border-radius:50%;border:0;background:#f3f4f6;cursor:pointer }
+
+.ai-body{
+  flex:1; overflow:auto; padding: 12px; background: linear-gradient(180deg,#f9fafb,#ffffff);
+}
+
+.ai-bubble{
+  max-width: 82%; margin: 8px 0; padding: 10px 12px; border-radius: 14px;
+  border: 1px solid #e5e7eb; background:#f8fafc;
+}
+.ai-bubble.me{ margin-left:auto; background:#eef6ff; border-color:#bfdbfe; }
+.ai-bubble .tx{ white-space: pre-wrap; color:#111827; font-size:14px; }
+
+.ai-sources{ margin-top: 6px; display:flex; gap:6px; flex-wrap: wrap; }
+.badge{ background:#111827; color:#fff; padding: 2px 6px; border-radius: 8px; font-size: 11px; }
+
+.ai-input{
+  display:flex; gap:8px; padding:10px; border-top:1px solid #eef1f4;
+}
+.ai-input input{
+  flex:1; border:1px solid #d1d5db; border-radius:12px; padding:10px 12px; outline:none; background:#fff; width: 300px;
+}
+.ai-input input:focus{ border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.15); }
+.ai-input button{
+  border:0; border-radius:12px; padding:0 14px; font-weight:700; background:#2563eb; color:#fff; cursor:pointer; width: 100px; margin-right: 20px; margin-top: 5px;
+}
+.ai-input button:disabled{ opacity:.6; cursor:not-allowed; }
+
+.ai-msg.error{
+  margin: 8px 0; padding: 10px 12px; background:#fef2f2; color:#991b1b; border:1px solid #fecaca; border-radius: 8px;
+}
+
+/* Hide badges with css */
+.ai-panel .badge { display: none !important; }

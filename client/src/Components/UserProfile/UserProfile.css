@@ -80,7 +80,7 @@
 }
 
 /* Message slot */
-.profile-msg-slot { min-height: 40px; text-align: center; margin: 8px 0 12px; }
+.profile-msg-slot { min-height: 40px; text-align: center; margin: 0; width: 100%; }
 .msg {
   padding: 9px 12px;
   border-radius: 10px;
@@ -207,7 +207,8 @@
 /* Edit Toggle Button */
 .edit-toggle-btn {
   display: block;
-  margin: 0 auto 40px;
+  margin: 0 auto 25px;
+  width: 100%;
   background: none;
   border: 2px solid #0077ff;
   color: #0077ff;

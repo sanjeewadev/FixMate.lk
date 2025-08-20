@@ -1,0 +1,85 @@
+/* ---- MyBookings minimal styles ---- */
+
+:root {
+  --ink:      var(--ink, #111827);
+  --muted:    var(--muted, #6b7280);
+  --line:     var(--line, #e5e7eb);
+  --panel:    var(--panel, #ffffff);
+  --page:     var(--page, #f5f6fa);
+  --primary:  var(--primary, #2563eb);
+  --primary-2:var(--primary-2, #1d4ed8);
+}
+
+/* Filter chips */
+.chip {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: #f9fafb;
+  color: var(--ink);
+  padding: 8px 12px;
+  border-radius: 9999px;
+  font: inherit;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease;
+}
+.chip:hover { background: #f3f4f6; border-color: #d1d5db; }
+.chip:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.chip--active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+/* Card shell */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.04);
+  overflow: hidden;
+}
+
+/* Table */
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.table thead th {
+  background: #f8fafc;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.table tbody td {
+  padding: 12px 14px;
+  border-top: 1px solid #f3f4f6;
+  color: var(--ink);
+}
+.table tbody tr:hover { background: #fafbff; }
+.table th:last-child,
+.table td:last-child { text-align: right; }
+
+/* Inline "View" link-button */
+button.link {
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+button.link:hover { color: var(--primary-2); text-decoration: underline; }
+button.link:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* Small loading/empty helpers (optional) */
+.card.empty,
+.empty {
+  padding: 14px;
+  color: var(--muted);
+}
