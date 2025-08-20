@@ -565,10 +565,42 @@ export default function TechnicianDashboard() {
 
       {/* Chat Modal */}
       {chatBooking && (
-        <div className="tech-modal">
-          ...
-        </div>
-      )}
+  <div className="tech-modal">
+    <div className="tech-modal-content chat-modal">
+      <h3>Chat with Customer</h3>
+      <div className="chat-box">
+        {chatMessages.length === 0 ? (
+          <p>No messages yet</p>
+        ) : (
+          chatMessages.map((m, i) => (
+            <div key={i} className="chat-msg">
+              <strong>{m.senderRole}:</strong> {m.message}
+              <br />
+              <small>{fmt(m.createdAt)}</small>
+            </div>
+          ))
+        )}
+      </div>
+      <div className="action-row">
+        <input
+          type="text"
+          placeholder="Type a message..."
+          value={chatInput}
+          onChange={(e) => setChatInput(e.target.value)}
+          style={{ flex: 1, marginRight: "10px" }}
+        />
+        <button className="btn send" onClick={sendChat}>
+          Send
+        </button>
+      </div>
+      <div className="action-row center">
+        <button className="btn close" onClick={() => setChatBooking(null)}>
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* Assigned Booking Modal */}
       {selectedAssignedBooking && (
