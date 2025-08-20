@@ -1,0 +1,16 @@
+[
+  {
+    "_id": "66b0123456789abc0123def0",
+    "full_name": "Ayesha Fernando",
+    "role": "coordinator",
+    "email": "ayesha@fixmate.lk",
+    "profile_image_url": ""
+  },
+  {
+    "_id": "66b0123456789abc0123def1",
+    "full_name": "Ravi Perera",
+    "role": "admin",
+    "email": "ravi@fixmate.lk",
+    "profile_image_url": ""
+  }
+]
