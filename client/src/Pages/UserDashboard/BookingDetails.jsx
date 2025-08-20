@@ -33,19 +33,19 @@ export default function BookingDetails() {
       <div className="grid2">
         <div className="card">
           <h3>Visit</h3>
-          <div className="kv"><span>Date</span><b>{s.preferredAt ? new Date(s.preferredAt).toLocaleString() : "-"}</b></div>
-          <div className="kv"><span>Time</span><b>{s.timeSlot || "Any"}</b></div>
-          <div className="kv"><span>Address</span><b>{s.address || "-"}</b></div>
-          <div className="kv"><span>District</span><b>{s.district || "-"}</b></div>
-          <div className="kv"><span>Phone</span><b>{s.phone_number || "-"}</b></div>
+          <div className="kv"><span>Date - </span><b>{s.preferredAt ? new Date(s.preferredAt).toLocaleString() : ""}</b></div>
+          <div className="kv"><span>Time - </span><b>{s.timeSlot || "Any" + ""}</b></div>
+          <div className="kv"><span>Address - </span><b>{s.address || ""}</b></div>
+          <div className="kv"><span>District - </span><b>{s.district || ""}</b></div>
+          <div className="kv"><span>Phone - </span><b>{s.phone_number || ""}</b></div>
         </div>
         <div className="card">
           <h3>Problem</h3>
-          <div className="kv"><span>Title</span><b>{s.problemTitle || "-"}</b></div>
-          <div className="kv"><span>Description</span><b>{s.problemDescription || "-"}</b></div>
-          <div className="kv"><span>Brand/Model</span><b>{s.brandModel || "-"}</b></div>
-          <div className="kv"><span>Equipment Age</span><b>{s.equipmentAge || "-"}</b></div>
-          <div className="kv"><span>Instructions</span><b>{s.specialInstructions || "-"}</b></div>
+          <div className="kv"><span>Title - </span><b>{s.problemTitle || ""}</b></div>
+          <div className="kv"><span>Description - </span><b>{s.problemDescription || ""}</b></div>
+          <div className="kv"><span>Brand/Model - </span><b>{s.brandModel || ""}</b></div>
+          <div className="kv"><span>Equipment Age - </span><b>{s.equipmentAge || ""}</b></div>
+          <div className="kv"><span>Instructions - </span><b>{s.specialInstructions || ""}</b></div>
         </div>
       </div>
 

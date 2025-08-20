@@ -1,4 +1,3 @@
-// src/Components/HeroSection/Herosection.jsx
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -10,7 +9,6 @@ export default function Herosection() {
   const handleBookClick = (e) => {
     if (!isAuth) {
       e.preventDefault();
-      // your PublicNavBar listens for this and opens the Login modal
       window.dispatchEvent(new Event("fm:open-login"));
     }
   };
@@ -47,7 +45,7 @@ export default function Herosection() {
             Book a technician
           </NavLink>
 
-          <NavLink to="/Services" className="cta cta--ghost">
+        <NavLink to="/Services" className="cta cta--ghost">
             Explore services
           </NavLink>
         </div>

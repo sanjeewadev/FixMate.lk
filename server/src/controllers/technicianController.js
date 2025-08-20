@@ -59,7 +59,7 @@ const loginTechnician = async (req, res) => {
 
     const technician = await Technician.findOne({ email });
     if (!technician) {
-      return res.status(404).json({ message: "Technician not found" });
+      return res.status(404).json({ message: "Email or password is incorrect" });
     }
 
     const isMatch = await bcrypt.compare(password, technician.password_hash);

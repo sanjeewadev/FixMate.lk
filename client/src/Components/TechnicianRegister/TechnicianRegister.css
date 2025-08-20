@@ -1,60 +1,74 @@
-/* ===== TechnicianRegister — simple auth-style card (matches Login/Booking) ===== */
+/* Scoped styles for the Technician Register form only */
+.tech-apply-form {
+  /* local tokens (don’t leak globally) */
+  --ink: #111827;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --panel: #ffffff;
+  --page: #f5f6fa;
+  --primary: var(--c-brand, #1e698d);
+  --primary-2: #1d4ed8;
+  --ok: #166534;
 
-:root {
-  --ink: #111827;         /* main text */
-  --muted: #6b7280;       /* placeholders/help */
-  --line: #e5e7eb;        /* borders */
-  --panel: #ffffff;       /* card bg */
-  --page: #f5f6fa;        /* page bg like booking */
-  --primary: #2563eb;     /* brand blue */
-  --primary-2: #1d4ed8;   /* hover blue */
-  --error: #dc2626;       /* error messages */
-}
-
-/* Page feel similar to booking */
-body:has(.technician-register-form) {
-  background: var(--page);
-}
-
-/* Centered card, same radii/shadow language as Booking */
-.technician-register-form {
-  box-sizing: border-box;
-  width: min(460px, 92vw);
-  margin: clamp(96px, 12vh, 120px) auto 72px; /* clears navbar, centers */
-  padding: 28px;
+  width: min(760px, 94vw);
+  margin: clamp(72px, 10vh, 120px) auto 72px;
+  padding: 24px;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 16px;
   box-shadow: 0 10px 20px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.04);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
 }
 
-/* Hide <br/> tags, use gap spacing */
-.technician-register-form br {
-  display: none;
-}
+/* If you want a light page bg only on this screen, wrap the page in a div and target that instead of body */
+/* .tech-apply-page { background: var(--page); } */
 
-/* Title (match Login modal style) */
-.technician-register-form h2 {
-  margin: 0 0 8px;
-  text-align: center;
-  font-size: 34px;
-  line-height: 1.15;
+.tech-apply-form h2 {
+  margin: 20px 0 18px;
+  font-size: 38px;
   font-weight: 800;
   color: var(--ink);
 }
 
-/* Inputs: same tone as Login + Booking */
-.technician-register-form input[type="text"],
-.technician-register-form input[type="email"],
-.technician-register-form input[type="password"],
-.technician-register-form input[type="tel"],
-.technician-register-form input[type="number"],
-.technician-register-form select {
+/* message */
+.tech-apply-form .msg {
+  margin: 8px 0 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+.tech-apply-form .msg.error {
+  width: 94%;
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+.tech-apply-form .msg.success {
+  background: #dcfce7;
+  color: var(--ok);
+  border: 1px solid #bbf7d0;
+}
+
+/* layout */
+.tech-apply-form .grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 8px 0 16px;
+}
+.tech-apply-form .grid .full { grid-column: 1 / -1; }
+
+/* fields */
+.tech-apply-form label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+.tech-apply-form input,
+.tech-apply-form select,
+.tech-apply-form textarea {
   width: 100%;
-  height: 48px;
+  box-sizing: border-box;
   padding: 12px 14px;
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -62,118 +76,70 @@ body:has(.technician-register-form) {
   color: var(--ink);
   font: inherit;
   outline: none;
-  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+  transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
 }
-
-.technician-register-form input::placeholder,
-.technician-register-form select:invalid {
-  color: var(--muted);
-}
-
-.technician-register-form input:focus,
-.technician-register-form select:focus {
+.tech-apply-form input:focus,
+.tech-apply-form select:focus,
+.tech-apply-form textarea:focus {
   border-color: var(--primary);
-  background: #fff;
-  box-shadow: 0 0 0 3px rgba(37,99,235,.20);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(30, 105, 141, .20);
 }
 
-/* Custom file input */
-.technician-register-form .file-input-wrapper {
-  position: relative;
-  width: 100%;
-}
-
-.technician-register-form .file-input-label {
-  display: inline-block;
-  width: 100%;
-  height: 48px;
+/* file input */
+.tech-apply-form .file-input-label {
+  display: block;
   padding: 12px 14px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: #f3f4f6;
   color: var(--ink);
   cursor: pointer;
-  text-align: left;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
-
-.technician-register-form .file-input {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.technician-register-form .file-input-label:hover {
-  background: #e5e7eb;
-  border-color: #d1d5db;
-}
-
-/* Preview image (when selected) */
-.technician-register-form .profile-preview {
-  width: min(72px, 20vw);
-  height: min(72px, 20vw);
+.tech-apply-form .file-input { display: none; }
+.tech-apply-form .preview {
+  width: 72px;
+  height: 72px;
   object-fit: cover;
-  border-radius: 12px;
   border: 1px solid var(--line);
-  margin-top: 4px;
-}
-
-/* Error messages */
-.technician-register-form .error-message {
-  color: var(--error);
-  font-size: 14px;
-  margin-top: 4px;
-  margin-bottom: 0;
-}
-
-/* Submit button — same blue as Login/Booking */
-.technician-register-form button[type="submit"] {
+  border-radius: 12px;
   margin-top: 6px;
-  height: 48px;
+}
+
+/* ✅ scoped submit button (stops leaking into Chat, Contact, etc.) */
+.tech-apply-form button[type="submit"] {
   width: 100%;
+  height: 48px;
   border: 0;
   border-radius: 12px;
   background: var(--primary);
-  color: #fff;
+  color: #ffffff;
   font-weight: 700;
   font-size: 16px;
   cursor: pointer;
-  transition: background .15s ease, transform .06s ease, box-shadow .15s ease;
+  transition: filter 120ms ease, transform 120ms ease, box-shadow 120ms ease;
 }
-
-.technician-register-form button[type="submit"]:hover {
+.tech-apply-form button[type="submit"]:hover {
   background: var(--primary-2);
 }
-
-.technician-register-form button[type="submit"]:active {
+.tech-apply-form button[type="submit"]:active {
   transform: translateY(1px);
 }
-
-.technician-register-form button[type="submit"]:disabled {
+.tech-apply-form button[type="submit"]:disabled {
   background: #d1d5db;
   cursor: not-allowed;
 }
 
-/* Accessibility: focus styles for keyboard navigation */
-.technician-register-form input:focus,
-.technician-register-form select:focus,
-.technician-register-form button:focus,
-.technician-register-form .file-input-label:focus-within {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
+.tech-apply-form .hint {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
 }
 
-/* Small nudge on very small screens */
-@media (max-width: 420px) {
-  .technician-register-form {
-    padding: 22px;
-    gap: 12px;
-  }
-  .technician-register-form h2 {
-    font-size: 30px;
-  }
+@media (max-width: 640px) {
+  .tech-apply-form .grid { grid-template-columns: 1fr; }
 }

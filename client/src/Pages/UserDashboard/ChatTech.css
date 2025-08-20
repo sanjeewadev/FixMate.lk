@@ -1,0 +1,41 @@
+/* 2-pane layout */
+.twogrid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 16px;
+  padding: 16px;
+  min-height: calc(100vh - 120px);
+}
+.twogrid__left {
+  border: 1px solid #e5e7eb; border-radius: 16px; background: #fff; padding: 12px;
+  display: flex; flex-direction: column;
+}
+.twogrid__right { min-height: 520px; }
+.twogrid__head h2 { margin: 8px 0 4px; }
+.twogrid__filters { display: flex; gap: 8px; margin: 8px 0 12px; }
+.ct__search { flex: 1; padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 10px; outline: none; }
+
+.chat-booking-list { display: flex; flex-direction: column; gap: 10px; overflow: auto; }
+.chat-booking {
+  border: 1px solid #e5e7eb; border-radius: 12px; padding: 10px; background: #fafafa;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer;
+}
+.chat-booking.active { outline: 2px solid #2563eb22; background: #f5f8ff; }
+.cb-title { font-weight: 600; }
+.cb-sub { font-size: 12px; color: #6b7280; text-transform: capitalize; }
+.status { padding: 2px 8px; border-radius: 999px; font-size: 11px; background: #f3f4f6; }
+.status.coordinator_approved { background: #e0f2fe; }
+.status.in_progress { background: #fef9c3; }
+
+.cb-tech { display: flex; align-items: center; gap: 8px; }
+.avatar { width: 36px; height: 36px; border-radius: 999px; background: #f1f5f9; display: grid; place-items: center; overflow: hidden; font-weight: 700; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.tech-name { font-size: 13px; color: #374151; }
+
+.skeleton.lg { height: 120px; background: linear-gradient(90deg, #f3f4f6, #e5e7eb, #f3f4f6); background-size: 200% 100%; animation: sk 1.2s infinite; border-radius: 12px; }
+@keyframes sk { 0% { background-position: 200% 0; } 100% { background-position: 0 0; } }
+
+.empty { color: #6b7280; font-size: 14px; padding: 8px; }
+.empty.big { color: #9ca3af; font-size: 16px; display: grid; place-items: center; height: 100%; }
+
+.panel-holder { height: 100%; }

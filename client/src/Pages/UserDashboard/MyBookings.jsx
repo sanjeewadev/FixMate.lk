@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../lib/api";
+import "./MyBookings.css";
 
 export default function MyBookings() {
   const [raw, setRaw] = useState([]);
