@@ -94,5 +94,12 @@ const BookingSchema = new mongoose.Schema({
 
 BookingSchema.index({ 'customerSnapshot.district': 1, status: 1, createdAt: -1 });
 BookingSchema.index({ customer: 1, createdAt: -1 });
+BookingSchema.index({ 'payment.receiptNumber': 1 }, { sparse: true });
+BookingSchema.index({ status: 1, "payment.confirmedByTechnicianAt": -1 });
+BookingSchema.index({ service: 1, "payment.confirmedByTechnicianAt": -1 });
+BookingSchema.index({ assignedTechnician: 1, "payment.confirmedByTechnicianAt": -1 });
+BookingSchema.index({ "customerSnapshot.district": 1, "payment.confirmedByTechnicianAt": -1 });
+
+
 
 module.exports = mongoose.model('Booking', BookingSchema);
