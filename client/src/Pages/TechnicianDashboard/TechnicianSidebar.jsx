@@ -8,6 +8,7 @@ export default function TechnicianSidebar({ setActiveTab, activeTab }) {
     { key: "pending", label: "Pending Approval" },
     { key: "approved", label: "Approved Requests" },
     { key: "completed", label: "Completed" },
+    { key: "profile", label: "Profile" },
   ];
 
   return (

@@ -281,4 +281,105 @@ textarea {
   opacity: 0.6;
 }
 
+/* --- Profile Section --- */
+.tech-profile-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+  border: 1px solid #e2e2e2;
+  border-radius: 10px;
+  margin-bottom: 2rem;
+}
+
+.profile-card img.profile-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 1rem;
+  border: 3px solid #007bff;
+}
+
+.profile-card input[type="file"] {
+  margin: 0.5rem 0;
+}
+
+.profile-card p {
+  margin: 0.3rem 0;
+  font-size: 14px;
+}
+
+.profile-card input[type="text"],
+.profile-card input[type="number"],
+.profile-card input[type="password"] {
+  width: 100%;
+  padding: 0.6rem;
+  margin: 0.4rem 0;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.profile-card button {
+  margin: 0.3rem;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #007bff;
+  color: #fff;
+  font-size: 14px;
+  transition: background 0.3s;
+}
+
+.profile-card button:hover {
+  background: #0056b3;
+}
+
+.password-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border: 1px solid #e2e2e2;
+  border-radius: 10px;
+}
+
+.password-section h3 {
+  margin-bottom: 1rem;
+}
+
+.password-section input {
+  display: block;
+  width: 100%;
+  padding: 0.6rem;
+  margin: 0.4rem 0;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.password-section button {
+  margin-top: 0.8rem;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #28a745;
+  color: #fff;
+  font-size: 14px;
+  transition: background 0.3s;
+}
+
+.password-section button:hover {
+  background: #1e7e34;
+}
+
 
