@@ -28,6 +28,7 @@ const Sidebar = ({ role }) => {
       { name: "Profile", to: "/UserDashboard/profile" },
       { name: "Chat", to: "/UserDashboard/chat" },
       { name: "Support", to: "/UserDashboard/support" },
+      { name: "Print Receipts", to: "/UserDashboard/receipts" },
     ],
   };
 

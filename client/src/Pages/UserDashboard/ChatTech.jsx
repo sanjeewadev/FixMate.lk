@@ -1,10 +1,9 @@
-// src/Pages/UserDashboard/ChatTech.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { getMyBookingsForCustomer } from "../../services/booking";
 import ChatPanel from "../../Components/chat/ChatPanel.jsx";
 import "./ChatTech.css";
 
-const ALLOWED = new Set(["coordinator_approved", "in_progress"]); // add "completed" if needed
+const ALLOWED = new Set(["coordinator_approved", "in_progress"]);
 
 export default function ChatTech() {
   const [bookings, setBookings] = useState([]);
@@ -19,8 +18,8 @@ export default function ChatTech() {
     (async () => {
       try {
         const mine = await getMyBookingsForCustomer();
-        const eligible = (mine || []).filter(b =>
-          b.assignedTechnician && ALLOWED.has(String(b.status || "").toLowerCase())
+        const eligible = (mine || []).filter(
+          b => b.assignedTechnician && ALLOWED.has(String(b.status || "").toLowerCase())
         );
         if (!dead) {
           setBookings(eligible);
@@ -49,15 +48,15 @@ export default function ChatTech() {
   const active = filtered.find(b => String(b._id) === String(activeId)) || null;
 
   return (
-    <div className="twogrid">
-      <aside className="twogrid__left">
-        <div className="twogrid__head">
+    <div className="ctGrid">
+      <aside className="ctLeft">
+        <div className="ctHead">
           <h2>Chat with Technician</h2>
         </div>
 
-        <div className="twogrid__filters">
+        <div className="ctFilters">
           <input
-            className="ct__search"
+            className="ctSearch"
             placeholder="Search by service, problem, or technician…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -65,31 +64,33 @@ export default function ChatTech() {
         </div>
 
         {loading ? (
-          <div className="skeleton lg" />
+          <div className="ctSkeleton large" />
         ) : filtered.length === 0 ? (
-          <div className="empty">No approved/active bookings yet.</div>
+          <div className="ctEmpty">No approved/active bookings yet.</div>
         ) : (
-          <ul className="chat-booking-list">
+          <ul className="ctList">
             {filtered.map(b => (
               <li
                 key={b._id}
-                className={`chat-booking ${String(b._id) === String(activeId) ? "active" : ""}`}
+                className={`ctItem ${String(b._id) === String(activeId) ? "is-active" : ""}`}
                 onClick={() => setActiveId(b._id)}
               >
-                <div className="cb-main">
-                  <div className="cb-title">{b.problemTitle || b.service?.name || "Booking"}</div>
-                  <div className="cb-sub">
-                    <span className={`status ${b.status}`}>{String(b.status || "").replaceAll("_"," ")}</span>
+                <div className="ctMain">
+                  <div className="ctTitle">{b.problemTitle || b.service?.name || "Booking"}</div>
+                  <div className="ctSub">
+                    <span className={`ctStatus ${String(b.status || "")}`}>
+                      {String(b.status || "").replaceAll("_"," ")}
+                    </span>
                     {b.service?.name && <> • {b.service.name}</>}
                   </div>
                 </div>
-                <div className="cb-tech">
-                  <div className="avatar">
+                <div className="ctTech">
+                  <div className="ctAvatar">
                     {b.assignedTechnician?.profile_image_url
                       ? <img src={b.assignedTechnician.profile_image_url} alt={b.assignedTechnician.full_name} />
                       : <span>{(b.assignedTechnician?.full_name?.[0] || "T").toUpperCase()}</span>}
                   </div>
-                  <div className="tech-name">{b.assignedTechnician?.full_name || "Technician"}</div>
+                  <div className="ctTechName">{b.assignedTechnician?.full_name || "Technician"}</div>
                 </div>
               </li>
             ))}
@@ -97,12 +98,12 @@ export default function ChatTech() {
         )}
       </aside>
 
-      <main className="twogrid__right">
-        {msg?.text && <div className={`msg ${msg.type} show`}>{msg.text}</div>}
+      <main className="ctRight">
+        {msg?.text && <div className={`ctMsg ${msg.type} is-visible`}>{msg.text}</div>}
         {!active ? (
-          <div className="empty big">Select a booking to chat with your assigned technician.</div>
+          <div className="ctEmpty large">Select a booking to chat with your assigned technician.</div>
         ) : (
-          <div className="panel-holder">
+          <div className="ctPanelHolder">
             <ChatPanel booking={active} mode="inline" />
           </div>
         )}

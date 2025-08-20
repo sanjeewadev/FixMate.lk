@@ -18,6 +18,8 @@ import Overview from "./Pages/UserDashboard/Overview.jsx";
 import MyBookings from "./Pages/UserDashboard/MyBookings.jsx";
 import BookingDetails from "./Pages/UserDashboard/BookingDetails.jsx";
 import Chatwithtechni from "./Components/chat/ChatPanel.jsx";
+import ReceiptDetails from "./Pages/UserDashboard/ReceiptDetails.jsx";
+import Receipts from "./Pages/UserDashboard/Receipts.jsx";
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
@@ -57,6 +59,10 @@ const router = createBrowserRouter([
       { path: "profile", element: <UserProfile /> },
       { path: "chat", element: <Chatwithtechni /> },
       { path: "support", element: <Support /> },
+
+      // 🔽 NEW
+      { path: "receipts", element: <Receipts /> },
+      { path: "receipt/:id", element: <ReceiptDetails /> },
     ],
   },
 
@@ -67,7 +73,6 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    {/* This single wrapper applies Inter site-wide */}
     <div className="fontBody">
       <AuthProvider>
         <RouterProvider router={router} />
