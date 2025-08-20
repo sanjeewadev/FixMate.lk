@@ -135,7 +135,7 @@ exports.listAvailableForTechnician = async (req, res) => {
     const itemsRaw = await Booking.find({
       'customerSnapshot.district': tech.district,
       assignedTechnician: null,
-      status: { $in: ['pending', 'awaiting_coordinator'] }
+      status: 'pending' //pendign+awaiting_coordinator thibba eka pending kala mokda assigned tasks eke status dekama pennuwa
     })
     .populate('service', 'name category')
     .sort({ createdAt: -1 })
