@@ -24,22 +24,22 @@ router.patch('/admin/me/password', verifyToken, requireRole('admin','super_admin
 router.post('/admin/me/avatar', verifyToken, requireRole('admin'), uploadAdminAvatar.single('profile_image'), AdminAuth.changeMyProfileImage);
 
 // ---------- Customers (admin/super_admin) ----------
-router.get('/admin/customers', verifyToken, requireRole('admin','super_admin'), AdminCustomers.listCustomers);
-router.post('/admin/customers', verifyToken, requireRole('admin','super_admin'), AdminCustomers.createCustomer);
-router.put('/admin/customers/:id', verifyToken, requireRole('admin','super_admin'), AdminCustomers.updateCustomer);
-router.delete('/admin/customers/:id', verifyToken, requireRole('admin','super_admin'), AdminCustomers.deleteCustomer);
+router.get('/customers', verifyToken, requireRole('admin','super_admin'), AdminCustomers.listCustomers);
+router.post('/customers', verifyToken, requireRole('admin','super_admin'), AdminCustomers.createCustomer);
+router.put('/customers/:id', verifyToken, requireRole('admin','super_admin'), AdminCustomers.updateCustomer);
+router.delete('/customers/:id', verifyToken, requireRole('admin','super_admin'), AdminCustomers.deleteCustomer);
 
 // ---------- Coordinators (only admins / super_admin) ----------
-router.get('/admin/coordinators', verifyToken, requireRole('admin','super_admin'), AdminCoordinators.listCoordinators);
-router.post('/admin/coordinators', verifyToken, requireRole('admin','super_admin'), AdminCoordinators.createCoordinator);
-router.put('/admin/coordinators/:id', verifyToken, requireRole('admin','super_admin'), AdminCoordinators.updateCoordinator);
-router.delete('/admin/coordinators/:id', verifyToken, requireRole('admin','super_admin'), AdminCoordinators.deleteCoordinator);
+router.get('/coordinators', verifyToken, requireRole('admin','super_admin'), AdminCoordinators.listCoordinators);
+router.post('/coordinators', verifyToken, requireRole('admin','super_admin'), AdminCoordinators.createCoordinator);
+router.put('/coordinators/:id', verifyToken, requireRole('admin','super_admin'), AdminCoordinators.updateCoordinator);
+router.delete('/coordinators/:id', verifyToken, requireRole('admin','super_admin'), AdminCoordinators.deleteCoordinator);
 
 // ---------- Technicians (admin/super_admin) ----------
-router.get('/admin/technicians', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.listTechnicians);
-router.post('/admin/technicians', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.createTechnician);
-router.put('/admin/technicians/:id', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.updateTechnician);
-router.delete('/admin/technicians/:id', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.deleteTechnician);
+router.get('/technicians', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.listTechnicians);
+router.post('/technicians', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.createTechnician);
+router.put('/technicians/:id', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.updateTechnician);
+router.delete('/technicians/:id', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.deleteTechnician);
 
 // Become Technician applications
 router.get('/admin/technician-apps', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.listTechApplications);

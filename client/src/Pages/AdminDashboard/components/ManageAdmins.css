@@ -1,0 +1,70 @@
+.manage-admins {
+  padding: 20px;
+}
+
+.msg {
+  margin: 10px 0;
+  padding: 10px;
+  background: #e7f4ff;
+  border: 1px solid #0077cc;
+  color: #004080;
+  border-radius: 6px;
+}
+
+.admin-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.admin-form input {
+  flex: 1 1 200px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.btn {
+  padding: 8px 14px;
+  border: none;
+  background: #0077cc;
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn.cancel {
+  background: #aaa;
+}
+
+.btn.danger {
+  background: #e63946;
+}
+
+.btn.small {
+  padding: 5px 10px;
+  margin-right: 5px;
+}
+
+.admins-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admins-table th,
+.admins-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.admins-table th {
+  background: #f4f6f8;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}

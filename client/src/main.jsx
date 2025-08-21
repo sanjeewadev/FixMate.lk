@@ -1,7 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import "./styles/tokens.css";
 
 import App from "./App.jsx";
 import AboutUs from "./Pages/AboutUs/AboutUs.jsx";
@@ -12,16 +11,23 @@ import TechnicianDashboard from "./Pages/TechnicianDashboard/TechnicianDashboard
 import StaffDashboard from "./Pages/StaffDashboard/StaffDashboard.jsx";
 import UserProfile from "./Components/UserProfile/UserProfile.jsx";
 import BookService from "./Pages/BookService/BookService.jsx";
-import TechnicianRegisterForm from "./Pages/TechnicianRegisterForm/TechnicianRegisterForm.jsx";
-import Support from "./Pages/UserDashboard/Support.jsx";
+
 import Overview from "./Pages/UserDashboard/Overview.jsx";
 import MyBookings from "./Pages/UserDashboard/MyBookings.jsx";
 import BookingDetails from "./Pages/UserDashboard/BookingDetails.jsx";
-import Chatwithtechni from "./Components/chat/ChatPanel.jsx";
+
+import ManageUsers from "./Pages/AdminDashboard/components/ManageUsers.jsx";
+import ManageStaff from "./Pages/AdminDashboard/components/ManageStaff.jsx";
+import ManageTechnicians from "./Pages/AdminDashboard/components/ManageTechnicians.jsx";
+import ManageAdmins from "./Pages/AdminDashboard/components/ManageAdmins.jsx";
+import ManageServices from "./Pages/AdminDashboard/components/ManageServices.jsx";
+import ServiceRequests from "./Pages/AdminDashboard/components/ServiceRequests.jsx";
+import ManageComplaints from "./Pages/AdminDashboard/components/ManageComplaints.jsx";
+import RateTechnician from "./Pages/AdminDashboard/components/RateTechnician.jsx";
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-// Auth context + route guard
+// 🔐 Auth context + route guard
 import { AuthProvider } from "./context/AuthContext.jsx";
 import ProtectedRoute from "./Components/ProtectedRoute.jsx";
 
@@ -30,6 +36,7 @@ const router = createBrowserRouter([
   { path: "/AboutUs", element: <AboutUs /> },
   { path: "/Services", element: <Services /> },
 
+  // Only logged-in customers should access booking
   {
     path: "/book",
     element: (
@@ -39,10 +46,23 @@ const router = createBrowserRouter([
     ),
   },
 
-  { path: "/AdminDashboard", element: <AdminDashboard /> },
+  { path: "/AdminDashboard/*", 
+    element:( 
+    <AdminDashboard />),
+    children: [
+    { path: "manage-users", element: <ManageUsers /> },
+    { path: "staff", element: <ManageStaff /> },
+    { path: "technicians", element: <ManageTechnicians /> },
+    { path: "admins", element: <ManageAdmins /> },
+    { path: "services", element: <ManageServices /> },
+    { path: "requests", element: <ServiceRequests /> },
+    { path: "complaints", element: <ManageComplaints /> },
+    { path: "rating", element: <RateTechnician /> },
+   ]  
+   },
 
-  {
-    path: "/UserDashboard",
+  // FULL User Dashboard with nested pages (all protected)
+  {path: "/UserDashboard",
     element: (
       <ProtectedRoute>
         <UserDashboard />
@@ -55,23 +75,23 @@ const router = createBrowserRouter([
       { path: "history", element: <MyBookings /> },
       { path: "booking/:id", element: <BookingDetails /> },
       { path: "profile", element: <UserProfile /> },
-      { path: "chat", element: <Chatwithtechni /> },
-      { path: "support", element: <Support /> },
     ],
   },
 
-  { path: "/TechnicianRegisterForm", element: <TechnicianRegisterForm /> },
-  { path: "/TechnicianDashboard", element: <TechnicianDashboard /> },
-  { path: "/StaffDashboard", element: <StaffDashboard /> },
+  {path: "/TechnicianDashboard", element: (<TechnicianDashboard /> ),
+  },
+  
+  {path: "/StaffDashboard", element: <StaffDashboard />,
+     children: [
+     { path: "requests", element: <ServiceRequests /> },
+  ],
+  },
 ]);
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    {/* This single wrapper applies Inter site-wide */}
-    <div className="fontBody">
-      <AuthProvider>
-        <RouterProvider router={router} />
-      </AuthProvider>
-    </div>
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
   </StrictMode>
 );

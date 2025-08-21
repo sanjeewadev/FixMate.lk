@@ -6,28 +6,32 @@ const Sidebar = ({ role }) => {
   // Real routes per role
   const menu = {
     admin: [
-      { name: "Service Request", to: "/AdminDashboard/requests" },
-      { name: "Manage Users", to: "/AdminDashboard/users" },
-      { name: "Manage Services", to: "/AdminDashboard/services" },
-      { name: "View Reports", to: "/AdminDashboard/reports" },
-      { name: "Manage Staff", to: "/AdminDashboard/staff" },
-      { name: "Manage Technician", to: "/AdminDashboard/technicians" },
+       { name: "Service Request", to: "/AdminDashboard/requests" },
+       { name: "Manage Users", to: "/AdminDashboard/manage-users" },   // ✅ match
+       { name: "Manage Services", to: "/AdminDashboard/services" },
+       { name: "View Reports", to: "/AdminDashboard/reports" },
+       { name: "Manage Staff", to: "/AdminDashboard/staff" },
+       { name: "Manage Technician", to: "/AdminDashboard/technicians" },
+       { name: "Manage Admin", to: "/AdminDashboard/admins" },
+       { name: "Customer Complaints", to: "/AdminDashboard/complaints" },
+       { name: "Technicians Rating", to: "/AdminDashboard/rating" },
     ],
+
     technician: [
-      { name: "Assigned Tasks", to: "/TechnicianDashboard/tasks" },
       { name: "Profile", to: "/TechnicianDashboard/profile" },
     ],
     staff: [
-      { name: "Verify Requests", to: "/StaffDashboard/verify" },
-      { name: "Assign Technicians", to: "/StaffDashboard/assign" },
+      { name: "Service Request", to: "/StaffDashboard/requests" },
+      { name: "Manage Technician", to: "/StaffDashboard/staff-technicians" },
+      { name: "Manage Users", to: "/StaffDashboard/manage-users" },
+      { name: "Customer Complaints", to: "/StaffDashboard/complaints" },
+
     ],
     user: [
       { name: "Overview", to: "/UserDashboard/overview" },
       { name: "Book Service", to: "/UserDashboard/book" }, // uses same BookService page
       { name: "Service History", to: "/UserDashboard/history" },
       { name: "Profile", to: "/UserDashboard/profile" },
-      { name: "Chat", to: "/UserDashboard/chat" },
-      { name: "Support", to: "/UserDashboard/support" },
     ],
   };
 

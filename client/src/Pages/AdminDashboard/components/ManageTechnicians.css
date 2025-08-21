@@ -1,0 +1,70 @@
+/* Avatar preview */
+.tech-avatar {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+}
+.tech-avatar.large {
+  width: 96px;
+  height: 96px;
+  border-radius: 12px;
+}
+
+/* Avatar block in form */
+.avatar-block {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+/* Tech form grid (optional – adapt if you already have a layout) */
+.tech-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(240px, 1fr));
+  gap: 12px 16px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 18px;
+}
+.tech-form input, .tech-form select {
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  outline: none;
+}
+.tech-form .btn { justify-self: start; }
+
+/* ===== Cropper overlay ===== */
+.crop-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.6);
+  display: flex; align-items: center; justify-content: center; z-index: 50;
+}
+.crop-modal {
+  background: #fff; border-radius: 12px; padding: 16px; width: 420px; max-width: 92vw;
+}
+.crop-viewport {
+  position: relative; width: 256px; height: 256px; margin: 8px auto 12px;
+  overflow: hidden; user-select: none; background: #0f172a0c;
+  border-radius: 12px; border: 1px dashed #cbd5e1;
+}
+.crop-viewport.dragging { cursor: grabbing; }
+.crop-img {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  will-change: transform; pointer-events: none;
+}
+.crop-circle {
+  position: absolute; inset: 0; margin: auto; width: 256px; height: 256px; border-radius: 50%;
+  box-shadow:
+    0 0 0 9999px rgba(0,0,0,.45),    /* vignette outside circle */
+    0 0 0 2px rgba(255,255,255,.95); /* circle border */
+  pointer-events: none;
+}
+.crop-controls { display: grid; gap: 10px; }
+.crop-actions { display: flex; gap: 8px; justify-content: flex-end; }

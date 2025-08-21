@@ -1,0 +1,92 @@
+/* avatar sizes */
+.staff-avatar {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+}
+.staff-avatar.large {
+  width: 96px;
+  height: 96px;
+  border-radius: 12px;
+}
+
+/* block holding preview + button */
+.avatar-block {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* simple table + form (optional – keep whatever you had) */
+.staff-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+}
+.staff-table th, .staff-table td {
+  border: 1px solid #e2e8f0;
+  padding: 10px;
+  text-align: left;
+}
+
+.staff-form {
+  margin-top: 16px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+}
+.staff-form input[type="text"],
+.staff-form input[type="email"],
+.staff-form input[type="password"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  outline: none;
+}
+.form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 8px;
+}
+.btn { padding: 9px 14px; border-radius: 8px; border: 1px solid transparent; font-weight: 600; cursor: pointer; }
+.btn-primary { background: #0ea5e9; color: #fff; }
+.btn-primary:hover { background: #0284c7; }
+.btn-secondary { background: #64748b; color: #fff; }
+.btn-secondary:hover { background: #475569; }
+.btn-danger { background: #ef4444; color: #fff; }
+.btn-danger:hover { background: #dc2626; }
+
+/* ===== Cropper overlay (same as UserProfile) ===== */
+.crop-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.6);
+  display: flex; align-items: center; justify-content: center; z-index: 50;
+}
+.crop-modal {
+  background: #fff; border-radius: 12px; padding: 16px; width: 420px; max-width: 92vw;
+}
+.crop-viewport {
+  position: relative; width: 320px; height: 320px; margin: 8px auto 12px; overflow: hidden; user-select: none;
+  background: #0f172a0c; border-radius: 12px; border: 1px dashed #cbd5e1;
+}
+.crop-viewport.dragging { cursor: grabbing; }
+.crop-img {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  will-change: transform; pointer-events: none;
+}
+.crop-circle {
+  position: absolute; inset: 0; margin: auto; width: 320px; height: 320px; border-radius: 50%;
+  box-shadow:
+    0 0 0 9999px rgba(0,0,0,.45),    /* vignette outside circle */
+    0 0 0 2px rgba(255,255,255,.95); /* circle border */
+  pointer-events: none;
+}
+.crop-controls { display: grid; gap: 10px; }
+.crop-actions { display: flex; gap: 8px; justify-content: flex-end; }
