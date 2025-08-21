@@ -1,4 +1,3 @@
-// routes/adminRoutes.js
 const router = require('express').Router();
 const verifyToken = require('../middleware/verifyToken');
 const requireRole = require('../middleware/requireRole');
@@ -7,11 +6,15 @@ const getUploadMiddleware = require('../middleware/cloudinaryUploader');
 // Profile image folder: fixmate/profiles/admins
 const uploadAdminAvatar = getUploadMiddleware('profiles/admins');
 
+// Services image folder
+const uploadServiceImages = getUploadMiddleware('services');
+
 const AdminAuth = require('../controllers/adminController');
 const AdminCustomers = require('../controllers/adminCustomersController');
 const AdminCoordinators = require('../controllers/adminCoordinatorsController');
 const AdminTechnicians = require('../controllers/adminTechniciansController');
 const AdminAdmins = require('../controllers/adminAdminsController');
+const ServiceController = require('../controllers/serviceController');
 
 // ---------- Auth ----------
 router.post('/admin/register', uploadAdminAvatar.single('profile_image'), AdminAuth.registerAdmin);
@@ -50,5 +53,33 @@ router.get('/admin/admins', verifyToken, requireRole('admin','super_admin'), Adm
 router.post('/admin/admins', verifyToken, requireRole('admin','super_admin'), AdminAdmins.createAdmin);
 router.put('/admin/admins/:id', verifyToken, requireRole('admin','super_admin'), AdminAdmins.updateAdmin);
 router.delete('/admin/admins/:id', verifyToken, requireRole('super_admin'), AdminAdmins.deleteAdmin);
+
+// ---------- Services (admin/super_admin) ----------
+router.get('/services',
+  verifyToken, requireRole('admin','super_admin'),
+  ServiceController.adminListServices);
+
+router.post('/services',
+  verifyToken, requireRole('admin','super_admin'),
+  uploadServiceImages.array('images', 6),
+  ServiceController.createService);
+
+router.put('/services/:id',
+  verifyToken, requireRole('admin','super_admin'),
+  uploadServiceImages.array('images', 6),
+  ServiceController.updateService);
+
+// allow JSON-only partial updates
+router.patch('/services/:id',
+  verifyToken, requireRole('admin','super_admin'),
+  ServiceController.updateService);
+
+router.patch('/services/:id/activate',
+  verifyToken, requireRole('admin','super_admin'),
+  ServiceController.activateService);
+
+router.delete('/services/:id',
+  verifyToken, requireRole('admin','super_admin'),
+  ServiceController.deleteService);
 
 module.exports = router;
