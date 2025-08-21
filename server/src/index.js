@@ -52,6 +52,12 @@ app.use("/api/apply/technician", require("./routes/becomeTechnicianRoutes"));
 const aiRoutes = require('./routes/aiRoutes');
 app.use('/api', aiRoutes);
 
+const customerReceiptRoutes = require('./routes/customerReceiptRoutes');
+app.use('/api', customerReceiptRoutes);
+
+const adminReportRoutes = require("./routes/adminReportRoutes");
+app.use("/api", adminReportRoutes);
+
 
 // Start server
 const PORT = process.env.PORT || 7002;

@@ -1,18 +1,26 @@
-import React, { useEffect, useRef, useState } from "react";
-import api from "../../lib/api";
+// src/components/Chat/ChatPanel.jsx
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { ensureConversation, listMessages, postMessage } from "../../services/chat.js";
+import { useAuth } from "../../context/AuthContext.jsx";
 import "./ChatPanel.css";
 
 /**
  * Props:
- *  - booking   : booking object (must contain _id and a technician id somewhere)
- *  - onClose   : () => void
+ *  - booking   : booking object (must contain _id and assignedTechnician(_id))
+ *  - onClose   : () => void (optional)
+ *  - mode      : "inline" | "floating" (default "inline")
  *
- * Requirements on booking:
- *  - technician id will be read from:
- *      booking.technician?._id || booking.technicianId || booking.assignedTechnicianId
- *  - allowed statuses are checked by the parent (we also guard inside)
+ * Booking requirements:
+ *  - technician id read from:
+ *      booking.assignedTechnician?._id || booking.assignedTechnician
+ *  - allowed statuses: coordinator_approved, in_progress (add "completed" if you want)
  */
-export default function ChatPanel({ booking, onClose }) {
+const ALLOWED = new Set(["coordinator_approved", "in_progress"]); // add "completed" if desired
+
+export default function ChatPanel({ booking, onClose, mode = "inline" }) {
+  const { user } = useAuth();
+  const myId = useMemo(() => String(user?.id || user?._id || ""), [user]);
+
   const [conversationId, setConversationId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading]   = useState(true);
@@ -23,64 +31,47 @@ export default function ChatPanel({ booking, onClose }) {
   const pollRef = useRef(null);
 
   const techId =
-    booking?.technician?._id ||
-    booking?.technicianId ||
-    booking?.assignedTechnicianId;
+    booking?.assignedTechnician?._id ||
+    booking?.assignedTechnician || null;
 
-  // guard
   const status = String(booking?.status || "").toLowerCase();
-  const allowed =
-    ["approved", "assigned", "scheduled", "in_progress"].some(s =>
-      status.includes(s)
-    ) && !!techId;
+  const allowed = !!techId && ALLOWED.has(status);
 
-  // 1) Ensure (or reuse) a conversation
+  // 1) Ensure (or reuse) a conversation scoped to this booking
   useEffect(() => {
     let dead = false;
-
-    async function ensure() {
-      if (!allowed) {
-        setLoading(false);
-        return;
-      }
+    (async () => {
+      if (!allowed) { setLoading(false); return; }
       try {
-        const { data } = await api.post("/api/chat/ensure", {
+        const convo = await ensureConversation({
           bookingId: booking._id,
           withRole: "technician",
           withUserId: techId,
-          topic: booking?.service?.name || booking?.serviceName || "Service chat",
+          topic: booking?.problemTitle || booking?.service?.name || "Booking chat",
         });
-        if (!dead) setConversationId(data._id || data.id);
+        if (!dead) setConversationId(convo?._id || convo?.id || null);
       } catch (e) {
         console.error(e);
       } finally {
         if (!dead) setLoading(false);
       }
-    }
-
-    ensure();
+    })();
     return () => { dead = true; };
-  }, [booking?._id]);
+  }, [allowed, booking?._id, techId, booking?.problemTitle, booking?.service?.name]);
 
-  // 2) Load messages + poll every 6s
+  // 2) Load messages + poll
   useEffect(() => {
     if (!conversationId) return;
-
     let abort = false;
 
-    const load = async () => {
+    async function load() {
       try {
-        const { data } = await api.get("/api/chat/messages", {
-          params: { conversationId },
-        });
-        if (!abort) setMessages(Array.isArray(data) ? data : []);
-      } catch (e) {
-        /* ignore softly */
-      }
-    };
-
+        const data = await listMessages(conversationId);
+        if (!abort) setMessages(data);
+      } catch { /* ignore softly */ }
+    }
     load();
-    pollRef.current = setInterval(load, 6000);
+    pollRef.current = setInterval(load, 4000);
 
     return () => {
       abort = true;
@@ -94,61 +85,57 @@ export default function ChatPanel({ booking, onClose }) {
     listRef.current.scrollTop = listRef.current.scrollHeight;
   }, [messages.length]);
 
-  const send = async (e) => {
+  async function send(e) {
     e?.preventDefault();
-    if (!text.trim() || !conversationId) return;
+    const t = text.trim();
+    if (!t || !conversationId) return;
     setSending(true);
+    const optimistic = {
+      _id: `tmp-${Date.now()}`,
+      senderRole: "customer",
+      senderId: myId,
+      text: t,
+      createdAt: new Date().toISOString(),
+      optimistic: true,
+    };
+    setMessages((m) => [...m, optimistic]);
+
     try {
-      // optimistic UI
-      const optimistic = {
-        _id: `tmp-${Date.now()}`,
-        senderRole: "customer",
-        senderId: "me",
-        text,
-        createdAt: new Date().toISOString(),
-        optimistic: true,
-      };
-      setMessages((m) => [...m, optimistic]);
-
-      await api.post("/api/chat/message", {
-        conversationId,
-        text: text.trim(),
-      });
-
+      const saved = await postMessage(conversationId, t);
+      setMessages((m) => m.map(x => x._id === optimistic._id ? saved : x));
       setText("");
-      // next poll will replace optimistic with real one; we could also manual-refresh
     } catch (e) {
-      // drop optimistic on error
-      setMessages((m) => m.filter((x) => !x.optimistic));
+      setMessages((m) => m.filter(x => x._id !== optimistic._id));
     } finally {
       setSending(false);
     }
-  };
+  }
 
   const title =
-    booking?.technician?.full_name ||
-    booking?.technician?.name ||
+    booking?.assignedTechnician?.full_name ||
+    booking?.assignedTechnician?.name ||
     "Technician";
 
+  const containerClass = `chat-wrap ${mode === "inline" ? "inline" : ""}`;
+
   return (
-    <div className="chat-wrap" role="dialog" aria-modal="true">
+    <div className={containerClass} role={mode === "floating" ? "dialog" : undefined} aria-modal={mode === "floating" ? "true" : undefined}>
       <header className="chat-head">
         <div className="chat-head__title">
           <div className="dot online" />
           <div>
             <div className="t1">{title}</div>
             <div className="t2">
-              {booking?.service?.name || booking?.serviceName || "Service"}
+              {booking?.problemTitle || booking?.service?.name || "Service"}
             </div>
           </div>
         </div>
-        <button className="x" onClick={onClose} aria-label="Close">×</button>
+        {onClose && <button className="x" onClick={onClose} aria-label="Close">×</button>}
       </header>
 
       {!allowed ? (
         <div className="chat-empty">
-          You can message the technician after your request is **approved**
-          and until the job is **completed**.
+          You can message the technician once your booking is <b>approved</b> and until the job is <b>in progress</b>.
         </div>
       ) : loading ? (
         <div className="chat-empty">Loading chat…</div>
@@ -156,12 +143,15 @@ export default function ChatPanel({ booking, onClose }) {
         <>
           <div className="chat-list" ref={listRef}>
             {messages.map((m) => {
-              const mine = String(m.senderRole).toLowerCase() === "customer";
+              const mine = String(m.senderId || "") === myId;
               return (
                 <div key={m._id} className={`bubble ${mine ? "me" : "them"} ${m.optimistic ? "ghost" : ""}`}>
                   <div className="tx">{m.text}</div>
                   <div className="tm">
-                    {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    {(mine ? "You" : (m.senderRole || "tech"))}
+                    {" • "}
+                    {m.createdAt ? new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
+                    {m.optimistic ? " • sending…" : ""}
                   </div>
                 </div>
               );

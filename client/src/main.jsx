@@ -24,6 +24,10 @@ import ManageServices from "./Pages/AdminDashboard/components/ManageServices.jsx
 import ServiceRequests from "./Pages/AdminDashboard/components/ServiceRequests.jsx";
 import ManageComplaints from "./Pages/AdminDashboard/components/ManageComplaints.jsx";
 import RateTechnician from "./Pages/AdminDashboard/components/RateTechnician.jsx";
+import Chatwithtechni from "./Components/chat/ChatPanel.jsx";
+import ReceiptDetails from "./Pages/UserDashboard/ReceiptDetails.jsx";
+import Receipts from "./Pages/UserDashboard/Receipts.jsx";
+import Support from "./Pages/UserDashboard/Support.jsx";
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
@@ -75,6 +79,12 @@ const router = createBrowserRouter([
       { path: "history", element: <MyBookings /> },
       { path: "booking/:id", element: <BookingDetails /> },
       { path: "profile", element: <UserProfile /> },
+      { path: "chat", element: <Chatwithtechni /> },
+      { path: "support", element: <Support /> },
+
+      // 🔽 NEW
+      { path: "receipts", element: <Receipts /> },
+      { path: "receipt/:id", element: <ReceiptDetails /> },
     ],
   },
 
@@ -90,8 +100,10 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    <div className="fontBody">
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </div>
   </StrictMode>
 );
