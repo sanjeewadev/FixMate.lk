@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');           // ✅ needed for isValidObjectId
 const Service = require('../models/Service');
 
 // ---------- helpers ----------
@@ -37,7 +38,7 @@ exports.createService = async (req, res) => {
       basePrice = 0,
       category = 'General',
       isActive = true,
-      imageUrls // optional: array of URLs when not uploading files
+      imageUrls // optional: string or array of URLs / base64 strings
     } = req.body;
 
     if (!name) return res.status(400).json({ message: 'Name is required' });
@@ -57,7 +58,7 @@ exports.createService = async (req, res) => {
       );
     }
 
-     const createdBy =
+    const createdBy =
       req.user?.role === 'admin' && mongoose.isValidObjectId(req.user.id)
         ? req.user.id
         : null; // super_admin => null
@@ -193,6 +194,31 @@ exports.deleteService = async (req, res) => {
     const doc = await Service.findByIdAndUpdate(req.params.id, { isActive: false }, { new: true });
     if (!doc) return res.status(404).json({ message: 'Service not found' });
     res.json({ message: 'Deactivated', service: doc });
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
+};
+
+// ---------- admin: list ALL (active + inactive) ----------
+exports.adminListServices = async (_req, res) => {
+  try {
+    const items = await Service.find({}).sort({ createdAt: -1 });
+    res.json({ data: items });
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
+};
+
+// ---------- admin: activate (flip isActive:true) ----------
+exports.activateService = async (req, res) => {
+  try {
+    const doc = await Service.findByIdAndUpdate(
+      req.params.id,
+      { isActive: true },
+      { new: true }
+    );
+    if (!doc) return res.status(404).json({ message: 'Service not found' });
+    res.json({ message: 'Activated', service: doc });
   } catch (e) {
     res.status(400).json({ message: e.message });
   }
