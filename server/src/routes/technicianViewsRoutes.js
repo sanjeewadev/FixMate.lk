@@ -11,7 +11,7 @@ const {
 router.get(
   "/technician/technicians",
   verifyToken,
-  requireRole("technician"),
+  requireRole("coordinator"),
   listTechniciansForTech
 );
 
@@ -19,7 +19,7 @@ router.get(
 router.get(
   "/technician/customers/public",
   verifyToken,
-  requireRole("technician"),
+  requireRole("coordinator"),
   listCustomersPublicForTech
 );
 

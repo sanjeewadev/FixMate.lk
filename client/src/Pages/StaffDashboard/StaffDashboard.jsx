@@ -2,6 +2,16 @@
 import React, { useState, useEffect } from "react";
 import api from "../../lib/api";
 import "./staff-dashboard.css";
+import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+
+const FALLBACK_100 =
+  'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100%" height="100%" fill="%23e5e7eb"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-size="36">👤</text></svg>';
+
+const FALLBACK_120 =
+  'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><rect width="100%" height="100%" fill="%23e5e7eb"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-size="44">👤</text></svg>';
+
+
 
 export default function StaffDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -49,41 +59,87 @@ export default function StaffDashboard() {
   useEffect(() => {
     if (activeTab === "overview") {
       setLoading(true);
-      api.get("/api/coordinator/bookings")
-        .then((res) => setBookings(res.data || []))
-        .catch((err) => console.error("Error fetching bookings:", err))
-        .finally(() => setLoading(false));
+   const fetchByStatus = (status) =>
+     api
+       .get("/api/coordinator/bookings", { params: status ? { status } : {} })
+       .then((r) => r.data || [])
+       .catch(() => []); // swallow per-call errors so others still load
+
+   Promise.allSettled([
+     fetchByStatus("pending"),
+     fetchByStatus("awaiting_coordinator"),
+     fetchByStatus("coordinator_approved"),
+     fetchByStatus("in_progress"),
+     fetchByStatus("completed"),
+   ])
+     .then((results) => {
+       const all = results
+         .filter((r) => r.status === "fulfilled")
+         .flatMap((r) => r.value);
+       // de-dup in case of overlap
+       const unique = Array.from(new Map(all.map((b) => [b._id, b])).values());
+       setBookings(unique);
+     })
+     .catch((err) => console.error("Error fetching bookings:", err))
+     .finally(() => setLoading(false));
     }
   }, [activeTab]);
 
   useEffect(() => {
     if (activeTab === "approvals") {
       setApprovalsLoading(true);
-      api.get("/api/bookings/pendingApproval")
+      api.get("/api/coordinator/bookings/pending-approval")
         .then((res) => setPendingApprovals(res.data || []))
         .catch((err) => console.error("Error fetching approvals:", err))
         .finally(() => setApprovalsLoading(false));
     }
   }, [activeTab]);
 
-  useEffect(() => {
-    if (activeTab === "chat" && activeConversation) {
-      setChatLoading(true);
-      api.get("/api/chat/messages", { params: { conversationId: activeConversation._id } })
-        .then((res) => setMessages(res.data || []))
-        .catch((err) => console.error("Error fetching messages:", err))
-        .finally(() => setChatLoading(false));
-    }
-  }, [activeTab, activeConversation]);
+  // LOAD COMPLAINTS AS CHAT THREADS
+useEffect(() => {
+  if (activeTab !== "chat") return;
 
-  useEffect(() => {
-    if (activeTab === "chat") {
-      setConversations([
-        { _id: "1", topic: "Customer Complaint #123", participants: ["Customer A"] },
-        { _id: "2", topic: "Booking #456", participants: ["Technician B"] },
-      ]);
-    }
-  }, [activeTab]);
+  setChatLoading(true);
+  api.get("/api/complaints")
+    .then((res) => {
+      const list = res.data || [];
+      // Map complaints -> chat threads
+      const threads = list.map((c) => ({
+        _id: c._id,
+        topic: c.title,
+        participants: [c.assignedToRole || "coordinator"],
+        raw: c, // keep the full complaint so we can access responses
+      }));
+      setConversations(threads);
+
+      // If a thread is already open, refresh it
+      if (activeConversation) {
+        const match = threads.find((t) => t._id === activeConversation._id);
+        if (match) {
+          setActiveConversation(match);
+          setMessages(match.raw?.responses || []);
+        } else {
+          setActiveConversation(null);
+          setMessages([]);
+        }
+      }
+    })
+    .catch((err) => {
+      console.error("Error loading complaints for chat:", err?.response?.data || err);
+      setConversations([]);
+      setMessages([]);
+    })
+    .finally(() => setChatLoading(false));
+}, [activeTab]);
+
+
+  // WHEN A CONVERSATION IS SELECTED, SHOW ITS RESPONSES
+useEffect(() => {
+  if (activeTab === "chat" && activeConversation) {
+    setMessages(activeConversation.raw?.responses || []);
+  }
+}, [activeTab, activeConversation]);
+
 
   useEffect(() => {
     if (activeTab === "complaints") {
@@ -128,7 +184,7 @@ export default function StaffDashboard() {
   useEffect(() => {
     if (activeTab === "profile") {
       setProfileLoading(true);
-      api.get("/api/coordinator/me")
+      api.get("/api/coordinator/coordinator/me")
         .then((res) => {
           setProfile(res.data || null);
           setProfileForm({
@@ -145,34 +201,50 @@ export default function StaffDashboard() {
 
   /* ----------------- Handlers ----------------- */
   const handleApprove = async (bookingId, technicianId) => {
-    try {
-      await api.post(`/api/bookings/${bookingId}/approve`, { technicianId });
-      setPendingApprovals((prev) => prev.filter((b) => b._id !== bookingId));
-      alert("Booking approved ✅");
-    } catch (err) {
-      console.error("Approve error:", err);
-      alert("Error approving booking");
-    }
-  };
+  try {
+    await api.post(`/api/coordinator/bookings/${bookingId}/approve`, { technicianId });
+    setPendingApprovals((prev) => prev.filter((b) => b._id !== bookingId));
+    alert("Booking approved ✅");
+  } catch (err) {
+    console.error("Approve error:", err);
+    alert("Error approving booking");
+  }
+};
+
   const handleDecline = (bookingId, technicianId) => {
     setPendingApprovals((prev) => prev.filter((b) => b._id !== bookingId));
     alert("Booking declined ❌");
   };
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !activeConversation) return;
-    try {
-      const res = await api.post("/api/chat/message", {
-        conversationId: activeConversation._id,
-        text: newMessage.trim(),
-      });
-      setMessages((prev) => [...prev, res.data]);
-      setNewMessage("");
-    } catch (err) {
-      console.error("Send message error:", err);
-      alert("Failed to send message");
+  if (!newMessage.trim() || !activeConversation) return;
+
+  const text = newMessage.trim();
+  setNewMessage("");
+
+  // Optimistic message
+  const optimistic = { text, byRole: "coordinator", at: new Date().toISOString() };
+  setMessages((prev) => [...prev, optimistic]);
+
+  try {
+    const res = await api.post(`/api/complaints/${activeConversation._id}/respond`, { text });
+    const updated = res.data?.complaint;
+    if (updated) {
+      // Update messages and thread cache
+      setMessages(updated.responses || []);
+      setConversations((prev) =>
+        prev.map((t) => (t._id === updated._id ? { ...t, raw: updated } : t))
+      );
+      setActiveConversation((prev) =>
+        prev && prev._id === updated._id ? { ...prev, raw: updated } : prev
+      );
     }
-  };
+  } catch (err) {
+    console.error("Send message error:", err?.response?.data || err);
+    alert(err?.response?.data?.message || "Failed to send message");
+  }
+};
+
 
   const handleRespond = async (complaintId, status) => {
     try {
@@ -197,7 +269,7 @@ export default function StaffDashboard() {
 
   const handleProfileSave = async () => {
     try {
-      await api.put("/api/coordinator/me", profileForm);
+      await api.patch("/api/coordinator/coordinator/me", profileForm);
       setProfile({ ...profile, ...profileForm });
       setEditProfile(false);
       alert("Profile updated ✅");
@@ -208,15 +280,27 @@ export default function StaffDashboard() {
   };
 
   const handleChangePassword = async () => {
-    try {
-      await api.patch("/api/coordinator/me/password", passwordForm);
-      setPasswordForm({ oldPassword: "", newPassword: "" });
-      alert("Password changed ✅");
-    } catch (err) {
-      console.error("Change password error:", err);
-      alert("Failed to change password");
-    }
-  };
+   try {
+     await api.patch("/api/coordinator/coordinator/me/password", {
+       currentPassword: passwordForm.oldPassword,
+       newPassword: passwordForm.newPassword,
+     });
+     setPasswordForm({ oldPassword: "", newPassword: "" });
+     alert("Password changed ✅");
+   } catch (err) {
+     console.error("Change password error:", err?.response?.data || err);
+     alert(err?.response?.data?.message || "Failed to change password");
+   }
+ };
+
+  const { logout } = useAuth();
+const navigate = useNavigate();
+
+const handleLogout = () => {
+  logout();                 // clear token + role
+  navigate("/", { replace: true }); // redirect home
+};
+
 
   /* ----------------- Render ----------------- */
   const renderContent = () => {
@@ -328,13 +412,22 @@ export default function StaffDashboard() {
               {activeConversation ? (
                 <>
                   <div className="chat-messages">
-                    {chatLoading ? <p>Loading messages...</p> :
-                      messages.length > 0 ? messages.map((m, idx) => (
-                        <div key={idx} className={`chat-message ${m.senderRole === "coordinator" ? "me" : "other"}`}>
-                          <div className="text">{m.text}</div>
-                        </div>
-                      )) : <p>No messages yet</p>}
-                  </div>
+  {chatLoading ? (
+    <p>Loading messages...</p>
+  ) : messages.length > 0 ? (
+    messages.map((m, idx) => {
+      const role = m.byRole || m.senderRole; // fallback just in case
+      return (
+        <div key={idx} className={`chat-message ${role === "coordinator" ? "me" : "other"}`}>
+          <div className="text">{m.text}</div>
+        </div>
+      );
+    })
+  ) : (
+    <p>No messages yet</p>
+  )}
+</div>
+
                   <div className="chat-input">
                     <input type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Type a message..." />
                     <button onClick={sendMessage}>Send</button>
@@ -402,7 +495,8 @@ export default function StaffDashboard() {
               <div className="grid-cards">
                 {technicians.length > 0 ? technicians.map((t) => (
                   <div key={t._id} className="card">
-                    <img src={t.profile_image_url || "https://via.placeholder.com/100"} alt={t.full_name} className="card-avatar" />
+                     <img src={t.profile_image_url || FALLBACK_100}
+                     onError={(e) => (e.currentTarget.src = FALLBACK_100)}alt={t.full_name} className="card-avatar" />
                     <h4>{t.full_name}</h4>
                     <p><strong>Email:</strong> {t.email}</p>
                     <p><strong>Phone:</strong> {t.phone_number}</p>
@@ -418,22 +512,32 @@ export default function StaffDashboard() {
         );
 
       case "customers":
-        return (
-          <div className="tab-content">
-            <h3>👤 Customers</h3>
-            {custLoading ? <p>Loading customers...</p> : (
-              <div className="grid-cards">
-                {customers.length > 0 ? customers.map((c) => (
-                  <div key={c._id} className="card">
-                    <img src={c.profile_image_url || "https://via.placeholder.com/100"} alt={c.full_name} className="card-avatar" />
-                    <h4>{c.full_name || c.name_initials}</h4>
-                    <p><strong>District:</strong> {c.district}</p>
-                  </div>
-                )) : <p>No customers found.</p>}
-              </div>
-            )}
-          </div>
-        );
+  return (
+    <div className="tab-content">
+      <h3>👤 Customers</h3>
+      {custLoading ? <p>Loading customers...</p> : (
+        <div className="grid-cards">
+          {customers.length > 0 ? customers.map((c) => (
+            <div key={c._id} className="card">
+              <img
+                src={c.profile_image_url || FALLBACK_100}
+                onError={(e) => (e.currentTarget.src = FALLBACK_100)}
+                alt={c.full_name || c.name_initials}
+                className="card-avatar"
+              />
+              <h4>{c.full_name || c.name_initials}</h4>
+              {/* These will be present for staff roles */}
+              {c.email && <p><strong>Email:</strong> {c.email}</p>}
+              {c.phone_number && <p><strong>Phone:</strong> {c.phone_number}</p>}
+              {c.address && <p><strong>Address:</strong> {c.address}</p>}
+              <p><strong>District:</strong> {c.district}</p>
+            </div>
+          )) : <p>No customers found.</p>}
+        </div>
+      )}
+    </div>
+  );
+
 
       case "ratings":
         return (
@@ -485,7 +589,8 @@ export default function StaffDashboard() {
             ) : profile ? (
               <div className="profile-card">
                 <img
-                  src={profile.profile_image_url || "https://via.placeholder.com/120"}
+                  src={profile.profile_image_url || FALLBACK_120}
+                  onError={(e) => (e.currentTarget.src = FALLBACK_120)}
                   alt="profile"
                   className="profile-avatar"
                 />
@@ -561,7 +666,9 @@ export default function StaffDashboard() {
         <header className="staff-topbar">
           <h2>Staff Dashboard</h2>
           <div className="user-controls">
-            <button className="logout-btn">Logout</button>
+            <button className="logout-btn" onClick={handleLogout}>
+  Logout
+</button>
           </div>
         </header>
         <section className="staff-content">{renderContent()}</section>
