@@ -22,7 +22,8 @@ const {
   listForCoordinator,
   coordinatorDashboard,
   coordinatorAssign,
-  coordinatorReassign
+  coordinatorReassign,
+  coordinatorDelete
 } = require('../controllers/bookingController');
 
 // CUSTOMER
@@ -128,6 +129,13 @@ router.post(
   '/coordinator/bookings/:id/reassign',
   verifyToken, requireRole('coordinator', 'admin', 'super_admin'),
   coordinatorReassign
+);
+
+// NEW: coordinator hard-delete (only early states)
+router.delete(
+  '/coordinator/bookings/:id',
+  verifyToken, requireRole('coordinator', 'admin', 'super_admin'),
+  coordinatorDelete
 );
 
 module.exports = router;

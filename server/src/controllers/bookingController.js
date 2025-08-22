@@ -646,3 +646,33 @@ exports.coordinatorReassign = async (req, res) => {
     return res.status(400).json({ message: e.message });
   }
 };
+
+// COORDINATOR/ADMIN: hard delete a booking (only early states, unassigned)
+exports.coordinatorDelete = async (req, res) => {
+  try {
+    const allowed = ['coordinator', 'admin', 'super_admin'].includes(req.user?.role);
+    if (!allowed) return res.status(403).json({ message: 'Forbidden' });
+
+    const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ message: 'Invalid booking id' });
+    }
+
+    const booking = await Booking.findById(id);
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+    // Safety guard: only allow deleting unassigned & early-stage bookings
+    if (booking.assignedTechnician) {
+      return res.status(409).json({ message: 'Cannot delete after assignment' });
+    }
+    if (!['pending', 'awaiting_coordinator'].includes(booking.status)) {
+      return res.status(409).json({ message: `Cannot delete in status: ${booking.status}` });
+    }
+
+    await Booking.deleteOne({ _id: id });
+    return res.json({ message: 'Booking deleted' });
+  } catch (e) {
+    return res.status(500).json({ message: e.message });
+  }
+};
+

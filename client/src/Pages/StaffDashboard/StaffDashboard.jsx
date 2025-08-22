@@ -211,10 +211,20 @@ useEffect(() => {
   }
 };
 
-  const handleDecline = (bookingId, technicianId) => {
+  const handleDecline = async (bookingId /*, technicianId */) => {
+  try {
+    await api.delete(`/api/coordinator/bookings/${bookingId}`);
+    // remove from approvals list immediately
     setPendingApprovals((prev) => prev.filter((b) => b._id !== bookingId));
-    alert("Booking declined ❌");
-  };
+    // also remove from overview if it was visible there
+    setBookings((prev) => prev.filter((b) => b._id !== bookingId));
+    alert("Booking deleted ❌");
+  } catch (err) {
+    console.error("Decline/Delete error:", err?.response?.data || err);
+    alert(err?.response?.data?.message || "Failed to delete booking");
+  }
+};
+
 
   const sendMessage = async () => {
   if (!newMessage.trim() || !activeConversation) return;
