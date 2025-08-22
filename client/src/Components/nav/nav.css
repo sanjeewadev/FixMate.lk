@@ -61,14 +61,14 @@
   100% { transform: scale(1); }
 }
 
-.navInner {
+.publicNav .navInner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 10px 40px;
 }
 
-.brand {
+.publicNav .brand {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -81,7 +81,7 @@
   color: var(--c-white);
 }
 
-.brandDot {
+.publicNav .brandDot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -89,17 +89,16 @@
   box-shadow: 0 0 0 6px rgba(138, 188, 167, .25);
 }
 
-.brandName {
-  letter-spacing: .2px;
-}
+.publicNav .brandName { letter-spacing: .2px; }
 
-.navLinks {
+.publicNav .navLinks {
   display: flex;
   align-items: center;
   gap: 18px;
 }
 
-.navLink {
+/* links kept explicit to beat any global anchor rules */
+.publicNav .navLink {
   color: #ebf1ff;
   text-decoration: none;
   font-weight: 600;
@@ -107,12 +106,8 @@
   border-radius: var(--r-1);
   position: relative;
 }
-
-.publicNav.isSticky .navLink {
-  color: var(--c-white);
-}
-
-.navLink::after {
+.publicNav.isSticky .navLink { color: var(--c-white); }
+.publicNav .navLink::after {
   content: "";
   position: absolute;
   left: 50%;
@@ -123,12 +118,9 @@
   transition: all var(--t-fast) var(--ease-out);
   transform: translateX(-50%);
 }
+.publicNav .navLink:hover::after { width: 80%; }
 
-.navLink:hover::after {
-  width: 80%;
-}
-
-.serviceMenuBtn {
+.publicNav .serviceMenuBtn {
   appearance: none;
   background: transparent;
   border: 0;
@@ -141,12 +133,8 @@
   cursor: pointer;
   position: relative;
 }
-
-.publicNav.isSticky .serviceMenuBtn {
-  color: var(--c-white);
-}
-
-.serviceMenuBtn::after {
+.publicNav.isSticky .serviceMenuBtn { color: var(--c-white); }
+.publicNav .serviceMenuBtn::after {
   content: "";
   position: absolute;
   left: 50%;
@@ -157,25 +145,14 @@
   transform: translateX(-50%);
   transition: all var(--t-fast) var(--ease-out);
 }
-
-.serviceMenuBtn:hover::after {
-  width: 80%;
-}
-
-.serviceMenuBtn:focus-visible {
-  outline: 2px solid rgba(96, 165, 250, .9);
+.publicNav .serviceMenuBtn:hover::after { width: 80%; }
+.publicNav .serviceMenuBtn:focus-visible {
+  outline: 2px solid rgba(96,165,250,.9);
   outline-offset: 2px;
 }
 
-.navLinkMenu {
-  position: relative;
-}
-
-.chev {
-  margin-left: 6px;
-  font-size: 12px;
-  opacity: .8;
-}
+.publicNav .navLinkMenu { position: relative; }
+.publicNav .chev { margin-left: 6px; font-size: 12px; opacity: .8; }
 
 .publicNav .megaPanel {
   position: absolute;
@@ -199,11 +176,7 @@
     transform var(--t-med) var(--ease-out);
   z-index: 1200;
 }
-
-.publicNav.isSticky .megaPanel {
-  background: rgba(255, 255, 255, .98);
-}
-
+.publicNav.isSticky .megaPanel { background: rgba(255,255,255,.98); }
 .publicNav .megaPanel.show {
   display: block;
   opacity: 1;
@@ -211,7 +184,7 @@
   pointer-events: auto;
 }
 
-.megaHoverPad {
+.publicNav .megaHoverPad {
   position: fixed;
   left: 0;
   right: 0;
@@ -223,7 +196,7 @@
   cursor: default;
 }
 
-.megaTag {
+.publicNav .megaTag {
   position: absolute;
   top: 12px;
   left: 14px;
@@ -237,14 +210,14 @@
   border-radius: 999px;
 }
 
-.megaGrid {
+.publicNav .megaGrid {
   margin-top: 8px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px 10px;
 }
 
-.megaTitle {
+.publicNav .megaTitle {
   margin: 6px 6px 5px;
   font-size: 12px;
   font-weight: 900;
@@ -253,11 +226,9 @@
   text-transform: uppercase;
 }
 
-.megaSection {
-  padding-top: 35px;
-}
+.publicNav .megaSection { padding-top: 35px; }
 
-.megaRow {
+.publicNav .megaRow {
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -270,29 +241,27 @@
     background var(--t-fast) var(--ease-out),
     box-shadow var(--t-fast) var(--ease-out);
 }
-
-.megaRow:hover {
+.publicNav .megaRow:hover {
   background: #F3F8FF;
   transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(2, 6, 23, .06);
+  box-shadow: 0 6px 14px rgba(2,6,23,.06);
 }
 
-.megaIcon {
+.publicNav .megaIcon {
   width: 28px;
   height: 28px;
   border-radius: 10px;
   flex: 0 0 28px;
-  filter: drop-shadow(0 2px 6px rgba(2, 6, 23, .12));
+  filter: drop-shadow(0 2px 6px rgba(2,6,23,.12));
 }
+.publicNav .megaIcon.i-1 { background: linear-gradient(180deg, #B9E6FF, #A7F3D0); }
+.publicNav .megaIcon.i-2 { background: linear-gradient(180deg, #D8B4FE, #93C5FD); }
+.publicNav .megaIcon.i-3 { background: linear-gradient(180deg, #FBCFE8, #C7D2FE); }
+.publicNav .megaIcon.i-4 { background: linear-gradient(180deg, #FDE68A, #A7F3D0); }
+.publicNav .megaIcon.i-5 { background: linear-gradient(180deg, #93C5FD, #FDE68A); }
+.publicNav .megaIcon.i-6 { background: linear-gradient(180deg, #A7F3D0, #FBCFE8); }
 
-.megaIcon.i-1 { background: linear-gradient(180deg, #B9E6FF, #A7F3D0); }
-.megaIcon.i-2 { background: linear-gradient(180deg, #D8B4FE, #93C5FD); }
-.megaIcon.i-3 { background: linear-gradient(180deg, #FBCFE8, #C7D2FE); }
-.megaIcon.i-4 { background: linear-gradient(180deg, #FDE68A, #A7F3D0); }
-.megaIcon.i-5 { background: linear-gradient(180deg, #93C5FD, #FDE68A); }
-.megaIcon.i-6 { background: linear-gradient(180deg, #A7F3D0, #FBCFE8); }
-
-.megaText strong {
+.publicNav .megaText strong {
   display: block;
   font-size: 14px;
   line-height: 1.15;
@@ -300,8 +269,7 @@
   font-weight: 800;
   color: #0f2433;
 }
-
-.megaText small {
+.publicNav .megaText small {
   display: block;
   margin-top: 2px;
   font-size: 12px;
@@ -309,17 +277,16 @@
   color: #5b6b79;
 }
 
-.megaFoot {
+.publicNav .megaFoot {
   grid-column: 1 / -1;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px solid rgba(2, 6, 23, .06);
+  border-top: 1px solid rgba(2,6,23,.06);
   padding-top: 12px;
   margin-top: 6px;
 }
-
-.megaCta {
+.publicNav .megaCta {
   background: linear-gradient(90deg, var(--c-brand, #6EE7B7), var(--c-brand-2, #60A5FA));
   color: #fff;
   padding: 10px 16px;
@@ -327,51 +294,41 @@
   text-decoration: none;
   font-weight: 800;
 }
-
-.megaLink {
+.publicNav .megaLink {
   color: #0f2433;
   text-decoration: none;
   font-weight: 700;
 }
 
-.navActions {
+.publicNav .navActions {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.btn {
+/* navbar-only button to avoid global .btn collisions */
+.publicNav .navBtn {
   height: 38px;
   padding: 0 14px;
   border-radius: var(--pill);
   font-weight: 700;
   cursor: pointer;
   border: 1px solid transparent;
-}
-
-.btn.outline {
   background: transparent;
   color: #ebf1ff;
-  border-color: rgba(255, 255, 255, .5);
+}
+.publicNav .navBtn.outline {
+  background: transparent;
+  border-color: rgba(255,255,255,.5);
   width: 100px;
 }
-
-.publicNav:not(.isSticky) .btn.outline {
+.publicNav:not(.isSticky) .navBtn.outline {
   border-color: var(--c-mist);
   color: #ebf1ff;
 }
+.publicNav.isSticky .navBtn { color: var(--c-white); }
 
-.btn.primary {
-  background: linear-gradient(90deg, var(--c-sage), var(--c-brand-2));
-  color: #ebf1ff;
-  border: 0;
-}
-
-.btn.primary:hover {
-  filter: brightness(.98);
-}
-
-.navBurger {
+.publicNav .navBurger {
   display: none;
   flex-direction: column;
   gap: 4px;
@@ -379,28 +336,19 @@
   border: 0;
   cursor: pointer;
 }
-
-.navBurger span {
+.publicNav .navBurger span {
   width: 22px;
   height: 2px;
   background: currentColor;
   display: block;
 }
-
-.publicNav.isTop .navBurger {
-  color: #ebf1ff;
-}
-
-.publicNav.isSticky .navBurger {
-  color: var(--c-white);
-}
+.publicNav.isTop .navBurger { color: #ebf1ff; }
+.publicNav.isSticky .navBurger { color: var(--c-white); }
 
 @media (max-width: 900px) {
-  .navBurger {
-    display: flex;
-  }
+  .publicNav .navBurger { display: flex; }
 
-  .navLinks {
+  .publicNav .navLinks {
     position: absolute;
     top: 64px;
     left: 0;
@@ -409,21 +357,13 @@
     flex-direction: column;
     padding: 10px 14px;
     gap: 10px;
-    background: rgba(255, 255, 255, .97);
+    background: rgba(255,255,255,.97);
     border-bottom: 1px solid var(--c-mist);
   }
+  .publicNav .navLinks.open { display: flex; }
 
-  .navLinks.open {
-    display: flex;
-  }
-
-  .navLink {
-    color: #0f2433;
-  }
-
-  .serviceMenuBtn {
-    color: #0f2433;
-  }
+  .publicNav .navLink { color: #0f2433; }
+  .publicNav .serviceMenuBtn { color: #0f2433; }
 
   .publicNav .megaPanel {
     position: static;
@@ -432,25 +372,13 @@
     box-shadow: none;
     padding: 16px 14px 12px;
   }
-
-  .megaHoverPad {
-    display: none;
-  }
-
-  .megaGrid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .megaTag {
-    position: static;
-    margin-bottom: 6px;
-  }
+  .publicNav .megaHoverPad { display: none; }
+  .publicNav .megaGrid { grid-template-columns: 1fr 1fr; }
+  .publicNav .megaTag { position: static; margin-bottom: 6px; }
 }
 
 @media (max-width: 560px) {
-  .megaGrid {
-    grid-template-columns: 1fr;
-  }
+  .publicNav .megaGrid { grid-template-columns: 1fr; }
 }
 
 .publicNav.isLeaving {
@@ -461,7 +389,6 @@
   animation: navExit 260ms var(--ease-out) forwards;
   z-index: 1100;
 }
-
 .publicNav.isLeaving .navInner {
   margin: 10px auto 0;
   max-width: 1180px;
@@ -470,7 +397,6 @@
   color: var(--c-white);
   box-shadow: var(--sh-1);
 }
-
 @keyframes navExit {
   0% { opacity: 1; transform: translateY(0); }
   100% { opacity: 0; transform: translateY(-14px); }

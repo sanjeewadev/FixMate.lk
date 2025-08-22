@@ -287,9 +287,9 @@ export default function PublicNavBar() {
 
           <div className="navActions">
             {!isAuth ? (
-              <button className="btn outline" onClick={openLogin}>Login</button>
+              <button className="navBtn outline" onClick={openLogin}>Login</button>
             ) : (
-              <button className="btn outline" onClick={doLogout}>Logout</button>
+              <button className="navBtn outline" onClick={doLogout}>Logout</button>
             )}
           </div>
         </div>

@@ -1,3 +1,5 @@
+/* src/Components/ServiceCard/ServiceCard.css */
+
 .service-card {
   width: 100%;
   max-width: 320px;
@@ -5,15 +7,16 @@
   border: none;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 8px24px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10); /* <-- fixed space */
   text-align: left;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 120ms ease, box-shadow 120ms ease;
   position: relative;
   margin: 0 auto;
+  isolation: isolate;
 }
 
 .service-card:hover {
-  transform: translateY(-8px);
+  transform: translateY(-6px);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
 }
 
@@ -22,7 +25,7 @@
   height: 200px;
   object-fit: cover;
   display: block;
-  border-bottom: 2px solid rgba(74, 144, 226, 0.1);
+  border-bottom: 2px solid rgba(74, 144, 226, 0.10);
 }
 
 .service-content {
@@ -30,17 +33,17 @@
 }
 
 .service-title {
+  margin: 0 0 0.75rem;
   font-size: 1.4rem;
   font-weight: 600;
   color: #1a1a1a;
-  margin: 0 0 0.75rem;
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
 .service-description {
+  margin: 0 0 1.25rem;
   font-size: 0.95rem;
   color: #4a4a4a;
-  margin: 0 0 1.5rem;
   line-height: 1.6;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -49,62 +52,66 @@
   -webkit-box-orient: vertical;
 }
 
-.book-button {
-  background: #4a90e2;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 25px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 500;
-  transition: background 0.3s ease, transform 0.2s ease;
+/* Strongly scoped button to avoid global overrides */
+.service-card .book-button {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
   width: 100%;
-  text-align: center;
+  padding: 0.75rem 1.25rem;
+  border-radius: 999px;
+
+  background: #4a90e2;         /* primary blue */
+  color: #ffffff;
+  border: 1px solid transparent;
+
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease,
+    border-color 120ms ease;
+  text-decoration: none;
 }
 
-.book-button:hover {
+.service-card .book-button:hover {
   background: #357abd;
-  transform: scale(1.05);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+  transform: translateY(-1px);
 }
 
-.book-button:active {
-  transform: scale(0.95);
+.service-card .book-button:active {
+  transform: translateY(0);
 }
 
-/* Responsive adjustments */
+.service-card .book-button:focus-visible {
+  outline: 2px solid rgba(53, 122, 189, 0.6);
+  outline-offset: 2px;
+}
+
+.service-card .book-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-  .service-card {
-    max-width: 280px;
-  }
-
-  .service-title {
-    font-size: 1.3rem;
-  }
-
-  .service-image {
-    height: 180px;
-  }
+  .service-card { max-width: 280px; }
+  .service-title { font-size: 1.3rem; }
+  .service-image { height: 180px; }
 }
 
 @media (max-width: 480px) {
-  .service-card {
-    max-width: 100%;
-  }
-
-  .service-image {
-    height: 160px;
-  }
-
-  .service-content {
-    padding: 1rem;
-  }
-
-  .service-title {
-    font-size: 1.2rem;
-  }
-
-  .service-description {
-    font-size: 0.9rem;
-  }
+  .service-card { max-width: 100%; }
+  .service-image { height: 160px; }
+  .service-content { padding: 1rem; }
+  .service-title { font-size: 1.2rem; }
+  .service-description { font-size: 0.9rem; }
 }
