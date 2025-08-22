@@ -5,14 +5,14 @@ const requireRole = require('../middleware/requireRole');
 const getUploadMiddleware = require('../middleware/cloudinaryUploader');
 
 const uploadAdminAvatar = getUploadMiddleware('profiles/admins');
-const uploadServiceImages = getUploadMiddleware('services');
+
 
 const AdminAuth = require('../controllers/adminController');
 const AdminCustomers = require('../controllers/adminCustomersController');
 const AdminCoordinators = require('../controllers/adminCoordinatorsController');
 const AdminTechnicians = require('../controllers/adminTechniciansController');
 const AdminAdmins = require('../controllers/adminAdminsController');
-const ServiceController = require('../controllers/serviceController');
+
 
 /**
  * Mount this file as:
@@ -51,10 +51,17 @@ router.post('/technicians', verifyToken, requireRole('admin','super_admin'), Adm
 router.put('/technicians/:id', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.updateTechnician);
 router.delete('/technicians/:id', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.deleteTechnician);
 
+// NEW: suspend / unsuspend
+router.post('/technicians/:id/suspend', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.suspendTechnician);
+router.post('/technicians/:id/unsuspend', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.unsuspendTechnician);
+
 // Technician apps (canonical)
 router.get('/technicians/applications', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.listTechApplications);
 router.post('/technicians/convert/:id', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.convertApplicationToTechnician);
-// Technician apps (aliases)
+// NEW: admin delete an application
+router.delete('/technicians/applications/:id', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.deleteTechApplication);
+
+// Technician apps (aliases kept)
 router.get('/admin/technician-apps', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.listTechApplications);
 router.post('/admin/technician-apps/:id/convert', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.convertApplicationToTechnician);
 
@@ -64,12 +71,5 @@ router.post('/admins', verifyToken, requireRole('admin','super_admin'), AdminAdm
 router.put('/admins/:id', verifyToken, requireRole('admin','super_admin'), AdminAdmins.updateAdmin);
 router.delete('/admins/:id', verifyToken, requireRole('super_admin'), AdminAdmins.deleteAdmin);
 
-// ---------- Services ----------
-//router.get('/services', verifyToken, requireRole('admin','super_admin'), ServiceController.adminListServices);
-//router.post('/services', verifyToken, requireRole('admin','super_admin'), uploadServiceImages.array('images', 6), ServiceController.createService);
-//router.put('/services/:id', verifyToken, requireRole('admin','super_admin'), uploadServiceImages.array('images', 6), ServiceController.updateService);
-//router.patch('/services/:id', verifyToken, requireRole('admin','super_admin'), ServiceController.updateService);
-//router.patch('/services/:id/activate', verifyToken, requireRole('admin','super_admin'), ServiceController.activateService);
-//router.delete('/services/:id', verifyToken, requireRole('admin','super_admin'), ServiceController.deleteService);
 
 module.exports = router;
