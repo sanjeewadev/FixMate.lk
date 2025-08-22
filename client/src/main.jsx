@@ -25,9 +25,12 @@ import ServiceRequests from "./Pages/AdminDashboard/components/ServiceRequests.j
 import ManageComplaints from "./Pages/AdminDashboard/components/ManageComplaints.jsx";
 import RateTechnician from "./Pages/AdminDashboard/components/RateTechnician.jsx";
 import Chatwithtechni from "./Components/chat/ChatPanel.jsx";
-import ReceiptDetails from "./Pages/UserDashboard/ReceiptDetails.jsx";
-import Receipts from "./Pages/UserDashboard/Receipts.jsx";
+// import ReceiptDetails from "./Pages/UserDashboard/ReceiptDetails.jsx";
 import Support from "./Pages/UserDashboard/Support.jsx";
+import TechnicianRegisterForm from "./Pages/TechnicianRegisterForm/TechnicianRegisterForm.jsx";
+import Complaints from "./Pages/UserDashboard/Complaints.jsx";
+import Ratings from "./Pages/UserDashboard/Ratings.jsx";
+import ChatTech from "./Pages/UserDashboard/ChatTech.jsx";
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
@@ -78,19 +81,18 @@ const router = createBrowserRouter([
       { path: "book", element: <BookService /> },
       { path: "history", element: <MyBookings /> },
       { path: "booking/:id", element: <BookingDetails /> },
-      { path: "profile", element: <UserProfile /> },
-      { path: "chat", element: <Chatwithtechni /> },
+      { path: "complaints", element: <Complaints /> },
+      { path: "ratings", element: <Ratings /> },
+      { path: "chat", element: <ChatTech /> },
       { path: "support", element: <Support /> },
-
-      // 🔽 NEW
-      { path: "receipts", element: <Receipts /> },
-      { path: "receipt/:id", element: <ReceiptDetails /> },
+      // { path: "receipt/:id", element: <ReceiptDetails /> },
+      { path: "profile", element: <UserProfile /> },
     ],
   },
 
-  {path: "/TechnicianDashboard", element: (<TechnicianDashboard /> ),
-  },
-  
+  {path: "/TechnicianDashboard", element: (<TechnicianDashboard /> ), },
+  {path: "/TechnicianRegisterForm", element: (<TechnicianRegisterForm /> ), },
+
   {path: "/StaffDashboard", element: <StaffDashboard />,
      children: [
      { path: "requests", element: <ServiceRequests /> },

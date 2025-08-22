@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../lib/api";
+import ComplaintModal from "./components/Complaints/ComplaintModal.jsx";
 
 export default function BookingDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showComplaint, setShowComplaint] = useState(false);
 
   useEffect(() => {
     let dead = false;
@@ -62,6 +64,17 @@ export default function BookingDetails() {
           </div>
         )}
       </div>
+      <div style={{ margin: "0 0 12px" }}>
+       <button className="link" onClick={() => setShowComplaint(true)}>
+         File a complaint
+       </button>
+      </div>
+      {showComplaint && (
+        <ComplaintModal
+          bookingId={s._id}
+          onClose={() => setShowComplaint(false)}
+        />
+      )}
     </div>
   );
 }

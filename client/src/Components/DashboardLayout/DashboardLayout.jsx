@@ -29,12 +29,13 @@ const Sidebar = ({ role }) => {
     ],
     user: [
       { name: "Overview", to: "/UserDashboard/overview" },
-      { name: "Book Service", to: "/UserDashboard/book" }, // uses same BookService page
+      { name: "Book Service", to: "/UserDashboard/book" },
       { name: "Service History", to: "/UserDashboard/history" },
-      { name: "Profile", to: "/UserDashboard/profile" },
+      { name: "My Complaints", to: "/UserDashboard/complaints" },
+      { name: "Ratings", to: "/UserDashboard/ratings" },
       { name: "Chat", to: "/UserDashboard/chat" },
       { name: "Support", to: "/UserDashboard/support" },
-      { name: "Print Receipts", to: "/UserDashboard/receipts" },
+      { name: "Profile", to: "/UserDashboard/profile" },
     ],
   };
 

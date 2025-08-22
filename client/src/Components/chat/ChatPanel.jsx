@@ -15,7 +15,7 @@ import "./ChatPanel.css";
  *      booking.assignedTechnician?._id || booking.assignedTechnician
  *  - allowed statuses: coordinator_approved, in_progress (add "completed" if you want)
  */
-const ALLOWED = new Set(["coordinator_approved", "in_progress"]); // add "completed" if desired
+const ALLOWED = new Set(["coordinator_approved"]); // add "completed" if desired
 
 export default function ChatPanel({ booking, onClose, mode = "inline" }) {
   const { user } = useAuth();
@@ -135,7 +135,7 @@ export default function ChatPanel({ booking, onClose, mode = "inline" }) {
 
       {!allowed ? (
         <div className="chat-empty">
-          You can message the technician once your booking is <b>approved</b> and until the job is <b>in progress</b>.
+          You can message your technician only while the booking is <b>approved</b>
         </div>
       ) : loading ? (
         <div className="chat-empty">Loading chat…</div>

@@ -3,7 +3,7 @@ import { getMyBookingsForCustomer } from "../../services/booking";
 import ChatPanel from "../../Components/chat/ChatPanel.jsx";
 import "./ChatTech.css";
 
-const ALLOWED = new Set(["coordinator_approved", "in_progress"]);
+const ALLOWED = new Set(["coordinator_approved"]);
 
 export default function ChatTech() {
   const [bookings, setBookings] = useState([]);
