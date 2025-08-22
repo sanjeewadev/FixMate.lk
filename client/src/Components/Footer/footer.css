@@ -1,7 +1,8 @@
 .siteFooter {
   position: relative;
   overflow: hidden;
-  padding: 10px 20px 28px;
+  padding: 30px 20px 28px;
+  margin-top: 0;
 }
 
 .siteFooter::before,
@@ -12,7 +13,7 @@
 
 .footerInner {
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 20px auto;
   position: relative;
 }
 
