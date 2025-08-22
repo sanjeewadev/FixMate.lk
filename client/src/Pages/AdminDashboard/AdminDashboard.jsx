@@ -1,4 +1,3 @@
-// src/Pages/AdminDashboard/AdminDashboard.jsx
 import React from "react";
 import { Routes, Route, NavLink, Navigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -12,12 +11,13 @@ import ManageServices from "./components/ManageServices.jsx";
 import ManageAdmins from "./components/ManageAdmins.jsx";
 import ManageComplaints from "./components/ManageComplaints.jsx";
 import ServiceRequests from "./components/ServiceRequests.jsx";
+import AdminProfile from "./components/AdminProfile.jsx"; // 👈 NEW
 
 export default function AdminDashboard() {
   const { role, loading } = useAuth();
   const isAdmin = role === "admin" || role === "super_admin";
   const isStaff = role === "staff";
-  const canSeeRequests = isAdmin || isStaff; // 👈 allow both
+  const canSeeRequests = isAdmin || isStaff; // admin + staff
 
   if (loading) {
     return (
@@ -52,6 +52,9 @@ export default function AdminDashboard() {
             </NavLink>
           )}
 
+          <div className="side-section">Account</div>
+          <NavLink to="/AdminDashboard/profile" className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}>👤 My Profile</NavLink>
+
           {isAdmin && (
             <>
               <div className="side-section">Administration</div>
@@ -76,9 +79,13 @@ export default function AdminDashboard() {
           <Route path="services" element={<ManageServices />} />
           <Route path="complaints" element={<ManageComplaints role={isStaff ? "staff" : "admin"} />} />
 
-          {/* 👇 mount for both admin and staff */}
+          {/* admin + staff */}
           {canSeeRequests && <Route path="requests" element={<ServiceRequests />} />}
 
+          {/* My Profile */}
+          <Route path="profile" element={<AdminProfile />} />
+
+          {/* Admins list (admins only) */}
           {isAdmin && <Route path="admins" element={<ManageAdmins />} />}
 
           {/* Fallback */}

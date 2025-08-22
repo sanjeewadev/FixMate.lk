@@ -1,3 +1,4 @@
+// src/Pages/AdminDashboard/components/ManageServices.jsx
 import React, { useEffect, useRef, useState } from "react";
 import api from "../../../lib/api";
 import "./ManageServices.css";
@@ -11,15 +12,18 @@ export default function ManageServices() {
     category: "",
   });
 
-  // image preview shown in UI + the cropped base64 we will SEND as JSON
+  // crop & preview (sends base64 as JSON)
   const [imagePreview, setImagePreview] = useState("");
-  const [imageDataUrl, setImageDataUrl] = useState(""); // base64 string
+  const [imageDataUrl, setImageDataUrl] = useState("");
 
   const [editingId, setEditingId] = useState(null);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ====== Cropper state (same feel as your working UserProfile) ======
+  // UI filter: hide inactive in view (admin can toggle)
+  const [hideInactive, setHideInactive] = useState(false);
+
+  // ====== cropper state ======
   const fileRef = useRef(null);
   const [cropOpen, setCropOpen] = useState(false);
   const [cropSrc, setCropSrc] = useState(null);
@@ -30,12 +34,12 @@ export default function ManageServices() {
   const dragRef = useRef({ active: false, startX: 0, startY: 0, startOffX: 0, startOffY: 0 });
   const imgMeta = useRef({ w: 0, h: 0 });
 
-  // ====== Fetch all services ======
+  // ====== fetch ALL services (admin view) ======
   const fetchServices = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/api/services?limit=100");
-      setServices(res.data.data || []);
+      const res = await api.get("/api/admin/services");
+      setServices(res.data?.data || res.data || []);
     } catch (err) {
       setMessage(err?.response?.data?.message || "Failed to fetch services");
     } finally {
@@ -50,9 +54,8 @@ export default function ManageServices() {
     setForm((p) => ({ ...p, [name]: name === "basePrice" ? value : value }));
   };
 
-  // ====== pick & crop image ======
+  // ====== pick & crop image (circle) ======
   const pickFile = () => fileRef.current?.click();
-
   const onPick = (e) => {
     const f = e.target.files?.[0];
     if (!f || !f.type?.startsWith("image/")) return;
@@ -64,7 +67,7 @@ export default function ManageServices() {
   const onPreviewLoad = (e) => {
     const img = e.currentTarget;
     imgMeta.current = { w: img.naturalWidth, h: img.naturalHeight };
-    const square = 256; // output size (keeps JSON small)
+    const square = 256;
     const fit = Math.max(square / img.naturalWidth, square / img.naturalHeight);
     setBase(fit);
     setZoom(1);
@@ -117,7 +120,7 @@ export default function ManageServices() {
     ctx.imageSmoothingQuality = "high";
     ctx.drawImage(img, dx, dy, drawW, drawH);
 
-    // compress until ~60KB
+    // ~60KB cap
     let q = startQ;
     let out = canvas.toDataURL("image/jpeg", q);
     const maxBytes = 60 * 1024;
@@ -146,7 +149,7 @@ export default function ManageServices() {
     setCropOpen(false);
   };
 
-  // ====== helpers ======
+  // Build JSON payload (sends base64 in imageUrls for controller compatibility)
   const buildPayload = () => {
     const payload = {
       name: form.name,
@@ -154,12 +157,8 @@ export default function ManageServices() {
       category: form.category,
     };
     if (form.basePrice !== "") payload.basePrice = Number(form.basePrice);
-
-    // Send the cropped image as base64 (JSON). To maximize compatibility,
-    // include both fields many backends accept:
     if (imageDataUrl) {
-      payload.imageBase64 = imageDataUrl;   // preferred by some APIs
-      payload.imageUrls = imageDataUrl;     // others accept "imageUrls" (string)
+      payload.imageUrls = imageDataUrl; // controller already supports 'imageUrls'
     }
     return payload;
   };
@@ -194,8 +193,9 @@ export default function ManageServices() {
     if (!window.confirm("Deactivate this service?")) return;
     try {
       await api.delete(`/api/admin/services/${id}`);
+      // Update local state immediately for button flip UX
+      setServices((prev) => prev.map(s => s._id === id ? { ...s, isActive: false } : s));
       setMessage("Service deactivated ❌");
-      fetchServices();
     } catch (err) {
       if (err?.response?.status === 401) setMessage("Unauthorized. Please log in again as admin.");
       else setMessage(err?.response?.data?.message || "Error deactivating service");
@@ -204,16 +204,18 @@ export default function ManageServices() {
 
   const handleActivate = async (id) => {
     try {
+      // Try explicit activate endpoint first
       await api.patch(`/api/admin/services/${id}/activate`);
+      setServices((prev) => prev.map(s => s._id === id ? { ...s, isActive: true } : s));
       setMessage("Service activated ✅");
-      fetchServices();
     } catch (err) {
+      // Fallback: generic PATCH (some setups)
       const status = err?.response?.status;
       if (status === 404 || status === 405) {
         try {
           await api.patch(`/api/admin/services/${id}`, { isActive: true });
+          setServices((prev) => prev.map(s => s._id === id ? { ...s, isActive: true } : s));
           setMessage("Service activated ✅");
-          fetchServices();
           return;
         } catch (e2) {
           setMessage(e2?.response?.data?.message || "Error activating service");
@@ -228,8 +230,8 @@ export default function ManageServices() {
     if (!window.confirm("⚠️ Permanently delete this service? This cannot be undone.")) return;
     try {
       await api.delete(`/api/admin/services/${id}?hard=true`);
+      setServices((prev) => prev.filter(s => s._id !== id));
       setMessage("Service permanently deleted 🗑️");
-      fetchServices();
     } catch (err) {
       if (err?.response?.status === 401) setMessage("Unauthorized. Please log in again as admin.");
       else setMessage(err?.response?.data?.message || "Error deleting service");
@@ -247,7 +249,7 @@ export default function ManageServices() {
     });
     const existingUrl = service?.serviceImages?.[0]?.url || "";
     setImagePreview(existingUrl);
-    setImageDataUrl(""); // only send new image if user crops again
+    setImageDataUrl("");
   };
 
   const resetForm = () => {
@@ -257,10 +259,24 @@ export default function ManageServices() {
     setImageDataUrl("");
   };
 
+  const list = hideInactive ? services.filter(s => s.isActive) : services;
+
   return (
     <div className="manage-services">
       <h2>Manage Services</h2>
       {message && <p className="msg">{message}</p>}
+
+      {/* View toggle */}
+      <div className="list-filter">
+        <label>
+          <input
+            type="checkbox"
+            checked={hideInactive}
+            onChange={(e) => setHideInactive(e.target.checked)}
+          />
+          &nbsp;Hide inactive
+        </label>
+      </div>
 
       {/* Form */}
       <form onSubmit={editingId ? handleUpdate : handleCreate} className="service-form" autoComplete="off">
@@ -270,11 +286,11 @@ export default function ManageServices() {
             alt="Service"
             className="service-thumb large"
           />
-          <input ref={fileRef} type="file" accept="image/*" hidden onChange={onPick} />
-          <button type="button" className="btn" onClick={pickFile}>
-            {imagePreview ? "Change Image" : "Upload Image"}
-          </button>
         </div>
+        <input ref={fileRef} type="file" accept="image/*" hidden onChange={onPick} />
+        <button type="button" className="btn" onClick={pickFile}>
+          {imagePreview ? "Change Image" : "Upload Image"}
+        </button>
 
         <input
           type="text"
@@ -322,8 +338,8 @@ export default function ManageServices() {
         <p>Loading...</p>
       ) : (
         <div className="service-cards">
-          {services.map((s) => {
-            const img = s?.serviceImages?.[0]?.url || ""; // backend-saved URL
+          {list.map((s) => {
+            const img = s?.serviceImages?.[0]?.url || "";
             const inactive = !s.isActive;
             return (
               <div key={s._id} className={`service-card ${inactive ? "inactive" : ""}`}>
@@ -356,6 +372,7 @@ export default function ManageServices() {
               </div>
             );
           })}
+          {list.length === 0 && <p style={{ color: "#64748b" }}>No services</p>}
         </div>
       )}
 
