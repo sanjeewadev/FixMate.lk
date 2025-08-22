@@ -15,11 +15,13 @@ import ServiceRequests from "./components/ServiceRequests.jsx";
 import AdminProfile from "./components/AdminProfile.jsx";
 import Reports from "./components/Reports.jsx"; // 👈 NEW
 import AIIngest from "./components/AIIngest.jsx";
+import JobsProgress from "./components/JobsProgress.jsx";
+
 
 export default function AdminDashboard() {
   const { role, loading } = useAuth();
   const isAdmin = role === "admin" || role === "super_admin";
-  const isStaff = role === "staff";
+  const isStaff = role === "coordinator";
   const canSeeRequests = isAdmin || isStaff; // admin + staff
 
   if (loading) {
@@ -52,6 +54,13 @@ export default function AdminDashboard() {
               📋 Service Requests
             </NavLink>
           )}
+          <NavLink
+  to="/AdminDashboard/jobs"
+  className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}
+>
+  🛠️ Jobs & Progress
+</NavLink>
+
 
           <div className="side-section">Account</div>
           <NavLink to="/AdminDashboard/profile" className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}>👤 My Profile</NavLink>
@@ -60,6 +69,7 @@ export default function AdminDashboard() {
   <>
     <div className="side-section">Administration</div>
     <NavLink to="/AdminDashboard/admins" className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}>🛡️ Manage Admins</NavLink>
+    <NavLink to="/AdminDashboard/reports" className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}>📈 Reports</NavLink> {/* 👈 NEW */}
     <NavLink to="/AdminDashboard/ai-ingest" className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}>🤖 AI Ingest</NavLink>
   </>
 )}
@@ -79,7 +89,7 @@ export default function AdminDashboard() {
           <Route path="technicians" element={<ManageTechnicians />} />
           <Route path="staff" element={<ManageStaff />} />
           <Route path="services" element={<ManageServices />} />
-          <Route path="complaints" element={<ManageComplaints role={isStaff ? "staff" : "admin"} />} />
+          <Route path="complaints" element={<ManageComplaints role={isStaff ? "coordinator" : "admin"} />} />
 
           {canSeeRequests && <Route path="requests" element={<ServiceRequests />} />}
 
@@ -89,6 +99,8 @@ export default function AdminDashboard() {
             <>
               <Route path="admins" element={<ManageAdmins />} />
               <Route path="reports" element={<Reports />} /> {/* 👈 NEW */}
+              <Route path="jobs" element={<JobsProgress />} />
+
             </>
           )}
 

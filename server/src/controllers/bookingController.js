@@ -14,6 +14,39 @@ function filesToMedia(files = []) {
     .filter(m => !!m.url);
 }
 
+async function attachSpecLabels(techs) {
+  // Collect ObjectIds we can resolve to Service names (if any)
+  const idSet = new Set();
+  for (const t of techs) {
+    const arr = Array.isArray(t.specialization) ? t.specialization : [];
+    for (const v of arr) {
+      if (mongoose.isValidObjectId(v)) idSet.add(String(v));
+    }
+  }
+
+  let nameById = {};
+  if (idSet.size) {
+    const services = await Service.find({ _id: { $in: Array.from(idSet) } })
+      .select("name")
+      .lean();
+    nameById = Object.fromEntries(services.map(s => [String(s._id), s.name || "Service"]));
+  }
+
+  return techs.map(t => {
+    const arr = Array.isArray(t.specialization) ? t.specialization : [];
+    const labels = arr.map(v => {
+      if (!v) return null;
+      if (typeof v === "string") return v;                       // already a readable string
+      if (v && typeof v === "object" && v.name) return v.name;   // in case some docs already embedded objects
+      const asId = String(v);
+      return nameById[asId] || null;                              // resolve ObjectId → Service name
+    }).filter(Boolean);
+
+    return { ...t, specialization_labels: labels };
+  });
+}
+
+
 // ---- lightweight notify helper (optional) ----
 // If you set app.locals.notify = (event, payload) => {...}, you'll receive these events.
 // Otherwise this safely no-ops.
@@ -495,6 +528,10 @@ exports.listForCoordinator = async (req, res) => {
 
     const items = await Booking.find(find)
       .populate('service', 'name category')
+      .populate(
+        'assignedTechnician',
+        'full_name email phone_number district specialization experience_years profile_image_url'
+      )
       .sort({ createdAt: -1 })
       .lean();
 
@@ -578,10 +615,7 @@ exports.coordinatorAssign = async (req, res) => {
     // Treat this as approval to proceed (align with your current coordinatorApprove status)
     booking.status = 'coordinator_approved';
 
-    // Optional audit: reflect that coordinator chose this tech, independent of accept flow
-    booking.technicianResponses = booking.technicianResponses || [];
-    const idx = booking.technicianResponses.findIndex(r => String(r.technician) === String(tech._id));
-    if (idx === -1) booking.technicianResponses.push({ technician: tech._id, status: 'assigned_by_coordinator' });
+    
 
     await booking.save();
 
@@ -628,10 +662,7 @@ exports.coordinatorReassign = async (req, res) => {
     booking.assignedTechnician = tech._id;
     if (booking.status !== 'coordinator_approved') booking.status = 'coordinator_approved';
 
-    // Optional audit trail in responses
-    booking.technicianResponses = booking.technicianResponses || [];
-    const idx = booking.technicianResponses.findIndex(r => String(r.technician) === String(tech._id));
-    if (idx === -1) booking.technicianResponses.push({ technician: tech._id, status: 'reassigned_by_coordinator' });
+    
 
     await booking.save();
 
@@ -675,4 +706,110 @@ exports.coordinatorDelete = async (req, res) => {
     return res.status(500).json({ message: e.message });
   }
 };
+
+// ========= Add to controllers/bookingController.js (bottom) =========
+const escapeRx = (s) => String(s || "").replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+function buildSpecMatch({ serviceId, serviceCategory }) {
+  const or = [];
+
+  // If specialization stores Service ObjectIds
+  if (serviceId && mongoose.isValidObjectId(serviceId)) {
+    or.push({ specialization: new mongoose.Types.ObjectId(String(serviceId)) });
+  }
+
+  // If specialization stores strings (category/code/slug/name)
+  if (serviceCategory) {
+    or.push({ specialization: serviceCategory });
+  }
+
+  // If you also use service code/slug strings on specialization, add here:
+  // or.push({ specialization: serviceCodeOrSlug });
+
+  return or.length ? { $or: or } : null;
+}
+
+// GET /api/coordinator/technicians?district=&q=&page=1&limit=20
+exports.listTechniciansForCoordinator = async (req, res) => {
+  try {
+    const allowed = ['coordinator','admin','super_admin'].includes(req.user?.role);
+    if (!allowed) return res.status(403).json({ message: 'Forbidden' });
+
+    let { district, q, page = 1, limit = 20 } = req.query || {};
+    page  = Math.max(1, Number(page) || 1);
+    limit = Math.min(100, Math.max(1, Number(limit) || 20));
+    const skip = (page - 1) * limit;
+
+    const find = { is_suspended: { $ne: true } };
+    if (district) {
+      find.district = new RegExp(`^${escapeRx(String(district).trim())}$`, 'i'); // case-insensitive
+    }
+    if (q) {
+      const rx = new RegExp(escapeRx(q), 'i');
+      find.$or = [{ full_name: rx }, { phone_number: rx }, { email: rx }];
+    }
+
+    const [raw, total] = await Promise.all([
+      Technician.find(find)
+        .select('full_name phone_number email district specialization experience_years profile_image_url')
+        .sort({ full_name: 1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Technician.countDocuments(find),
+    ]);
+
+    const items = await attachSpecLabels(raw);  // <-- add labels, no populate
+    res.json({ items, page, limit, total });
+  } catch (e) {
+    res.status(500).json({ message: e.message || 'Server error' });
+  }
+};
+
+
+
+// GET /api/coordinator/technicians/candidates?bookingId=...
+exports.candidatesForBooking = async (req, res) => {
+  try {
+    const allowed = ['coordinator','admin','super_admin'].includes(req.user?.role);
+    if (!allowed) return res.status(403).json({ message: 'Forbidden' });
+
+    const { bookingId } = req.query || {};
+    if (!mongoose.isValidObjectId(bookingId)) {
+      return res.status(400).json({ message: 'bookingId required' });
+    }
+
+    const b = await Booking.findById(bookingId)
+      .populate('service', 'category code slug name')
+      .lean();
+    if (!b) return res.status(404).json({ message: 'Booking not found' });
+
+    const district = b.customerSnapshot?.district;
+
+    const find = { is_suspended: { $ne: true } };
+    if (district) {
+      find.district = new RegExp(`^${escapeRx(String(district).trim())}$`, 'i');
+    }
+
+    const raw = await Technician.find(find)
+      .select('full_name phone_number email district specialization experience_years profile_image_url')
+      .sort({ full_name: 1 })
+      .lean();
+
+    const items = await attachSpecLabels(raw);
+
+    res.json({
+      booking: {
+        _id: String(b._id),
+        district,
+        service: { id: String(b.service?._id || ''), name: b.service?.name, category: b.service?.category },
+      },
+      items
+    });
+  } catch (e) {
+    res.status(500).json({ message: e.message || 'Server error' });
+  }
+};
+
+
 
