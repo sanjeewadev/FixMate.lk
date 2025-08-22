@@ -471,12 +471,25 @@ exports.listForCoordinator = async (req, res) => {
     if (!allowed) return res.status(403).json({ message: 'Forbidden' });
 
     const { status, district, q } = req.query || {};
-    const statusFilter = status ? [status] : ['pending','awaiting_coordinator'];
+    const find = {};
+   const unassignedStatuses = ['pending','awaiting_coordinator'];
+   const assignedStatuses   = ['coordinator_approved','in_progress','completed'];
 
-    const find = {
-      assignedTechnician: null,
-      status: { $in: statusFilter }
-    };
+   if (!status) {
+     // default: unassigned buckets
+     find.assignedTechnician = null;
+     find.status = { $in: unassignedStatuses };
+   } else if (unassignedStatuses.includes(status)) {
+     find.assignedTechnician = null;
+     find.status = status;
+   } else if (assignedStatuses.includes(status)) {
+     // show assigned jobs for these states
+     find.assignedTechnician = { $ne: null };
+     find.status = status;
+   } else {
+     // unknown status → return empty set deliberately
+     find._id = { $exists: false };
+   }
     if (district) find['customerSnapshot.district'] = district;
     if (q) find.problemTitle = { $regex: q, $options: 'i' };
 
