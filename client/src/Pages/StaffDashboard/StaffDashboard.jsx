@@ -1,5 +1,5 @@
 // src/Pages/StaffDashboard/StaffDashboard.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import api from "../../lib/api";
 import "./staff-dashboard.css";
 import { useAuth } from "../../context/AuthContext";
@@ -47,6 +47,12 @@ export default function StaffDashboard() {
   // ---- Ratings ----
   const [ratings, setRatings] = useState([]);
   const [ratingsLoading, setRatingsLoading] = useState(false);
+
+  // ---- Manual assign dialog ----
+const assignRef = useRef(null);
+const [assignTarget, setAssignTarget] = useState(null);   // booking object
+const [assignTechs, setAssignTechs] = useState([]);
+const [assignTechId, setAssignTechId] = useState("");
 
   // ---- Profile ----
   const [profile, setProfile] = useState(null);
@@ -289,6 +295,48 @@ useEffect(() => {
     }
   };
 
+ const openAssign = async (booking) => {
+   setAssignTarget(booking);
+   try {
+     const res = await api.get("/api/technician/technicians");
+     setAssignTechs(res.data || []);
+     setAssignTechId("");
+   } catch (e) {
+     console.error("Failed to load technicians:", e);
+     setAssignTechs([]);
+   }
+   assignRef.current?.showModal();
+ };
+
+ const closeAssign = () => {
+   assignRef.current?.close();
+   setAssignTarget(null);
+   setAssignTechId("");
+ };
+
+const assignNow = async () => {
+  if (!assignTarget || !assignTechId) return alert("Pick a technician");
+  try {
+    await api.post(`/api/coordinator/bookings/${assignTarget._id}/approve`, {
+   technicianId: assignTechId,
+ });
+    // update UI: remove from approvals if present, and mark as approved in overview
+    setPendingApprovals((prev) => prev.filter((b) => b._id !== assignTarget._id));
+    setBookings((prev) =>
+      prev.map((b) =>
+        b._id === assignTarget._id
+          ? { ...b, status: "coordinator_approved", assignedTechnician: { _id: assignTechId } }
+          : b
+      )
+    );
+    alert("Assigned ✅");
+    closeAssign();
+  } catch (err) {
+    console.error("Assign error:", err?.response?.data || err);
+    alert(err?.response?.data?.message || "Failed to assign technician");
+  }
+};
+
   const handleChangePassword = async () => {
    try {
      await api.patch("/api/coordinator/coordinator/me/password", {
@@ -386,6 +434,7 @@ const handleLogout = () => {
                             <div key={t.technician._id} className="action-row">
                               <button className="approve-btn" onClick={() => handleApprove(b._id, t.technician._id)}>Approve</button>
                               <button className="decline-btn" onClick={() => handleDecline(b._id, t.technician._id)}>Decline</button>
+                              <button className="approve-btn" onClick={() => openAssign(b)}>Assign</button>
                             </div>
                           ))}
                         </td>
@@ -671,6 +720,36 @@ const handleLogout = () => {
           </ul>
         </nav>
       </aside>
+      
+
+<dialog ref={assignRef} className="popup-dialog">
+  <form method="dialog" className="popup-body" onSubmit={(e) => e.preventDefault()}>
+    <h4>Assign technician</h4>
+    <p style={{ margin: "8px 0 12px" }}>
+      Booking: <strong>{assignTarget?.problemTitle}</strong>
+    </p>
+
+    <select
+      value={assignTechId}
+      onChange={(e) => setAssignTechId(e.target.value)}
+      style={{ width: "100%", padding: 8, marginBottom: 12 }}
+    >
+      <option value="">Select technician…</option>
+      {assignTechs.map((t) => (
+        <option key={t._id} value={t._id}>
+          {t.full_name} — {t.district}
+        </option>
+      ))}
+    </select>
+
+    <div className="action-row" style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+      <button type="button" className="approve-btn" onClick={assignNow}>Assign</button>
+      <button type="button" className="decline-btn" onClick={closeAssign}>Close</button>
+    </div>
+  </form>
+</dialog>
+
+
 
       <main className="staff-main">
         <header className="staff-topbar">
