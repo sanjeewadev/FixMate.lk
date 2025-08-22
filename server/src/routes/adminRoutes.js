@@ -65,11 +65,11 @@ router.put('/admins/:id', verifyToken, requireRole('admin','super_admin'), Admin
 router.delete('/admins/:id', verifyToken, requireRole('super_admin'), AdminAdmins.deleteAdmin);
 
 // ---------- Services ----------
-router.get('/services', verifyToken, requireRole('admin','super_admin'), ServiceController.adminListServices);
-router.post('/services', verifyToken, requireRole('admin','super_admin'), uploadServiceImages.array('images', 6), ServiceController.createService);
-router.put('/services/:id', verifyToken, requireRole('admin','super_admin'), uploadServiceImages.array('images', 6), ServiceController.updateService);
-router.patch('/services/:id', verifyToken, requireRole('admin','super_admin'), ServiceController.updateService);
-router.patch('/services/:id/activate', verifyToken, requireRole('admin','super_admin'), ServiceController.activateService);
-router.delete('/services/:id', verifyToken, requireRole('admin','super_admin'), ServiceController.deleteService);
+//router.get('/services', verifyToken, requireRole('admin','super_admin'), ServiceController.adminListServices);
+//router.post('/services', verifyToken, requireRole('admin','super_admin'), uploadServiceImages.array('images', 6), ServiceController.createService);
+//router.put('/services/:id', verifyToken, requireRole('admin','super_admin'), uploadServiceImages.array('images', 6), ServiceController.updateService);
+//router.patch('/services/:id', verifyToken, requireRole('admin','super_admin'), ServiceController.updateService);
+//router.patch('/services/:id/activate', verifyToken, requireRole('admin','super_admin'), ServiceController.activateService);
+//router.delete('/services/:id', verifyToken, requireRole('admin','super_admin'), ServiceController.deleteService);
 
 module.exports = router;
