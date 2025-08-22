@@ -17,6 +17,7 @@ const DISTRICTS = [
 function ManageTechnicians() {
   const [technicians, setTechnicians] = useState([]);
   const [applications, setApplications] = useState([]);
+  const [showConvertedApps, setShowConvertedApps] = useState(false);
 
   const [form, setForm] = useState({
     full_name: "",
@@ -35,7 +36,7 @@ function ManageTechnicians() {
   const [imagePreview, setImagePreview] = useState("");
   const [imageDataUrl, setImageDataUrl] = useState("");
 
-  // --- cropper state (same feel as your user profile flow)
+  // --- cropper state
   const fileRef = useRef(null);
   const [cropOpen, setCropOpen] = useState(false);
   const [cropSrc, setCropSrc] = useState(null);
@@ -57,9 +58,9 @@ function ManageTechnicians() {
     }
   };
 
-  const loadApplications = async () => {
+  const loadApplications = async (includeConverted = false) => {
     try {
-      const res = await api.get("/api/admin/technicians/applications");
+      const res = await api.get(`/api/admin/technicians/applications${includeConverted ? "?includeConverted=1" : ""}`);
       setApplications(res.data || []);
     } catch (err) {
       if (err?.response?.status === 401) alert("Unauthorized. Please log in again as admin.");
@@ -69,8 +70,13 @@ function ManageTechnicians() {
 
   useEffect(() => {
     loadTechnicians();
-    loadApplications();
+    loadApplications(false);
   }, []);
+
+  useEffect(() => {
+    loadApplications(showConvertedApps);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showConvertedApps]);
 
   // ================= Form handlers (autofill-safe) =================
   const handleChange = (e) => {
@@ -94,7 +100,7 @@ function ManageTechnicians() {
   const onPreviewLoad = (e) => {
     const img = e.currentTarget;
     imgMeta.current = { w: img.naturalWidth, h: img.naturalHeight };
-    const circle = 256; // smaller output = smaller payload
+    const circle = 256;
     const fit = Math.max(circle / img.naturalWidth, circle / img.naturalHeight);
     setBase(fit);
     setZoom(1);
@@ -150,10 +156,9 @@ function ManageTechnicians() {
     ctx.drawImage(img, dx, dy, drawW, drawH);
     ctx.restore();
 
-    // keep payload small
     let q = startQ;
     let out = canvas.toDataURL("image/jpeg", q);
-    const maxBytes = 60 * 1024; // ~60KB
+    const maxBytes = 60 * 1024;
     while (out.length * 0.75 > maxBytes && q > 0.45) {
       q -= 0.1;
       out = canvas.toDataURL("image/jpeg", q);
@@ -191,7 +196,7 @@ function ManageTechnicians() {
           district: form.district,
           specialization: form.specialization,
           experience_years: Number(form.experience_years) || 0,
-          ...(form.password ? { password: form.password } : {}),
+          // password on edit is ignored by backend (not in allowlist); we simply omit it
           ...(imageDataUrl ? { profile_image_url: imageDataUrl } : {}),
         };
         await api.put(`/api/admin/technicians/${editId}`, payload);
@@ -261,7 +266,7 @@ function ManageTechnicians() {
     });
     const img = tech.profile_image_url || tech.profile_image?.url || "";
     setImagePreview(img || "");
-    setImageDataUrl(""); // only send if changed
+    setImageDataUrl("");
     setEditId(tech._id);
   };
 
@@ -271,13 +276,46 @@ function ManageTechnicians() {
     try {
       await api.post(`/api/admin/technicians/convert/${id}`, { password });
       alert("Application converted!");
-      loadApplications();
+      loadApplications(showConvertedApps);
       loadTechnicians();
     } catch (err) {
       if (err?.response?.status === 401) alert("Unauthorized. Please log in again as admin.");
       else {
         console.error(err);
-        alert("Error converting application");
+        alert(err?.response?.data?.message || "Error converting application");
+      }
+    }
+  };
+
+  // ========= NEW: suspend/unsuspend technician =========
+  const toggleSuspend = async (tech) => {
+    try {
+      if (tech.is_suspended) {
+        await api.post(`/api/admin/technicians/${tech._id}/unsuspend`);
+      } else {
+        await api.post(`/api/admin/technicians/${tech._id}/suspend`);
+      }
+      loadTechnicians();
+    } catch (err) {
+      if (err?.response?.status === 401) alert("Unauthorized. Please log in again as admin.");
+      else {
+        console.error(err);
+        alert(err?.response?.data?.message || "Failed to update suspension");
+      }
+    }
+  };
+
+  // ========= NEW: delete application (admin) =========
+  const deleteApplication = async (id) => {
+    if (!window.confirm("Delete this application?")) return;
+    try {
+      await api.delete(`/api/admin/technicians/applications/${id}`);
+      loadApplications(showConvertedApps);
+    } catch (err) {
+      if (err?.response?.status === 401) alert("Unauthorized. Please log in again as admin.");
+      else {
+        console.error(err);
+        alert(err?.response?.data?.message || "Failed to delete application");
       }
     }
   };
@@ -309,7 +347,7 @@ function ManageTechnicians() {
           autoComplete="off"
         />
 
-        {/* Email: nonstandard name + no readOnly so you can type; still blocks most autofill */}
+        {/* Email: nonstandard name to reduce autofill */}
         <input
           type="email"
           name="__no_email"
@@ -325,7 +363,7 @@ function ManageTechnicians() {
           data-lpignore="true"
         />
 
-        {/* Password: required on create; optional on edit */}
+        {/* Password: required on create; optional on edit (ignored by backend on edit) */}
         {!editId ? (
           <input
             type="password"
@@ -444,7 +482,14 @@ function ManageTechnicians() {
         <tbody>
           {technicians.map((tech) => (
             <tr key={tech._id}>
-              <td>{tech.full_name}</td>
+              <td>
+                {tech.full_name}
+                {tech.is_suspended && (
+                  <span style={{ marginLeft: 8, fontSize: 12, color: "#ef4444" }}>
+                    (Suspended)
+                  </span>
+                )}
+              </td>
               <td>{tech.email}</td>
               <td>{tech.phone_number}</td>
               <td>{tech.district}</td>
@@ -452,6 +497,9 @@ function ManageTechnicians() {
               <td>{tech.experience_years}</td>
               <td>
                 <button onClick={() => handleEdit(tech)} className="btn view">Edit</button>
+                <button className="btn status" onClick={() => toggleSuspend(tech)}>
+                  {tech.is_suspended ? "Unsuspend" : "Suspend"}
+                </button>
                 <button className="btn danger" onClick={() => handleDelete(tech._id)}>Delete</button>
               </td>
             </tr>
@@ -463,7 +511,19 @@ function ManageTechnicians() {
       </table>
 
       {/* Applications */}
-      <h3>Technician Applications</h3>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <h3 style={{ margin: 0 }}>Technician Applications</h3>
+        <label style={{ fontSize: 14, color: "#334155" }}>
+          <input
+            type="checkbox"
+            checked={showConvertedApps}
+            onChange={(e) => setShowConvertedApps(e.target.checked)}
+            style={{ marginRight: 6 }}
+          />
+          Show converted
+        </label>
+      </div>
+
       <table className="tech-table">
         <thead>
           <tr>
@@ -473,13 +533,27 @@ function ManageTechnicians() {
         <tbody>
           {applications.map((app) => (
             <tr key={app._id}>
-              <td>{app.full_name}</td>
+              <td>
+                {app.full_name}
+                {app.status === "converted" && (
+                  <span style={{ marginLeft: 8, fontSize: 12, color: "#16a34a" }}>
+                    (Converted)
+                  </span>
+                )}
+              </td>
               <td>{app.email}</td>
               <td>{app.phone_number}</td>
               <td>{app.district}</td>
               <td>{app.specialization}</td>
               <td>{app.experience_years}</td>
-              <td><button onClick={() => convertApplication(app._id)} className="btn status">Convert</button></td>
+              <td>
+                {app.status !== "converted" && (
+                  <button onClick={() => convertApplication(app._id)} className="btn status">Convert</button>
+                )}
+                <button onClick={() => deleteApplication(app._id)} className="btn danger" style={{ marginLeft: 6 }}>
+                  Delete
+                </button>
+              </td>
             </tr>
           ))}
           {applications.length === 0 && (

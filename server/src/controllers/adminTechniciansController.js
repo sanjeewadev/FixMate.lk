@@ -3,33 +3,55 @@ const Technician = require('../models/Technician');
 const BecomeTechnician = require('../models/BecomeTechnician');
 const bcrypt = require('bcryptjs');
 
+/* ---------- Technicians ---------- */
+
 exports.listTechnicians = async (_req, res) => {
-  const items = await Technician.find({}).select("-password_hash").sort({ createdAt: -1 });
+  const items = await Technician.find({})
+    .select("-password_hash")
+    .sort({ createdAt: -1 });
   res.json(items);
 };
 
 exports.createTechnician = async (req, res) => {
-  const { full_name, email, password, phone_number, address, district, profile_image_url, specialization, experience_years = 0 } = req.body;
+  const {
+    full_name, email, password, phone_number, address, district,
+    profile_image_url, specialization, experience_years = 0
+  } = req.body;
+
   if (!full_name || !email || !password || !phone_number || !address || !district || !specialization) {
     return res.status(400).json({ message: "Missing required fields" });
   }
+
   const exists = await Technician.findOne({ email });
   if (exists) return res.status(400).json({ message: "Email already in use" });
 
   const password_hash = await bcrypt.hash(password, 10);
+
   const doc = await Technician.create({
     full_name, email, password_hash, phone_number, address, district,
-    profile_image_url: profile_image_url || "", specialization, experience_years
+    profile_image_url: profile_image_url || "",
+    specialization, experience_years
   });
   res.status(201).json({ message: "Technician created", id: doc._id });
 };
 
 exports.updateTechnician = async (req, res) => {
   const { id } = req.params;
-  const allowed = ['full_name','email','phone_number','address','district','profile_image_url','specialization','experience_years','availability_status','rating'];
+  const allowed = [
+    'full_name','email','phone_number','address','district','profile_image_url',
+    'specialization','experience_years','availability_status','rating',
+    // NEW (allow admin to toggle suspension)
+    'is_suspended'
+  ];
   const updates = {};
   allowed.forEach(k => { if (req.body[k] !== undefined) updates[k] = req.body[k]; });
-  const out = await Technician.findByIdAndUpdate(id, { $set: updates }, { new: true, runValidators: true }).select("-password_hash");
+
+  const out = await Technician.findByIdAndUpdate(
+    id,
+    { $set: updates },
+    { new: true, runValidators: true }
+  ).select("-password_hash");
+
   if (!out) return res.status(404).json({ message: "Technician not found" });
   res.json({ message: "Technician updated", technician: out });
 };
@@ -41,9 +63,43 @@ exports.deleteTechnician = async (req, res) => {
   res.json({ message: "Technician deleted" });
 };
 
-// ----- Become Technician (public applications) -----
-exports.listTechApplications = async (_req, res) => {
-  const items = await BecomeTechnician.find({}).sort({ createdAt: -1 });
+// NEW: explicitly suspend a technician (hide from functionality)
+exports.suspendTechnician = async (req, res) => {
+  const { id } = req.params;
+  const out = await Technician.findByIdAndUpdate(
+    id,
+    { $set: { is_suspended: true } },
+    { new: true }
+  ).select('-password_hash');
+  if (!out) return res.status(404).json({ message: "Technician not found" });
+  res.json({ message: "Technician suspended", technician: out });
+};
+
+// NEW: remove suspension
+exports.unsuspendTechnician = async (req, res) => {
+  const { id } = req.params;
+  const out = await Technician.findByIdAndUpdate(
+    id,
+    { $set: { is_suspended: false } },
+    { new: true }
+  ).select('-password_hash');
+  if (!out) return res.status(404).json({ message: "Technician not found" });
+  res.json({ message: "Technician unsuspended", technician: out });
+};
+
+/* ---------- Become Technician Applications ---------- */
+
+// By default, HIDE converted applications from the list (but they remain in DB).
+// You can override with ?includeConverted=1 or filter by ?status=new|reviewed|converted|rejected
+exports.listTechApplications = async (req, res) => {
+  const { includeConverted, status } = req.query || {};
+  const find = {};
+  if (status) {
+    find.status = status;
+  } else if (!includeConverted) {
+    find.status = { $ne: 'converted' }; // <-- default: hide converted
+  }
+  const items = await BecomeTechnician.find(find).sort({ createdAt: -1 });
   res.json(items);
 };
 
@@ -72,11 +128,20 @@ exports.convertApplicationToTechnician = async (req, res) => {
 
   const password_hash = await bcrypt.hash(password, 10);
   const tech = await Technician.create({
-    full_name, email, password_hash, phone_number, address, district, profile_image_url, specialization, experience_years
+    full_name, email, password_hash, phone_number, address, district,
+    profile_image_url, specialization, experience_years
   });
 
   app.status = 'converted';
   await app.save();
 
   res.json({ message: "Converted to technician", technicianId: tech._id });
+};
+
+// NEW: Admin can delete an application (e.g., duplicates, spam)
+exports.deleteTechApplication = async (req, res) => {
+  const { id } = req.params;
+  const out = await BecomeTechnician.findByIdAndDelete(id);
+  if (!out) return res.status(404).json({ message: "Application not found" });
+  res.json({ message: "Application deleted" });
 };

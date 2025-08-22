@@ -12,7 +12,10 @@ const technicianSchema = new mongoose.Schema({
   experience_years: { type: Number, default: 0 },
   availability_status: { type: Boolean, default: true },
   rating: { type: Number, default: 0 },
-  assigned_jobs_count: { type: Number, default: 0 }
+  assigned_jobs_count: { type: Number, default: 0 },
+
+  // NEW: admin can temporarily suspend a tech (hidden from system functions)
+  is_suspended: { type: Boolean, default: false }
 }, { timestamps: true });
 
 module.exports = mongoose.model("Technician", technicianSchema);

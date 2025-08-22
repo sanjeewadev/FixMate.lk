@@ -1,0 +1,87 @@
+.admin-profile {
+  padding: 20px;
+  max-width: 900px;
+}
+
+.admin-profile .msg {
+  background: #eef6ff;
+  color: #0b5ed7;
+  border: 1px solid #cfe2ff;
+  padding: 10px 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.admin-profile .header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.admin-profile .avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.admin-profile .avatar.large {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+}
+
+.admin-profile .btn {
+  padding: 8px 14px;
+  border: none;
+  background: #0ea5e9;
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.admin-profile .btn:hover { background: #0284c7; }
+
+.profile-form,
+.password-form {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 22px;
+}
+
+.profile-form input,
+.password-form input {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+}
+
+.profile-form input:focus,
+.password-form input:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56,189,248,0.15);
+}
+
+.profile-form .btn,
+.password-form .btn {
+  display: inline-block;
+  margin-top: 2px;
+}
+
+/* Optional: table / layout align inside admin-content */
+.admin-content .admin-profile h3 {
+  margin: 18px 0 10px;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Keep buttons consistent with rest of dashboard if you already have .btn classes */

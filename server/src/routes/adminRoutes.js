@@ -3,7 +3,6 @@ const verifyToken = require('../middleware/verifyToken');
 const requireRole = require('../middleware/requireRole');
 const getUploadMiddleware = require('../middleware/cloudinaryUploader');
 
-// Profile image folder: fixmate/profiles/admins
 const uploadAdminAvatar = getUploadMiddleware('profiles/admins');
 
 // Services image folder
@@ -16,70 +15,91 @@ const AdminTechnicians = require('../controllers/adminTechniciansController');
 const AdminAdmins = require('../controllers/adminAdminsController');
 const ServiceController = require('../controllers/serviceController');
 
-// ---------- Auth ----------
-router.post('/admin/register', uploadAdminAvatar.single('profile_image'), AdminAuth.registerAdmin);
+
+/**
+ * Mount this file as:
+ *   app.use('/api/admin', router)
+ */
+
+// ---------- Auth (canonical) ----------
+router.post('/login', AdminAuth.loginAdmin);
+router.post('/register', uploadAdminAvatar.single('profile_image'), AdminAuth.registerAdmin);
+
+// ---------- Auth (aliases for older frontends) ----------
 router.post('/admin/login', AdminAuth.loginAdmin);
+router.post('/admin/register', uploadAdminAvatar.single('profile_image'), AdminAuth.registerAdmin);
 
 // ---------- My Profile ----------
-router.get('/admin/me', verifyToken, requireRole('admin','super_admin'), AdminAuth.getMyProfile);
-router.patch('/admin/me', verifyToken, requireRole('admin'), AdminAuth.updateMyProfile);
-router.patch('/admin/me/password', verifyToken, requireRole('admin','super_admin'), AdminAuth.changeMyPassword);
-router.post('/admin/me/avatar', verifyToken, requireRole('admin'), uploadAdminAvatar.single('profile_image'), AdminAuth.changeMyProfileImage);
+router.get('/me', verifyToken, requireRole('admin','super_admin'), AdminAuth.getMyProfile);
+router.patch('/me', verifyToken, requireRole('admin'), AdminAuth.updateMyProfile);
+router.patch('/me/password', verifyToken, requireRole('admin','super_admin'), AdminAuth.changeMyPassword);
+router.post('/me/avatar', verifyToken, requireRole('admin'), uploadAdminAvatar.single('profile_image'), AdminAuth.changeMyProfileImage);
 
-// ---------- Customers (admin/super_admin) ----------
+// ---------- Customers ----------
 router.get('/customers', verifyToken, requireRole('admin','super_admin'), AdminCustomers.listCustomers);
 router.post('/customers', verifyToken, requireRole('admin','super_admin'), AdminCustomers.createCustomer);
 router.put('/customers/:id', verifyToken, requireRole('admin','super_admin'), AdminCustomers.updateCustomer);
 router.delete('/customers/:id', verifyToken, requireRole('admin','super_admin'), AdminCustomers.deleteCustomer);
 
-// ---------- Coordinators (only admins / super_admin) ----------
+// ---------- Coordinators ----------
 router.get('/coordinators', verifyToken, requireRole('admin','super_admin'), AdminCoordinators.listCoordinators);
 router.post('/coordinators', verifyToken, requireRole('admin','super_admin'), AdminCoordinators.createCoordinator);
 router.put('/coordinators/:id', verifyToken, requireRole('admin','super_admin'), AdminCoordinators.updateCoordinator);
 router.delete('/coordinators/:id', verifyToken, requireRole('admin','super_admin'), AdminCoordinators.deleteCoordinator);
 
-// ---------- Technicians (admin/super_admin) ----------
+// ---------- Technicians ----------
 router.get('/technicians', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.listTechnicians);
 router.post('/technicians', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.createTechnician);
 router.put('/technicians/:id', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.updateTechnician);
 router.delete('/technicians/:id', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.deleteTechnician);
 
-// Become Technician applications
+// NEW: suspend / unsuspend
+router.post('/technicians/:id/suspend', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.suspendTechnician);
+router.post('/technicians/:id/unsuspend', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.unsuspendTechnician);
+
+// Technician apps (canonical)
+router.get('/technicians/applications', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.listTechApplications);
+router.post('/technicians/convert/:id', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.convertApplicationToTechnician);
+// NEW: admin delete an application
+router.delete('/technicians/applications/:id', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.deleteTechApplication);
+
+// Technician apps (aliases kept)
 router.get('/admin/technician-apps', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.listTechApplications);
 router.post('/admin/technician-apps/:id/convert', verifyToken, requireRole('admin','super_admin'), AdminTechnicians.convertApplicationToTechnician);
 
-// ---------- Admins (list/create/edit by admin/super_admin; delete only super_admin) ----------
-router.get('/admin/admins', verifyToken, requireRole('admin','super_admin'), AdminAdmins.listAdmins);
-router.post('/admin/admins', verifyToken, requireRole('admin','super_admin'), AdminAdmins.createAdmin);
-router.put('/admin/admins/:id', verifyToken, requireRole('admin','super_admin'), AdminAdmins.updateAdmin);
-router.delete('/admin/admins/:id', verifyToken, requireRole('super_admin'), AdminAdmins.deleteAdmin);
+// ---------- Admins ----------
+router.get('/admins', verifyToken, requireRole('admin','super_admin'), AdminAdmins.listAdmins);
+router.post('/admins', verifyToken, requireRole('admin','super_admin'), AdminAdmins.createAdmin);
+router.put('/admins/:id', verifyToken, requireRole('admin','super_admin'), AdminAdmins.updateAdmin);
+router.delete('/admins/:id', verifyToken, requireRole('super_admin'), AdminAdmins.deleteAdmin);
+
 
 // ---------- Services (admin/super_admin) ----------
-router.get('/services',
-  verifyToken, requireRole('admin','super_admin'),
-  ServiceController.adminListServices);
+// router.get('/services',
+//   verifyToken, requireRole('admin','super_admin'),
+//   ServiceController.adminListServices);
 
-router.post('/services',
-  verifyToken, requireRole('admin','super_admin'),
-  uploadServiceImages.array('images', 6),
-  ServiceController.createService);
+// router.post('/services',
+//   verifyToken, requireRole('admin','super_admin'),
+//   uploadServiceImages.array('images', 6),
+//   ServiceController.createService);
 
-router.put('/services/:id',
-  verifyToken, requireRole('admin','super_admin'),
-  uploadServiceImages.array('images', 6),
-  ServiceController.updateService);
+// router.put('/services/:id',
+//   verifyToken, requireRole('admin','super_admin'),
+//   uploadServiceImages.array('images', 6),
+//   ServiceController.updateService);
 
 // allow JSON-only partial updates
-router.patch('/services/:id',
-  verifyToken, requireRole('admin','super_admin'),
-  ServiceController.updateService);
+// router.patch('/services/:id',
+//   verifyToken, requireRole('admin','super_admin'),
+//   ServiceController.updateService);
 
-router.patch('/services/:id/activate',
-  verifyToken, requireRole('admin','super_admin'),
-  ServiceController.activateService);
+// router.patch('/services/:id/activate',
+//   verifyToken, requireRole('admin','super_admin'),
+//   ServiceController.activateService);
 
-router.delete('/services/:id',
-  verifyToken, requireRole('admin','super_admin'),
-  ServiceController.deleteService);
+// router.delete('/services/:id',
+//   verifyToken, requireRole('admin','super_admin'),
+//   ServiceController.deleteService);
 
 module.exports = router;
