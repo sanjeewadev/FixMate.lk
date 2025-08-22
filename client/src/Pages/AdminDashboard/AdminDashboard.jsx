@@ -1,3 +1,4 @@
+// src/Pages/AdminDashboard/AdminDashboard.jsx
 import React from "react";
 import { Routes, Route, NavLink, Navigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -11,7 +12,8 @@ import ManageServices from "./components/ManageServices.jsx";
 import ManageAdmins from "./components/ManageAdmins.jsx";
 import ManageComplaints from "./components/ManageComplaints.jsx";
 import ServiceRequests from "./components/ServiceRequests.jsx";
-import AdminProfile from "./components/AdminProfile.jsx"; // 👈 NEW
+import AdminProfile from "./components/AdminProfile.jsx";
+import Reports from "./components/Reports.jsx"; // 👈 NEW
 
 export default function AdminDashboard() {
   const { role, loading } = useAuth();
@@ -35,8 +37,6 @@ export default function AdminDashboard() {
       <aside className="admin-sidebar">
         <div className="brand">FixMate.lk</div>
         <nav className="side-nav">
-          {/* Overview intentionally removed */}
-
           <div className="side-section">Users</div>
           <NavLink to="/AdminDashboard/users" className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}>👥 Manage Users</NavLink>
           <NavLink to="/AdminDashboard/technicians" className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}>🧰 Manage Technicians</NavLink>
@@ -59,6 +59,7 @@ export default function AdminDashboard() {
             <>
               <div className="side-section">Administration</div>
               <NavLink to="/AdminDashboard/admins" className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}>🛡️ Manage Admins</NavLink>
+              <NavLink to="/AdminDashboard/reports" className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}>📈 Reports</NavLink> {/* 👈 NEW */}
             </>
           )}
         </nav>
@@ -70,7 +71,6 @@ export default function AdminDashboard() {
       {/* Content */}
       <main className="admin-content">
         <Routes>
-          {/* Redirect /AdminDashboard to /AdminDashboard/services */}
           <Route index element={<Navigate to="services" replace />} />
 
           <Route path="users" element={<ManageUsers />} />
@@ -79,16 +79,17 @@ export default function AdminDashboard() {
           <Route path="services" element={<ManageServices />} />
           <Route path="complaints" element={<ManageComplaints role={isStaff ? "staff" : "admin"} />} />
 
-          {/* admin + staff */}
           {canSeeRequests && <Route path="requests" element={<ServiceRequests />} />}
 
-          {/* My Profile */}
           <Route path="profile" element={<AdminProfile />} />
 
-          {/* Admins list (admins only) */}
-          {isAdmin && <Route path="admins" element={<ManageAdmins />} />}
+          {isAdmin && (
+            <>
+              <Route path="admins" element={<ManageAdmins />} />
+              <Route path="reports" element={<Reports />} /> {/* 👈 NEW */}
+            </>
+          )}
 
-          {/* Fallback */}
           <Route path="*" element={<Navigate to="services" replace />} />
         </Routes>
       </main>

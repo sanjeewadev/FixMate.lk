@@ -1,3 +1,4 @@
+// routes/adminReportRoutes.js (or wherever this router lives)
 const router = require("express").Router();
 const verifyToken = require("../middleware/verifyToken");
 const requireRole = require("../middleware/requireRole");
@@ -11,63 +12,17 @@ const {
   getMonthlySeries,
 } = require("../controllers/adminReportController");
 
-// Admin or Super Admin only
-const requireAdmin = (req, res, next) => requireRole(["admin", "super_admin"])(req, res, next);
+// Call with separate args (NOT an array)
+const requireAdmin = requireRole("admin", "super_admin");
 
-// Summary totals
-router.get(
-  "/admin/reports/payments/summary",
-  verifyToken,
-  requireAdmin,
-  getPaymentSummary
-);
-
-// Top services
-router.get(
-  "/admin/reports/payments/top-services",
-  verifyToken,
-  requireAdmin,
-  getTopServices
-);
-
-// Top districts
-router.get(
-  "/admin/reports/payments/top-districts",
-  verifyToken,
-  requireAdmin,
-  getTopDistricts
-);
-
-// Top technicians
-router.get(
-  "/admin/reports/payments/top-technicians",
-  verifyToken,
-  requireAdmin,
-  getTopTechnicians
-);
-
-// Highest-earning single booking
-router.get(
-  "/admin/reports/payments/highest-booking",
-  verifyToken,
-  requireAdmin,
-  getHighestBooking
-);
-
-// Daily series
-router.get(
-  "/admin/reports/payments/daily",
-  verifyToken,
-  requireAdmin,
-  getDailySeries
-);
-
-// Monthly series
-router.get(
-  "/admin/reports/payments/monthly",
-  verifyToken,
-  requireAdmin,
-  getMonthlySeries
-);
+// If this router is mounted at: app.use("/api/admin", router)
+// then your paths should be like "/reports/..." (no extra /admin)
+router.get("/reports/payments/summary",        verifyToken, requireAdmin, getPaymentSummary);
+router.get("/reports/payments/top-services",   verifyToken, requireAdmin, getTopServices);
+router.get("/reports/payments/top-districts",  verifyToken, requireAdmin, getTopDistricts);
+router.get("/reports/payments/top-technicians",verifyToken, requireAdmin, getTopTechnicians);
+router.get("/reports/payments/highest-booking",verifyToken, requireAdmin, getHighestBooking);
+router.get("/reports/payments/daily",          verifyToken, requireAdmin, getDailySeries);
+router.get("/reports/payments/monthly",        verifyToken, requireAdmin, getMonthlySeries);
 
 module.exports = router;
