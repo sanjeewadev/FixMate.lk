@@ -15,7 +15,6 @@ const ServiceCard = ({ id, slug, title, description, image }) => {
     if (isAuth) {
       navigate(to);
     } else {
-      // Ask Navbar to open the login modal
       window.dispatchEvent(new Event("fm:open-login"));
     }
   };
