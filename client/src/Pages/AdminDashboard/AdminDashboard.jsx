@@ -14,6 +14,7 @@ import ManageComplaints from "./components/ManageComplaints.jsx";
 import ServiceRequests from "./components/ServiceRequests.jsx";
 import AdminProfile from "./components/AdminProfile.jsx";
 import Reports from "./components/Reports.jsx"; // 👈 NEW
+import AIIngest from "./components/AIIngest.jsx";
 
 export default function AdminDashboard() {
   const { role, loading } = useAuth();
@@ -56,12 +57,13 @@ export default function AdminDashboard() {
           <NavLink to="/AdminDashboard/profile" className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}>👤 My Profile</NavLink>
 
           {isAdmin && (
-            <>
-              <div className="side-section">Administration</div>
-              <NavLink to="/AdminDashboard/admins" className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}>🛡️ Manage Admins</NavLink>
-              <NavLink to="/AdminDashboard/reports" className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}>📈 Reports</NavLink> {/* 👈 NEW */}
-            </>
-          )}
+  <>
+    <div className="side-section">Administration</div>
+    <NavLink to="/AdminDashboard/admins" className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}>🛡️ Manage Admins</NavLink>
+    <NavLink to="/AdminDashboard/ai-ingest" className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}>🤖 AI Ingest</NavLink>
+  </>
+)}
+          
         </nav>
       </aside>
 
@@ -91,6 +93,7 @@ export default function AdminDashboard() {
           )}
 
           <Route path="*" element={<Navigate to="services" replace />} />
+          {isAdmin && <Route path="ai-ingest" element={<AIIngest />} />}
         </Routes>
       </main>
     </div>

@@ -1,0 +1,187 @@
+/* ===== AI Ingest (same theme vars) ===== */
+
+.ai-ingest-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ingest-header h2 {
+  margin: 0 0 4px 0;
+}
+
+.msg {
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  border: 1px solid transparent;
+}
+.msg.success { background:#e6ffed; border-color:#34c759; color:#0b5d1e; }
+.msg.error   { background:#ffe9e9; border-color:#ff3b30; color:#6b1111; }
+.msg.info    { background:#eef6ff; border-color:#3b82f6; color:#094a93; }
+
+.ingest-composer {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 1px 0 rgba(0,0,0,.02);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ingest-composer .row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 800px) {
+  .ingest-composer .row { grid-template-columns: 1fr; }
+}
+
+.field { display:flex; flex-direction:column; gap:6px; }
+.field label { font-size: 12px; color: var(--muted); font-weight: 600; }
+.field .hint { color: var(--muted); }
+
+.field input[type="text"],
+.field textarea {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  background: #fff;
+  transition: box-shadow .15s ease, border-color .15s ease;
+}
+.field textarea {
+  min-height: 160px;
+  resize: vertical;
+}
+.field input:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: rgba(59,130,246,.45);
+  box-shadow: 0 0 0 4px rgba(59,130,246,.08);
+}
+
+/* Dropzone */
+.dropzone {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease;
+}
+.dropzone:hover {
+  background: #f8fafc;
+  border-color: rgba(59,130,246,.45);
+}
+.dz-icon { font-size: 20px; line-height: 1; }
+.dz-text { display:flex; flex-direction:column; }
+.dz-text strong { font-weight: 700; }
+
+/* Composer footer */
+.composer-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.switch input { width: 18px; height: 18px; }
+
+.spacer { flex: 1; }
+
+.btn {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #fff;
+  cursor: pointer;
+}
+.btn:hover { filter: brightness(.98); }
+.btn.ghost { background: #fff; }
+.btn.outline { background: #fff; }
+.btn.danger { background: #fee2e2; border-color: #fecaca; color: #991b1b; }
+.btn.btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+/* Batch */
+.ingest-batch {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 1px 0 rgba(0,0,0,.02);
+}
+
+.batch-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.batch-head h3 { margin: 0; }
+.empty { padding: 10px 0; }
+
+.batch-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+.doc-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  background: #fff;
+}
+.doc-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.doc-title { display:flex; align-items: baseline; gap: 10px; }
+.badge {
+  display: inline-block;
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.tags { display:flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+.tag {
+  background: #eef2ff;
+  color: #3730a3;
+  border: 1px solid #e0e7ff;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.doc-preview {
+  margin: 0;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  white-space: pre-wrap;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.ingest-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
