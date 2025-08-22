@@ -34,6 +34,8 @@ export default function TechnicianDashboard() {
   // Chat
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState("");
+  const [chatConversationId, setChatConversationId] = useState(null);
+
 
   // Live Status local state
   const [statusState, setStatusState] = useState({
@@ -228,25 +230,32 @@ export default function TechnicianDashboard() {
     }
   };
 
-  const loadChat = async (id) => {
-    try {
-      const res = await api.get(`/api/chat/${id}`);
-      setChatMessages(res.data || []);
-    } catch {
-      setChatMessages([]);
-    }
-  };
+const loadChat = async (conversationId) => {
+  try {
+    const { data } = await api.get("/api/chat/messages", { params: { conversationId } });
+    // normalize: support old records that might have `message`
+    const normalized = (data || []).map(m => ({ ...m, text: m.text ?? m.message ?? "" }));
+    setChatMessages(normalized);
+  } catch {
+    setChatMessages([]);
+  }
+};
+
 
   const sendChat = async () => {
-    if (!chatInput.trim()) return;
-    try {
-      await api.post(`/api/chat/${chatBooking._id}`, { message: chatInput });
-      setChatInput("");
-      await loadChat(chatBooking._id);
-    } catch {
-      alert("Failed to send");
-    }
-  };
+  if (!chatInput.trim() || !chatConversationId) return;
+  try {
+    await api.post("/api/chat/messages", {
+      conversationId: chatConversationId,
+      text: chatInput,
+    });
+    setChatInput("");
+    await loadChat(chatConversationId);
+  } catch (e) {
+    alert(e?.response?.data?.message || "Failed to send");
+  }
+};
+
 
   // ---- Technician Profile ----
   const loadProfile = async () => {
@@ -308,6 +317,50 @@ export default function TechnicianDashboard() {
   loadProfile();
 };
 
+const openChat = async (booking) => {
+  try {
+    setChatBooking(booking);
+
+    // Try to get the customer id from the booking you already have
+    let customerId =
+      booking?.customer?._id ||
+      booking?.customer ||              // if it’s just an ObjectId
+      booking?.customerId ||
+      booking?.customerSnapshot?._id ||
+      booking?.customerSnapshot?.id;
+
+    // Fallback: fetch full booking details (some lists don’t include customer id)
+    if (!customerId) {
+      const det = await api.get(`/api/technician/bookings/${booking._id}`);
+      const db = det.data || {};
+      customerId =
+        db?.customer?._id ||
+        db?.customer ||
+        db?.customerId ||
+        db?.customerSnapshot?._id ||
+        db?.customerSnapshot?.id;
+    }
+
+    if (!customerId) {
+      alert("Cannot open chat: missing customer ID on booking.");
+      return;
+    }
+
+    // Ensure (or create) a conversation for this booking + participants
+    const { data: convo } = await api.post("/api/chat/conversations", {
+      bookingId: booking._id,
+      withRole: "customer",
+      withUserId: customerId,
+    });
+
+    setChatConversationId(convo._id);
+    await loadChat(convo._id);
+  } catch (e) {
+    alert(e?.response?.data?.message || "Failed to open chat");
+  }
+};
+
+
 
   useEffect(() => {
     loadAssigned();
@@ -318,13 +371,14 @@ export default function TechnicianDashboard() {
   }, []);
 
   useEffect(() => {
-    let interval;
-    if (chatBooking) {
-      loadChat(chatBooking._id);
-      interval = setInterval(() => loadChat(chatBooking._id), 4000);
-    }
-    return () => clearInterval(interval);
-  }, [chatBooking]);
+  let interval;
+  if (chatConversationId) {
+    loadChat(chatConversationId);
+    interval = setInterval(() => loadChat(chatConversationId), 4000);
+  }
+  return () => clearInterval(interval);
+}, [chatConversationId]);
+
 
   const totalCount =
     assigned.length + pending.length + approved.length + completed.length;
@@ -382,12 +436,7 @@ export default function TechnicianDashboard() {
                 >
                   Open
                 </button>
-                <button
-                  className="btn chat"
-                  onClick={() => setChatBooking(b)}
-                >
-                  Chat
-                </button>
+                <button className="btn chat" onClick={() => openChat(b)}>Chat</button>
               </td>
             )}
           </tr>
@@ -783,12 +832,7 @@ export default function TechnicianDashboard() {
             </div>
 
             <div className="action-row center">
-              <button
-                className="btn close"
-                onClick={() => setSelectedBooking(null)}
-              >
-                Close
-              </button>
+              <button className="btn close" onClick={() => { setChatBooking(null); setChatConversationId(null); }}> Close</button>
             </div>
           </div>
         </div>
@@ -800,18 +844,19 @@ export default function TechnicianDashboard() {
     <div className="tech-modal-content chat-modal">
       <h3>Chat with Customer</h3>
       <div className="chat-box">
-        {chatMessages.length === 0 ? (
-          <p>No messages yet</p>
-        ) : (
-          chatMessages.map((m, i) => (
-            <div key={i} className="chat-msg">
-              <strong>{m.senderRole}:</strong> {m.message}
-              <br />
-              <small>{fmt(m.createdAt)}</small>
-            </div>
-          ))
-        )}
+  {chatMessages.length === 0 ? (
+    <p>No messages yet</p>
+  ) : (
+    chatMessages.map((m, i) => (
+      <div key={i} className="chat-msg">
+        <strong>{m.senderRole}:</strong> {m.text ?? m.message ?? ""}
+        <br />
+        <small>{fmt(m.createdAt)}</small>
       </div>
+    ))
+  )}
+</div>
+
       <div className="action-row">
         <input
           type="text"
