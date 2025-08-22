@@ -21,7 +21,7 @@ export default function Login({ onSwitch }) {
 
   const endpointsInOrder = [
     { role: "admin", path: "/api/admin/admin/login" },
-    { role: "staff", path: "/api/staff/login" },
+    { role: "coordinator", path: "/api/coordinator/coordinator/login" },
     { role: "technician", path: "/api/technician/login" },
     { role: "customer", path: "/api/customer/login" },
   ];
@@ -55,8 +55,10 @@ export default function Login({ onSwitch }) {
       if (!res.ok) { setMsg({ type: "error", text: "Invalid credentials or endpoints missing." }); return; }
       setMsg({ type: "success", text: `Logged in as ${res.role}` });
 
-      if (res.role === "admin" || res.role === "super_admin" || res.role === "staff") {
+      if (res.role === "admin" || res.role === "super_admin" ) {
         navigate("/AdminDashboard", { replace: true });
+       } else if (res.role === "coordinator"){
+        navigate("/StaffDashboard", { replace: true });
       } else if (res.role === "technician") {
         navigate("/TechnicianDashboard", { replace: true });
       } else {

@@ -15,8 +15,8 @@ const {
 } = require('../controllers/serviceController');
 
 // -------- Public --------
-//router.get('/services', listServices);
-//router.get('/services/:slug', getServiceBySlug);
+router.get('/services', listServices);
+router.get('/services/:slug', getServiceBySlug);
 //
 //// -------- Admin-only --------
 //// Use .array('images') to accept multiple files (field name MUST be "images")
