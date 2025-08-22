@@ -1,3 +1,4 @@
+// controllers/bookingController.js
 const mongoose = require('mongoose');
 const Booking = require('../models/Booking');
 const Customer = require('../models/Customer');
@@ -23,6 +24,20 @@ function notify(app, event, payload) {
   } catch (e) {
     console.warn('notify() failed:', e?.message || e);
   }
+}
+
+// ---- tiny guard for technician suspension ----
+async function getActiveTechnicianOrBlock(userId, res) {
+  const tech = await Technician.findById(userId).lean();
+  if (!tech) {
+    res.status(404).json({ message: 'Technician not found' });
+    return null;
+  }
+  if (tech.is_suspended) {
+    res.status(403).json({ message: 'Technician account is suspended' });
+    return null;
+  }
+  return tech;
 }
 
 // CUSTOMER: Create a new booking
@@ -129,13 +144,13 @@ exports.listAvailableForTechnician = async (req, res) => {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const tech = await Technician.findById(req.user.id).lean();
-    if (!tech) return res.status(404).json({ message: 'Technician not found' });
+    const tech = await getActiveTechnicianOrBlock(req.user.id, res);
+    if (!tech) return; // 404/403 already sent
 
     const itemsRaw = await Booking.find({
       'customerSnapshot.district': tech.district,
       assignedTechnician: null,
-      status: 'pending' //pendign+awaiting_coordinator thibba eka pending kala mokda assigned tasks eke status dekama pennuwa
+      status: 'pending' // keep your adjusted filter
     })
     .populate('service', 'name category')
     .sort({ createdAt: -1 })
@@ -179,12 +194,12 @@ exports.technicianAccept = async (req, res) => {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const [booking, tech] = await Promise.all([
-      Booking.findById(req.params.id),
-      Technician.findById(req.user.id).lean()
-    ]);
+    const tech = await getActiveTechnicianOrBlock(req.user.id, res);
+    if (!tech) return;
+
+    const booking = await Booking.findById(req.params.id);
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
-    if (!tech) return res.status(404).json({ message: 'Technician not found' });
+
     if (booking.assignedTechnician) {
       return res.status(409).json({ message: 'Already assigned' });
     }
@@ -214,12 +229,11 @@ exports.technicianDecline = async (req, res) => {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const [booking, tech] = await Promise.all([
-      Booking.findById(req.params.id),
-      Technician.findById(req.user.id).lean()
-    ]);
+    const tech = await getActiveTechnicianOrBlock(req.user.id, res);
+    if (!tech) return;
+
+    const booking = await Booking.findById(req.params.id);
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
-    if (!tech) return res.status(404).json({ message: 'Technician not found' });
 
     if (tech.district !== booking.customerSnapshot.district) {
       return res.status(403).json({ message: 'Forbidden: district mismatch' });
@@ -243,6 +257,10 @@ exports.listMineForTechnician = async (req, res) => {
     if (req.user?.role !== 'technician' || !mongoose.isValidObjectId(req.user?.id)) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
+
+    const tech = await getActiveTechnicianOrBlock(req.user.id, res);
+    if (!tech) return;
+
     const techId = new mongoose.Types.ObjectId(String(req.user.id));
     const status = String(req.query?.status || '').trim();
 
@@ -285,14 +303,15 @@ exports.getTechnicianBooking = async (req, res) => {
     if (req.user?.role !== 'technician' || !mongoose.isValidObjectId(req.user.id)) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
+
+    const tech = await getActiveTechnicianOrBlock(req.user.id, res);
+    if (!tech) return;
+
     const booking = await Booking.findById(req.params.id)
       .populate('service', 'name category')
       .populate('assignedTechnician', '_id')
       .lean();
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
-
-    const tech = await Technician.findById(req.user.id).lean();
-    if (!tech) return res.status(404).json({ message: 'Technician not found' });
 
     // If assigned to a different tech → forbid
     if (booking.assignedTechnician && String(booking.assignedTechnician._id) !== String(tech._id)) {
@@ -367,6 +386,7 @@ exports.coordinatorApprove = async (req, res) => {
 
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
     if (!tech) return res.status(404).json({ message: 'Technician not found' });
+    if (tech.is_suspended) return res.status(409).json({ message: 'Cannot assign a suspended technician' });
     if (booking.assignedTechnician) return res.status(409).json({ message: 'Already assigned' });
 
     booking.assignedTechnician = tech._id;
@@ -538,6 +558,7 @@ exports.coordinatorAssign = async (req, res) => {
 
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
     if (!tech) return res.status(404).json({ message: 'Technician not found' });
+    if (tech.is_suspended) return res.status(409).json({ message: 'Cannot assign a suspended technician' });
 
     // Set/overwrite assignment
     booking.assignedTechnician = tech._id;
@@ -583,6 +604,7 @@ exports.coordinatorReassign = async (req, res) => {
     ]);
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
     if (!tech) return res.status(404).json({ message: 'Technician not found' });
+    if (tech.is_suspended) return res.status(409).json({ message: 'Cannot assign a suspended technician' });
 
     // Guard: only allow reassign while in pre-work states
     const lockedStatuses = ['cancelled','completed']; // extend if you track 'in_progress'
