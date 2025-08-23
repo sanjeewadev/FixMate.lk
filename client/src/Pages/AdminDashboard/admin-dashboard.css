@@ -273,13 +273,13 @@ input:focus, textarea:focus, select:focus {
 .btn--outline   { --btn-bg: #fff; --btn-fg:#1f2937; --btn-bd:#e5e7eb; }
 
 /* Legacy aliases (so your existing classes continue working) */
-.btn.primary, .btn.btn-primary { @apply .btn--primary; }
+/*.btn.primary, .btn.btn-primary { @apply .btn--primary; }
 .btn.secondary, .btn.btn-secondary { @apply .btn--secondary; }
 .btn.warn, .btn.warning { @apply .btn--warning; }
 .btn.danger, .danger, .btn.delete, .btn.logout { @apply .btn--danger; }
 .btn.accept { @apply .btn--success; }
 .btn.view { @apply .btn--primary; }
-.btn.outline, .ghost { @apply .btn--outline; }
+.btn.outline, .ghost { @apply .btn--outline; }*/
 
 /* NOTE: If your build doesn't support @apply, keep the classes above AND
    add these fallback maps: */

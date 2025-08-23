@@ -24,7 +24,7 @@
 }
 
 /* Form */
-.mu-form{ }
+
 .mu-form-grid{ display:grid; grid-template-columns:2fr 1fr; gap:16px; }
 @media (max-width:980px){ .mu-form-grid{ grid-template-columns:1fr; } }
 
