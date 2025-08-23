@@ -1,10 +1,10 @@
 :root {
   --bg: #f7f9fc;
-  --sidebar-bg: #003049; /* dark navy glass */
+  --sidebar-bg: #003049;
   --content-bg: rgba(255, 255, 255, 0.85);
   --text: #0f172a;
   --text-muted: #64748b;
-  --primary: #2563eb;   /* main blue */
+  --primary: #2563eb;
   --primary-light: #3b82f6;
   --primary-dark: #1d4ed8;
   --radius: 12px;

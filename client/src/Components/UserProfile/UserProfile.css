@@ -79,7 +79,6 @@
   font-style: italic;
 }
 
-/* Message slot */
 .profile-msg-slot { min-height: 40px; text-align: center; margin: 0; width: 100%; }
 .msg {
   padding: 9px 12px;
@@ -94,7 +93,6 @@
 .msg.info    { background:#eef6ff; border-color:#0a84ff; color:#094a93; }
 @keyframes msgIn { from {opacity:0; transform:translateY(-6px);} to {opacity:1; transform:translateY(0);} }
 
-/* View mode user info cards */
 .user-info-view {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -122,7 +120,6 @@
   word-wrap: break-word;
 }
 
-/* Edit mode form */
 .profile-form {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -164,7 +161,6 @@
   box-shadow: 0 8px 20px rgb(0 95 204 / 0.6);
 }
 
-/* Change Password Section */
 .password-section { border-top: 1px solid #eee; padding-top: 30px; }
 .password-section h3 {
   font-weight: 700;
@@ -204,7 +200,6 @@
 }
 .btn-password:hover { background-color: #005fcc; box-shadow: 0 8px 20px rgb(0 95 204 / 0.6); }
 
-/* Edit Toggle Button */
 .edit-toggle-btn {
   display: block;
   margin: 0 auto 25px;
@@ -221,9 +216,7 @@
 }
 .edit-toggle-btn:hover { background-color: #0077ff; color: white; }
 
-/* =========================
-   Cropper modal (no libs)
-   ========================= */
+/* c */
 .crop-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,.45);
   display: grid; place-items: center; z-index: 9999;
@@ -252,7 +245,7 @@
   max-width: none;
   user-select: none;
   -webkit-user-drag: none;
-  pointer-events: none; /* drag handled by viewport */
+  pointer-events: none;
 }
 
 .crop-circle {

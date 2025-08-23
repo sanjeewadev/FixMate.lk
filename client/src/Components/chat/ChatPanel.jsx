@@ -1,21 +1,9 @@
-// src/components/Chat/ChatPanel.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ensureConversation, listMessages, postMessage } from "../../services/chat.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 import "./ChatPanel.css";
 
-/**
- * Props:
- *  - booking   : booking object (must contain _id and assignedTechnician(_id))
- *  - onClose   : () => void (optional)
- *  - mode      : "inline" | "floating" (default "inline")
- *
- * Booking requirements:
- *  - technician id read from:
- *      booking.assignedTechnician?._id || booking.assignedTechnician
- *  - allowed statuses: coordinator_approved, in_progress (add "completed" if you want)
- */
-const ALLOWED = new Set(["coordinator_approved"]); // add "completed" if desired
+const ALLOWED = new Set(["coordinator_approved"]);
 
 export default function ChatPanel({ booking, onClose, mode = "inline" }) {
   const { user } = useAuth();
@@ -37,7 +25,6 @@ export default function ChatPanel({ booking, onClose, mode = "inline" }) {
   const status = String(booking?.status || "").toLowerCase();
   const allowed = !!techId && ALLOWED.has(status);
 
-  // 1) Ensure (or reuse) a conversation scoped to this booking
   useEffect(() => {
     let dead = false;
     (async () => {
@@ -59,7 +46,6 @@ export default function ChatPanel({ booking, onClose, mode = "inline" }) {
     return () => { dead = true; };
   }, [allowed, booking?._id, techId, booking?.problemTitle, booking?.service?.name]);
 
-  // 2) Load messages + poll
   useEffect(() => {
     if (!conversationId) return;
     let abort = false;
@@ -68,7 +54,7 @@ export default function ChatPanel({ booking, onClose, mode = "inline" }) {
       try {
         const data = await listMessages(conversationId);
         if (!abort) setMessages(data);
-      } catch { /* ignore softly */ }
+      } catch {  }
     }
     load();
     pollRef.current = setInterval(load, 4000);
@@ -79,7 +65,7 @@ export default function ChatPanel({ booking, onClose, mode = "inline" }) {
     };
   }, [conversationId]);
 
-  // 3) Auto-scroll to last message
+  // Auto-scroll to last message
   useEffect(() => {
     if (!listRef.current) return;
     listRef.current.scrollTop = listRef.current.scrollHeight;

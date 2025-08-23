@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./UserProfile.css";
-import "../TypingAnimation/ta.css"; // optional
+import "../TypingAnimation/ta.css";
 import api from "../../lib/api";
 import { useAuth } from "../../context/AuthContext.jsx";
 
@@ -26,10 +26,8 @@ function UserProfile() {
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // --- message banner: { type: 'success'|'error'|'info', text: ReactNode }
   const [msg, setMsg] = useState(null);
 
-  // greet once we know a (first) name
   useEffect(() => {
     const name = (userData.full_name || "").split(" ")[0] || "there";
     setMsg({
@@ -42,7 +40,6 @@ function UserProfile() {
     });
   }, [userData.full_name]);
 
-  // Prefill from context immediately
   useEffect(() => {
     if (!user) return;
     setUserData({
@@ -56,7 +53,6 @@ function UserProfile() {
     setImagePreview(user.profile_image_url || "/default-profile.png");
   }, [user]);
 
-  // Then fetch fresh copy to stay in sync
   useEffect(() => {
     let cancel = false;
     (async () => {
@@ -80,7 +76,6 @@ function UserProfile() {
     };
   }, [updateUser]);
 
-  // ---------- Handlers ----------
   const handleUserChange = (e) => {
     const { name, value } = e.target;
     setUserData((prev) => ({ ...prev, [name]: value }));
@@ -90,7 +85,6 @@ function UserProfile() {
     setPasswords((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Save profile (NON-IMAGE PART UPDATED: use PATCH /api/customer/me)
   const handleProfileSave = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -102,7 +96,7 @@ function UserProfile() {
         phone_number: userData.phone_number,
         address: userData.address,
         district: userData.district,
-        profile_image_url: userData.profile_image_url, // base64 or URL
+        profile_image_url: userData.profile_image_url,
       };
       const { data } = await api.patch("/api/customer/me", payload);
       const updated = data.customer || payload;
@@ -123,7 +117,6 @@ function UserProfile() {
     }
   };
 
-  // Change password (NON-IMAGE PART UPDATED: use PATCH /api/customer/me/password)
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     setMsg(null);
@@ -147,16 +140,13 @@ function UserProfile() {
     }
   };
 
-  // ===============================
-  // Avatar upload + crop (no libs)
-  // ===============================
+// c
   const fileRef = useRef(null);
   const [cropOpen, setCropOpen] = useState(false);
   const [cropSrc, setCropSrc] = useState(null);
   const [zoom, setZoom] = useState(1);
 
-  // NEW: start fitted & support panning
-  const [base, setBase] = useState(1); // “fit” scale to fill circle
+  const [base, setBase] = useState(1);
   const [offX, setOffX] = useState(0);
   const [offY, setOffY] = useState(0);
   const dragRef = useRef({ active: false, startX: 0, startY: 0, startOffX: 0, startOffY: 0 });
@@ -171,11 +161,10 @@ function UserProfile() {
     setCropOpen(true);
   };
 
-  // when preview img loads, compute “fit” scale
   const onPreviewLoad = (e) => {
     const img = e.currentTarget;
     imgMeta.current = { w: img.naturalWidth, h: img.naturalHeight };
-    const circle = 320; // same as CSS .crop-circle size
+    const circle = 320;
     const fit = Math.max(circle / img.naturalWidth, circle / img.naturalHeight);
     setBase(fit);
     setZoom(1);
@@ -183,7 +172,6 @@ function UserProfile() {
     setOffY(0);
   };
 
-  // limit panning so the circle is never empty
   function clampPan(x, y, z) {
     const size = 320;
     const scaledW = imgMeta.current.w * base * z;
@@ -219,7 +207,6 @@ function UserProfile() {
 
   const [isImageDirty, setIsImageDirty] = useState(false);
 
-  // export exactly what you see
   const confirmCrop = async () => {
     if (!cropSrc) return;
     const img = new Image();
@@ -249,7 +236,7 @@ function UserProfile() {
     ctx.drawImage(img, dx, dy, drawW, drawH);
     ctx.restore();
 
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.9); // smaller than PNG
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.9); // resizer
     setImagePreview(dataUrl);
     setUserData((prev) => ({ ...prev, profile_image_url: dataUrl }));
     setIsImageDirty(true);
@@ -261,7 +248,6 @@ function UserProfile() {
     setMsg({ type: "success", text: "Photo updated (remember to Save Changes 😊)." });
   };
 
-  // ---- helper: convert dataURL to File (so multer gets req.file) ----
   function dataURLtoFile(dataUrl, filename = "avatar.jpg") {
     const arr = dataUrl.split(",");
     const mime = arr[0].match(/:(.*?);/)[1] || "image/jpeg";
@@ -272,20 +258,16 @@ function UserProfile() {
     return new File([u8], filename, { type: mime });
   }
 
-  // dedicated saver for just the image in VIEW MODE
-  // (IMAGE PART ONLY CHANGED HERE to use multipart/form-data to /me/avatar)
   const saveNewImage = async () => {
-    if (!userData.profile_image_url) return; // should be a dataURL from cropper
+    if (!userData.profile_image_url) return;
     setSaving(true);
     setMsg(null);
     try {
-      // Build multipart/form-data with field name 'profile_image'
       const file = dataURLtoFile(userData.profile_image_url, "avatar.jpg");
       const form = new FormData();
       form.append("profile_image", file);
 
       const { data } = await api.post("/api/customer/me/avatar", form, {
-        // Let axios set the Content-Type boundary automatically
       });
 
       const updated = data?.customer || {};
