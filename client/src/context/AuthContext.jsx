@@ -33,9 +33,7 @@ export function AuthProvider({ children }) {
       (err) => {
         const s = err?.response?.status;
         if (s === 401) {
-          // Logout on unauthorized
           logout();
-          // Optionally, redirect to login page
           if (window.location.pathname !== "/login") {
             window.location.replace("/login?expired=1");
           }
@@ -52,8 +50,6 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let cancelled = false;
 
-
-    // Only try valid endpoints for each role
     async function getWithFallback(paths) {
       for (const p of paths) {
         try {
@@ -71,24 +67,27 @@ export function AuthProvider({ children }) {
     async function loadProfile() {
       if (!token || !role) { setLoading(false); return; }
 
+      // ✅ Correct per-role /me endpoints
       const endpoints = {
-        customer: "/api/customer/me",
+        customer:   "/api/customer/me",
         technician: "/api/technician/me",
-        staff: "/api/staff/me",
-        admin: "/api/admin/me",
-        super_admin: "/api/admin/me", // Only use /api/admin/me for super_admin fallback
+        coordinator:"/api/coordinator/coordinator/me",   // <-- NEW
+        staff:      "/api/staff/me",                    // legacy; keeping for safety
+        admin:      "/api/admin/me",
+        super_admin:"/api/admin/me",                    // super-admin also uses admin /me
       };
 
       try {
         let data = null;
+
         if (role === "admin" || role === "super_admin") {
-          // Only try /api/admin/me for both admin and super_admin
           const res = await getWithFallback(["/api/admin/me"]);
           data = res?.data || null;
         } else if (endpoints[role]) {
           const res = await api.get(endpoints[role]);
           data = res.data;
         }
+
         if (!cancelled) setUser(data ? { ...data, role } : null);
       } catch {
         if (!cancelled) logout();
@@ -101,6 +100,8 @@ export function AuthProvider({ children }) {
     return () => { cancelled = true; };
   }, [token, role]);
 
+  // NOTE: login() here assumes your login request is done elsewhere
+  // and you pass in the token + { role, ...user } payload.
   const login = (newToken, userObj) => {
     if (!newToken || !userObj?.role) return;
     const normalizedRole = String(userObj.role).toLowerCase();
@@ -139,17 +140,19 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
+  // Convenience flags
   const hasRole = (...roles) => roles.map(String).map(r=>r.toLowerCase()).includes(role);
-  const isCustomer = role === "customer";
-  const isTechnician = role === "technician";
-  const isStaff = role === "staff";
-  const isAdmin = role === "admin";
-  const isSuperAdmin = role === "super_admin";
+  const isCustomer    = role === "customer";
+  const isTechnician  = role === "technician";
+  const isCoordinator = role === "coordinator";           // <-- NEW
+  const isStaff       = isCoordinator || role === "staff"; // keep legacy compatibility
+  const isAdmin       = role === "admin";
+  const isSuperAdmin  = role === "super_admin";
 
   const value = useMemo(() => ({
     token, user, role, isAuth: !!user, loading,
     login, logout,
-    hasRole, isCustomer, isTechnician, isStaff, isAdmin, isSuperAdmin,
+    hasRole, isCustomer, isTechnician, isCoordinator, isStaff, isAdmin, isSuperAdmin,
   }), [token, user, role, loading]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
