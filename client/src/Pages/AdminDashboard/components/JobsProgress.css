@@ -11,12 +11,12 @@
 
 /* chips */
 .chip { display:inline-flex; align-items:center; padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid var(--border); background:#fff; }
-.chip.assigned { background:#eef6ff; border-color:#cde8ff; color:#0b5ed7; }
-.chip.progress { background:#fff8e6; border-color:#ffe2a9; color:#a05a00; }
-.chip.done     { background:#eafbea; border-color:#cbecc9; color:#117a37; }
-.chip.wait     { background:#f1f5f9; border-color:#e2e8f0; color:#334155; }
-.chip.new      { background:#f1f5f9; border-color:#e2e8f0; color:#111827; }
-.chip.cancel   { background:#fee2e2; border-color:#fecaca; color:#7f1d1d; }
+.chip.assigned { background:#eef6ff; border-color:#cde8ff; color:#0b5ed7; font-weight: bold; }
+.chip.progress { background:#fff8e6; border-color:#ffe2a9; color:#a05a00; font-weight: bold;}
+.chip.done     { background:#eafbea; border-color:#cbecc9; color:#117a37;font-weight: bold; }
+.chip.wait     { background:#f1f5f9; border-color:#e2e8f0; color:#334155; font-weight: bold;}
+.chip.new      { background:#f1f5f9; border-color:#e2e8f0; color:#111827;font-weight: bold; }
+.chip.cancel   { background:#fee2e2; border-color:#fecaca; color:#7f1d1d; font-weight: bold;}
 
 .msg.error { background:#fee2e2; border:1px solid #fecaca; color:#7f1d1d; padding:10px 12px; border-radius:10px; }
 
@@ -79,6 +79,28 @@
   background:#f1f5f9; border:1px solid var(--border); color:#334155;
 }
 
+/* Tabs */
+.tabs { display:flex; gap:8px; align-items:center; }
+.tab {
+  background:#fff;
+  border:1px solid var(--border, #e5e7eb);
+  border-radius:10px;
+  padding:8px 14px;
+  cursor:pointer;
+  font-weight:600;
+  transition:background .15s ease, border-color .15s ease, color .15s ease;
+}
+.tab:hover {
+  background:#f1f5f9;
+  border-color:#cbd5e1;
+}
+.tab.active {
+  background: var(--brand-100, #e8efff);
+  border-color: var(--brand-400, #8ea9ff);
+  color: var(--brand-700, #2f49c7);
+  font-weight:700;
+  box-shadow: 0 0 0 2px rgba(93, 155, 255, 0.2);
+}
 
 /* responsive tweaks */
 .hide-sm { display:table-cell; }

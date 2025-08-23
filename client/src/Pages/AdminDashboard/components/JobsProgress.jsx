@@ -97,6 +97,7 @@ export default function JobsProgress() {
       id: b._id,
       title: b.problemTitle || "—",
       service: b?.service?.name || "—",
+      assignedTech: b?.assignedTechnician?.full_name || "—",
       district: b?.customerSnapshot?.district || "—",
       created: b.createdAt,
       status: b.status,

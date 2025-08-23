@@ -1,14 +1,16 @@
+// models/Chat.js
 const mongoose = require('mongoose');
 
 const ChatConversationSchema = new mongoose.Schema({
-  booking: { type: mongoose.Schema.Types.ObjectId, ref: 'Booking', default: null }, // null for general chats
+  booking: { type: mongoose.Schema.Types.ObjectId, ref: 'Booking', default: null },
   participants: [
     {
       role: { type: String, enum: ['customer','technician','coordinator','admin','super_admin'], required: true },
-      userId: { type: mongoose.Schema.Types.ObjectId, required: true }
+      userId: { type: mongoose.Schema.Types.ObjectId, required: true },
+      name: { type: String } // 👈 snapshot of display name
     }
   ],
-  topic: { type: String, default: '' } // e.g., "General support", or problem title
+  topic: { type: String, default: '' }
 }, { timestamps: true });
 
 const ChatMessageSchema = new mongoose.Schema({

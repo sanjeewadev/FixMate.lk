@@ -96,8 +96,7 @@ export default function AIIngest() {
         type: "success",
         text: `Ingested ${written} chunk${written === 1 ? "" : "s"} successfully.`,
       });
-      // Optionally keep staged docs for more ingest; or clear:
-      // setDocs([]);
+      // keep staged docs for more ingest
     } catch (e) {
       const t = e?.response?.data?.message || e?.message || "Ingest failed";
       setMsg({ type: "error", text: t });
@@ -132,22 +131,22 @@ export default function AIIngest() {
   const onDragOver = (e) => e.preventDefault();
 
   if (!isAdmin) {
-    return <div className="msg error" style={{ marginTop: 12 }}>You are not authorized to access AI Ingest.</div>;
+    return <div className="aii-msg aii-msg--error" style={{ marginTop: 12 }}>You are not authorized to access AI Ingest.</div>;
   }
 
   return (
-    <div className="ai-ingest-page">
-      <div className="ingest-header">
+    <div className="aii-page">
+      <div className="aii-header">
         <h2>AI Knowledge Ingest</h2>
-        <div className="muted tiny">Add internal knowledge so AI answers with your facts (with citations).</div>
+        <div className="aii-muted aii-tiny">Add internal knowledge so AI answers with your facts (with citations).</div>
       </div>
 
-      {msg?.text && <div className={`msg ${msg.type}`}>{msg.text}</div>}
+      {msg?.text && <div className={`aii-msg aii-msg--${msg.type || "info"}`}>{msg.text}</div>}
 
       {/* Composer */}
-      <section className="ingest-composer">
-        <div className="row">
-          <div className="field">
+      <section className="aii-composer">
+        <div className="aii-row">
+          <div className="aii-field">
             <label>Source (optional)</label>
             <input
               type="text"
@@ -155,9 +154,9 @@ export default function AIIngest() {
               value={form.source}
               onChange={(e) => setForm((p) => ({ ...p, source: e.target.value }))}
             />
-            <div className="hint tiny">Recommended for upsert: same source avoids duplicates.</div>
+            <div className="aii-hint aii-tiny">Recommended for upsert: same source avoids duplicates.</div>
           </div>
-          <div className="field">
+          <div className="aii-field">
             <label>Tags (optional)</label>
             <input
               type="text"
@@ -165,12 +164,12 @@ export default function AIIngest() {
               value={form.tagsInput}
               onChange={(e) => setForm((p) => ({ ...p, tagsInput: e.target.value }))}
             />
-            <div className="hint tiny">Up to 10 tags. They’ll be stored per chunk.</div>
+            <div className="aii-hint aii-tiny">Up to 10 tags. They’ll be stored per chunk.</div>
           </div>
         </div>
 
         <div
-          className="dropzone"
+          className="aii-dropzone"
           onDrop={onDrop}
           onDragOver={onDragOver}
           onClick={() => fileRef.current?.click()}
@@ -178,25 +177,31 @@ export default function AIIngest() {
           tabIndex={0}
           onKeyDown={(e) => (e.key === "Enter" ? fileRef.current?.click() : null)}
         >
-          <input ref={fileRef} type="file" accept=".txt,.md,text/plain" hidden onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) f.text().then((text) => {
-              setDocs((prev) => [
-                { id: crypto.randomUUID(), source: form.source?.trim() || f.name, tags: parseTags(form.tagsInput), text },
-                ...prev,
-              ]);
-              setMsg({ type: "success", text: `Added ${f.name} to the batch.` });
-            });
-            e.target.value = "";
-          }} />
-          <div className="dz-icon">📎</div>
-          <div className="dz-text">
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".txt,.md,text/plain"
+            hidden
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) f.text().then((text) => {
+                setDocs((prev) => [
+                  { id: crypto.randomUUID(), source: form.source?.trim() || f.name, tags: parseTags(form.tagsInput), text },
+                  ...prev,
+                ]);
+                setMsg({ type: "success", text: `Added ${f.name} to the batch.` });
+              });
+              e.target.value = "";
+            }}
+          />
+          <div className="aii-dz-icon">📎</div>
+          <div className="aii-dz-text">
             <strong>Drop .txt / .md</strong> or click to upload
-            <div className="muted tiny">We’ll keep your current Source/Tags for uploaded files.</div>
+            <div className="aii-muted aii-tiny">We’ll keep your current Source/Tags for uploaded files.</div>
           </div>
         </div>
 
-        <div className="field">
+        <div className="aii-field">
           <label>Text</label>
           <textarea
             placeholder="Paste content here. Paragraphs separated by a blank line will be chunked automatically (~1200 chars/chunk)."
@@ -205,63 +210,63 @@ export default function AIIngest() {
           />
         </div>
 
-        <div className="composer-actions">
-          <label className="switch">
+        <div className="aii-actions">
+          <label className="aii-switch">
             <input type="checkbox" checked={upsert} onChange={(e) => setUpsert(e.target.checked)} />
             <span>Upsert (skip if same source + text already exists)</span>
           </label>
 
-          <div className="spacer" />
-          <button type="button" className="btn outline" onClick={addDocFromForm}>Add to Batch</button>
+          <div className="aii-spacer" />
+          <button type="button" className="aii-btn aii-btn--outline" onClick={addDocFromForm}>Add to Batch</button>
         </div>
       </section>
 
       {/* Batch list */}
-      <section className="ingest-batch">
-        <div className="batch-head">
+      <section className="aii-batch">
+        <div className="aii-batch-head">
           <h3>Staged Documents</h3>
-          <div className="muted tiny">
+          <div className="aii-muted aii-tiny">
             {totals.docs} doc{totals.docs === 1 ? "" : "s"} · ~{totals.chunks} chunk{totals.chunks === 1 ? "" : "s"} · {totals.chars.toLocaleString()} chars
           </div>
-          <div className="spacer" />
-          <button className="btn danger" disabled={!docs.length || busy} onClick={clearAll}>Clear</button>
+          <div className="aii-spacer" />
+          <button className="aii-btn aii-btn--danger" disabled={!docs.length || busy} onClick={clearAll}>Clear</button>
         </div>
 
-        <div className="batch-list">
+        <div className="aii-list">
           {docs.length === 0 ? (
-            <div className="empty muted">Nothing staged yet. Add a document above.</div>
+            <div className="aii-empty aii-muted">Nothing staged yet. Add a document above.</div>
           ) : (
             docs.map((d, idx) => {
               const estChunks = chunkText(d.text).length;
               const tags = d.tags || [];
               return (
-                <div key={d.id} className="doc-card">
-                  <div className="doc-top">
-                    <div className="doc-title">
-                      <span className="badge">#{docs.length - idx}</span>
+                <div key={d.id} className="aii-doc">
+                  <div className="aii-doc-top">
+                    <div className="aii-doc-title">
+                      <span className="aii-badge">#{docs.length - idx}</span>
                       <strong>{d.source || "KB"}</strong>
-                      <span className="muted tiny"> · ~{estChunks} chunk{estChunks === 1 ? "" : "s"}</span>
+                      <span className="aii-muted aii-tiny"> · ~{estChunks} chunk{estChunks === 1 ? "" : "s"}</span>
                     </div>
-                    <button className="btn ghost" onClick={() => removeDoc(d.id)}>Remove</button>
+                    <button className="aii-btn aii-btn--ghost" onClick={() => removeDoc(d.id)}>Remove</button>
                   </div>
 
                   {tags.length > 0 && (
-                    <div className="tags">
+                    <div className="aii-tags">
                       {tags.map((t) => (
-                        <span className="tag" key={t}>{t}</span>
+                        <span className="aii-tag" key={t}>{t}</span>
                       ))}
                     </div>
                   )}
 
-                  <pre className="doc-preview">{d.text.slice(0, 600)}{d.text.length > 600 ? "…" : ""}</pre>
+                  <pre className="aii-preview">{d.text.slice(0, 600)}{d.text.length > 600 ? "…" : ""}</pre>
                 </div>
               );
             })
           )}
         </div>
 
-        <div className="ingest-actions">
-          <button className="btn btn-primary" disabled={!docs.length || busy} onClick={onIngest}>
+        <div className="aii-footer-actions">
+          <button className="aii-btn aii-btn--primary" disabled={!docs.length || busy} onClick={onIngest}>
             {busy ? "Ingesting..." : "Ingest Now"}
           </button>
         </div>

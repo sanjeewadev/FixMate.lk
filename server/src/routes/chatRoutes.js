@@ -1,7 +1,8 @@
 const router = require('express').Router();
 const verifyToken = require('../middleware/verifyToken');
-const { ensureConversation, postMessage, listMessages } = require('../controllers/chatController');
+const {listConversations, ensureConversation, postMessage, listMessages } = require('../controllers/chatController');
 
+router.get('/chat/conversations', verifyToken, listConversations); 
 // Create or reuse a conversation (booking or general)
 router.post('/chat/conversations', verifyToken, ensureConversation);
 
