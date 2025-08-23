@@ -1,6 +1,6 @@
 :root {
-  --bg: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
-  --sidebar-bg: rgba(15, 23, 42, 0.7); /* dark navy glass */
+  --bg: #f7f9fc;
+  --sidebar-bg: #003049; /* dark navy glass */
   --content-bg: rgba(255, 255, 255, 0.85);
   --text: #0f172a;
   --text-muted: #64748b;
@@ -37,10 +37,10 @@ body {
 }
 
 .sidebar h2 {
-  font-size: 18px;
+  font-size: 25px;
   font-weight: 700;
-  margin-bottom: 24px;
-  background: linear-gradient(90deg, var(--primary-light), #60a5fa);
+  margin-bottom: 34px;
+  background: white;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -84,10 +84,10 @@ body {
 }
 
 .dashboard-content h2 {
-  font-size: 24px;
-  margin: 0 0 20px;
-  font-weight: 600;
-  color: var(--primary-dark);
+  font-size: 35px;
+  margin: 0 0 30px;
+  font-weight: 800;
+  color: #1f2a38;
 }
 
 /* Card utility */

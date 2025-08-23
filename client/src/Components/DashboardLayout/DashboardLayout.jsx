@@ -7,7 +7,7 @@ const Sidebar = ({ role }) => {
   const menu = {
     admin: [
        { name: "Service Request", to: "/AdminDashboard/requests" },
-       { name: "Manage Users", to: "/AdminDashboard/manage-users" },   // ✅ match
+       { name: "Manage Users", to: "/AdminDashboard/manage-users" },
        { name: "Manage Services", to: "/AdminDashboard/services" },
        { name: "View Reports", to: "/AdminDashboard/reports" },
        { name: "Manage Staff", to: "/AdminDashboard/staff" },
@@ -28,14 +28,14 @@ const Sidebar = ({ role }) => {
 
     ],
     user: [
-      { name: "Overview", to: "/UserDashboard/overview" },
-      { name: "Book Service", to: "/UserDashboard/book" },
-      { name: "Service History", to: "/UserDashboard/history" },
-      { name: "My Complaints", to: "/UserDashboard/complaints" },
-      { name: "Ratings", to: "/UserDashboard/ratings" },
-      { name: "Chat", to: "/UserDashboard/chat" },
-      { name: "Support", to: "/UserDashboard/support" },
-      { name: "Profile", to: "/UserDashboard/profile" },
+      { name: "🏠 Overview", to: "/UserDashboard/overview" },
+      { name: "📅 Book Service", to: "/UserDashboard/book" },
+      { name: "📜 Service History", to: "/UserDashboard/history" },
+      { name: "⚠️ My Complaints", to: "/UserDashboard/complaints" },
+      { name: "⭐ Ratings", to: "/UserDashboard/ratings" },
+      { name: "💬 Chat with Technician", to: "/UserDashboard/chat" },
+      { name: "🛟 Support", to: "/UserDashboard/support" },
+      { name: "👤 Profile", to: "/UserDashboard/profile" },
     ],
   };
 
@@ -43,7 +43,7 @@ const Sidebar = ({ role }) => {
 
   return (
     <div className="sidebar">
-      <h2>Fixmate {role.charAt(0).toUpperCase() + role.slice(1)}</h2>
+      <h2 className="dashboard-lay-h2">Fixmate {role.charAt(0).toUpperCase() + role.slice(1)}</h2>
       <ul>
         {items.map((item, i) => (
           <li key={i}>

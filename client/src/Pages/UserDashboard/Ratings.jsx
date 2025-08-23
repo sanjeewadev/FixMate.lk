@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import api from "../../lib/api";
 import RateBookingModal from "./components/Rating/RateBookingModal.jsx";
-import "../UserDashboard/MyBookings.css"; // reuse table/button styles if you like
+import "./Ratings.css";
 
 export default function Ratings() {
   const [bookings, setBookings] = useState([]);

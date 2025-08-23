@@ -1,0 +1,92 @@
+/* ===== Ratings page (scoped) ===== */
+.mbWrap {
+  /* local tokens */
+  --ink: #111827;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --panel: #ffffff;
+  --primary: var(--c-brand, #1e698d);
+  --primary-2: #1d4ed8;
+
+  padding: 16px;
+  color: var(--ink);
+}
+
+.mbTitle {
+  margin: 0 0 16px 0;
+  font-weight: 800;
+}
+
+/* Card */
+.mbCard {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.04);
+  overflow: hidden;
+  margin: 0 0 16px 0;
+}
+
+/* Optional section heading inside card */
+.mbCard > h3 {
+  margin: 0;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 16px;
+}
+
+/* Table */
+.mbTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.mbTable thead th {
+  background: #f8fafc;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+.mbTable tbody td {
+  padding: 12px 14px;
+  border-top: 1px solid #f3f4f6;
+  color: var(--ink);
+}
+.mbTable tbody tr:hover { background: #fafbff; }
+.mbTable th:last-child,
+.mbTable td:last-child { text-align: right; }
+
+/* Link-style button (avoid global button rules) */
+.mbLink {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  width: auto !important;            /* defeat any global width:100% */
+  text-decoration: none;             /* defeat global link styles */
+  transition: color .15s ease, text-decoration-color .15s ease;
+}
+.mbLink:hover { color: var(--primary-2); text-decoration: underline; }
+.mbLink:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* Empty/notes */
+.mbEmpty,
+.mbCard.empty {
+  padding: 14px;
+  color: var(--muted);
+}
+
+/* Small screens: allow table to scroll */
+@media (max-width: 640px) {
+  .mbCard { overflow-x: auto; }
+  .mbTable { min-width: 560px; }
+}

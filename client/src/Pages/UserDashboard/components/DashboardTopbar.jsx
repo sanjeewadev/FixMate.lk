@@ -11,7 +11,11 @@ export default function DashboardTopbar() {
 
   return (
     <header className="db-topbar">
-      <div className="db-topbar__left" onClick={() => navigate("/UserDashboard/overview")} role="button">
+      <div
+        className="db-topbar__left"
+        onClick={() => navigate("/UserDashboard/overview")}
+        role="button"
+      >
         <span className="db-brand">FixMate.lk</span>
       </div>
 
@@ -23,7 +27,10 @@ export default function DashboardTopbar() {
       </nav>
 
       <div className="db-topbar__right">
-        <button className="db-btn primary2" style={{  }} onClick={() => navigate("/TechnicianRegisterForm")}>
+        <button
+          className="db-btn primary2"
+          onClick={() => navigate("/TechnicianRegisterForm")}
+        >
           Become a Tasker
         </button>
         <button className="db-btn outline" onClick={goHome}>Home</button>

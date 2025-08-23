@@ -23,7 +23,6 @@ export default function Complaints() {
       }
     }
     load();
-    // light polling so customers see staff replies
     pollRef.current = setInterval(load, 8000);
     return () => { dead = true; if (pollRef.current) clearInterval(pollRef.current); };
   }, []);
