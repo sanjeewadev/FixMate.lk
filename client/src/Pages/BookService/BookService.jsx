@@ -2,6 +2,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./BookService.css";
 
+const DISTRICTS = [
+  "Colombo","Gampaha","Kalutara","Kandy","Matale","Nuwara Eliya","Galle","Matara","Hambantota",
+  "Jaffna","Kilinochchi","Mannar","Vavuniya","Mullaitivu","Batticaloa","Ampara","Trincomalee",
+  "Kurunegala","Puttalam","Anuradhapura","Polonnaruwa","Badulla","Monaragala","Ratnapura","Kegalle"
+];
+
 function BookService() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -35,6 +41,14 @@ function BookService() {
 
   const [files, setFiles] = useState([]);    // File[]
   const [previews, setPreviews] = useState([]); // blob URLs
+
+  // Dropdown options; if profile has a district not in the list, include it so React doesn't warn.
+  const districtOptions = useMemo(() => {
+    if (form.district && !DISTRICTS.includes(form.district)) {
+      return [form.district, ...DISTRICTS];
+    }
+    return DISTRICTS;
+  }, [form.district]);
 
   // -------- Fetch services list or preselected service --------
   useEffect(() => {
@@ -401,15 +415,19 @@ function BookService() {
               />
             </div>
 
+            {/* ▼ District dropdown (same field name & value) */}
             <div className="field">
               <label>District *</label>
-              <input
-                type="text"
-                value={form.district}
+              <select
+                value={DISTRICTS.includes(form.district) ? form.district : (form.district ? form.district : "")}
                 onChange={(e) => update("district", e.target.value)}
-                placeholder="e.g., Colombo"
                 required
-              />
+              >
+                <option value="" disabled>Select district</option>
+                {districtOptions.map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
             </div>
 
             <div className="field">

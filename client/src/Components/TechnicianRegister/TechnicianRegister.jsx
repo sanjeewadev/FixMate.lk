@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createApplication } from "../../services/becomeTech";
 import "./TechnicianRegister.css";
 
@@ -6,6 +6,21 @@ const DISTRICTS = [
   "Colombo","Gampaha","Kalutara","Kandy","Matale","Nuwara Eliya","Galle","Matara","Hambantota",
   "Jaffna","Kilinochchi","Mannar","Vavuniya","Mullaitivu","Batticaloa","Ampara","Trincomalee",
   "Kurunegala","Puttalam","Anuradhapura","Polonnaruwa","Badulla","Monaragala","Ratnapura","Kegalle"
+];
+
+const SPECIALIZATIONS = [
+  "Electrical",
+  "Plumbing",
+  "AC Repair",
+  "Carpentry",
+  "Painting",
+  "Appliance Repair",
+  "IT Support",
+  "CCTV & Networking",
+  "Roofing",
+  "Flooring",
+  "Landscaping",
+  "Cleaning"
 ];
 
 export default function TechnicianRegister() {
@@ -23,7 +38,7 @@ export default function TechnicianRegister() {
   const [preview, setPreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // ✅ Show a pre-submit info message in the same message area
+  // Message area (info by default)
   const [msg, setMsg] = useState({
     type: "info",
     text: "After you submit this form, we will review it and contact you via phone or email."
@@ -49,9 +64,14 @@ export default function TechnicianRegister() {
     setPreview(URL.createObjectURL(f));
   };
 
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
+
   const onSubmit = async (e) => {
     e.preventDefault();
-    // clear any info/error; we’ll set a new one below
     setMsg(null);
 
     // basic validations
@@ -70,6 +90,8 @@ export default function TechnicianRegister() {
       const payload = {
         ...form,
         experience_years: Number(form.experience_years || 0),
+        // If your service expects FormData, it can build it internally from this object.
+        // If it already expects FormData, keep your original service implementation.
         profile_image: file || undefined
       };
       const res = await createApplication(payload);
@@ -87,6 +109,7 @@ export default function TechnicianRegister() {
         note: ""
       });
       setFile(null);
+      if (preview) URL.revokeObjectURL(preview);
       setPreview(null);
     } catch (e) {
       const t = e?.response?.data?.message || "Failed to submit application.";
@@ -100,7 +123,7 @@ export default function TechnicianRegister() {
     <form className="tech-apply-form" onSubmit={onSubmit}>
       <h2>Apply to Become a Technician</h2>
 
-      {/* Message area (now shows info by default) */}
+      {/* Message area */}
       {msg?.text && (
         <div className={`msg ${msg.type}`} aria-live="polite">
           {msg.text}
@@ -110,54 +133,120 @@ export default function TechnicianRegister() {
       <div className="grid">
         <div>
           <label>Full name *</label>
-          <input name="full_name" value={form.full_name} onChange={onChange} placeholder="e.g., Sunil Perera" required />
+          <input
+            name="full_name"
+            value={form.full_name}
+            onChange={onChange}
+            placeholder="e.g., Sunil Perera"
+            required
+          />
         </div>
+
         <div>
           <label>Email *</label>
-          <input type="email" name="email" value={form.email} onChange={onChange} placeholder="you@example.com" required />
+          <input
+            type="email"
+            name="email"
+            value={form.email}
+            onChange={onChange}
+            placeholder="you@example.com"
+            required
+          />
         </div>
+
         <div>
           <label>Phone (+94XXXXXXXXX) *</label>
-          <input name="phone_number" value={form.phone_number} onChange={onChange} placeholder="+9471XXXXXXX" required />
+          <input
+            name="phone_number"
+            value={form.phone_number}
+            onChange={onChange}
+            placeholder="+9471XXXXXXX"
+            required
+          />
         </div>
+
         <div>
           <label>District *</label>
-          <select name="district" value={form.district} onChange={onChange} required>
+          <select
+            name="district"
+            value={form.district}
+            onChange={onChange}
+            required
+          >
             <option value="" disabled>Choose district</option>
-            {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+            {DISTRICTS.map(d => (
+              <option key={d} value={d}>{d}</option>
+            ))}
           </select>
         </div>
+
         <div>
           <label>Address *</label>
-          <input name="address" value={form.address} onChange={onChange} placeholder="Street, city" required />
+          <input
+            name="address"
+            value={form.address}
+            onChange={onChange}
+            placeholder="Street, city"
+            required
+          />
         </div>
+
         <div>
           <label>Specialization *</label>
-          <input name="specialization" value={form.specialization} onChange={onChange} placeholder="Plumbing, Electrical..." required />
+          <select
+            name="specialization"
+            value={form.specialization}
+            onChange={onChange}
+            required
+          >
+            <option value="" disabled>Choose specialization</option>
+            {SPECIALIZATIONS.map(s => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
         </div>
+
         <div>
           <label>Experience (years)</label>
-          <input type="number" min="0" name="experience_years" value={form.experience_years} onChange={onChange} placeholder="0" />
+          <input
+            type="number"
+            min="0"
+            name="experience_years"
+            value={form.experience_years}
+            onChange={onChange}
+            placeholder="0"
+          />
         </div>
+
         <div className="file-col">
           <label>Profile photo</label>
           <label className="file-input-label">
-            <input className="file-input" type="file" accept="image/*" onChange={onPick} />
+            <input
+              className="file-input"
+              type="file"
+              accept="image/*"
+              onChange={onPick}
+            />
             {file?.name || "Choose an image…"}
           </label>
           {preview && <img className="preview" src={preview} alt="preview" />}
         </div>
+
         <div className="full">
           <label>Note to admin (optional)</label>
-          <textarea name="note" rows="3" value={form.note} onChange={onChange} placeholder="Any extra details…" />
+          <textarea
+            name="note"
+            rows="3"
+            value={form.note}
+            onChange={onChange}
+            placeholder="Any extra details…"
+          />
         </div>
       </div>
 
       <button type="submit" disabled={submitting}>
         {submitting ? "Submitting…" : "Submit Application"}
       </button>
-
-      {/* Removed the bottom hint per your request */}
     </form>
   );
 }
