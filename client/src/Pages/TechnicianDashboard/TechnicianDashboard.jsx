@@ -5,6 +5,8 @@ import api from "../../lib/api";
 import TechnicianSidebar from "./TechnicianSidebar.jsx";
 import TechnicianTopbar from "./TechnicianTopbar.jsx";
 import "./technician-dashboard.css";
+import TechnicianProfile from "./TechnicianProfile.jsx";
+
 
 export default function TechnicianDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -510,162 +512,8 @@ const openChat = async (booking) => {
           )}
 
          {/* Technician Profile Tab */}
-          {activeTab === "profile" && (
-            <div className="tech-profile-container">
-              <h2>Technician Profile</h2>
+          {activeTab === "profile" && <TechnicianProfile />}
 
-              {loadingProfile ? (
-                <p>Loading...</p>
-              ) : !profile ? (
-                <p>No profile data.</p>
-              ) : (
-                <>
-                  <div className="profile-card">
-                    <img
-                      src={profile.profile_image_url || "/default-avatar.png"}
-                      alt="Profile"
-                      className="profile-avatar"
-                    />
-                    <input
-                      type="file"
-                      onChange={(e) => setImageFile(e.target.files[0])}
-                    />
-                    <button onClick={changeAvatar}>Upload New Avatar</button>
-
-                    {editMode ? (
-                      <>
-                        <input
-                          name="full_name"
-                          value={formData.full_name || ""}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              [e.target.name]: e.target.value,
-                            })
-                          }
-                          placeholder="Full Name"
-                        />
-                        <input
-                          name="phone_number"
-                          value={formData.phone_number || ""}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              [e.target.name]: e.target.value,
-                            })
-                          }
-                          placeholder="Phone"
-                        />
-                        <input
-                          name="address"
-                          value={formData.address || ""}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              [e.target.name]: e.target.value,
-                            })
-                          }
-                          placeholder="Address"
-                        />
-                        <input
-                          name="district"
-                          value={formData.district || ""}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              [e.target.name]: e.target.value,
-                            })
-                          }
-                          placeholder="District"
-                        />
-                        <input
-                          name="specialization"
-                          value={formData.specialization || ""}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              [e.target.name]: e.target.value,
-                            })
-                          }
-                          placeholder="Specialization"
-                        />
-                        <input
-                          type="number"
-                          name="experience_years"
-                          value={formData.experience_years || ""}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              [e.target.name]: e.target.value,
-                            })
-                          }
-                          placeholder="Years of Experience"
-                        />
-                        <button onClick={saveProfile}>Save</button>
-                        <button onClick={() => setEditMode(false)}>
-                          Cancel
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <p>
-                          <b>Name:</b> {profile.full_name}
-                        </p>
-                        <p>
-                          <b>Email:</b> {profile.email}
-                        </p>
-                        <p>
-                          <b>Phone:</b> {profile.phone_number}
-                        </p>
-                        <p>
-                          <b>Address:</b> {profile.address}
-                        </p>
-                        <p>
-                          <b>District:</b> {profile.district}
-                        </p>
-                        <p>
-                          <b>Specialization:</b> {profile.specialization}
-                        </p>
-                        <p>
-                          <b>Experience:</b> {profile.experience_years} years
-                        </p>
-                        <button onClick={() => setEditMode(true)}>
-                          Edit Profile
-                        </button>
-                      </>
-                    )}
-                  </div>
-
-                  <div className="password-section">
-                    <h3>Change Password</h3>
-                    <input
-                      type="password"
-                      placeholder="Current Password"
-                      value={passwordData.currentPassword}
-                      onChange={(e) =>
-                        setPasswordData({
-                          ...passwordData,
-                          currentPassword: e.target.value,
-                        })
-                      }
-                    />
-                    <input
-                      type="password"
-                      placeholder="New Password"
-                      value={passwordData.newPassword}
-                      onChange={(e) =>
-                        setPasswordData({
-                          ...passwordData,
-                          newPassword: e.target.value,
-                        })
-                      }
-                    />
-                    <button onClick={changePassword}>Change Password</button>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
         </div>
       </div>
 
@@ -832,8 +680,11 @@ const openChat = async (booking) => {
             </div>
 
             <div className="action-row center">
-              <button className="btn close" onClick={() => { setChatBooking(null); setChatConversationId(null); }}> Close</button>
-            </div>
+  <button className="btn close" onClick={() => setSelectedBooking(null)}>
+    Close
+  </button>
+</div>
+
           </div>
         </div>
       )}
