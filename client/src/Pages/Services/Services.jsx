@@ -4,6 +4,7 @@ import ServiceCard from "../../Components/ServiceCard/ServiceCard.jsx";
 import Loader from "../../Components/Loaders/SLoader.jsx"; // Import Loader
 import "./Services.css";
 import Footer from "../../Components/Footer/Footer.jsx";
+import PublicNavBar from "../../Components/nav/PublicNavBar.jsx";
 
 const Services = () => {
   const [services, setServices] = useState([]);
@@ -33,7 +34,7 @@ const Services = () => {
 
   return (
     <div className="services-page">
-      <Navbar />
+      <PublicNavBar />
       <div className="services-wrapper">
         {loading ? (
           <div style={{ display: "flex", justifyContent: "center", marginTop: "4rem" }}>
@@ -65,7 +66,7 @@ const Services = () => {
           </>
         )}
       </div>
-      <Footer variant="light" />
+      <Footer variant="dark" />
     </div>
   );
 };

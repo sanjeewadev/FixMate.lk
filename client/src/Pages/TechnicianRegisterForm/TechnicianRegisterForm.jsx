@@ -6,7 +6,7 @@ import TechnicianRegister from '../../Components/TechnicianRegister/TechnicianRe
 export default function TechnicianRegisterForm() {
   return (
     <div>
-      <Navbar />
+      
       <TechnicianRegister />
     </div>
   )
