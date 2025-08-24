@@ -834,5 +834,3 @@ exports.candidatesForBooking = async (req, res) => {
     res.status(500).json({ message: e.message || 'Server error' });
   }
 };
-
-

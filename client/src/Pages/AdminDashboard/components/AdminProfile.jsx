@@ -4,7 +4,7 @@ import api from "../../../lib/api";
 import { useAuth } from "../../../context/AuthContext.jsx";
 
 export default function AdminProfile() {
-  const { role, user, updateUser } = useAuth(); // role: 'admin' | 'super_admin'
+  const { role, updateUser } = useAuth(); // role: 'admin' | 'super_admin'
   const isSuper = role === "super_admin";
 
   const [profile, setProfile] = useState({
@@ -25,7 +25,7 @@ export default function AdminProfile() {
     newPassword: "",
   });
 
-  // -------- Load my profile --------
+  // ---------- load profile ----------
   useEffect(() => {
     let cancel = false;
     (async () => {
@@ -49,7 +49,7 @@ export default function AdminProfile() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // -------- Handlers --------
+  // ---------- edit handlers ----------
   const onChange = (e) => {
     const { name, value } = e.target;
     setProfile((p) => ({ ...p, [name]: value }));
@@ -60,7 +60,6 @@ export default function AdminProfile() {
     setSaving(true);
     setMsg(null);
     try {
-      // Admin backend allows only full_name & phone_number to update
       const payload = {
         full_name: profile.full_name,
         phone_number: profile.phone_number,
@@ -97,31 +96,142 @@ export default function AdminProfile() {
     }
   };
 
-  // -------- Photo upload (simple) --------
+  // ---------- photo pick + CROP ----------
   const fileRef = useRef(null);
   const pickFile = () => fileRef.current?.click();
 
-  const onPick = async (e) => {
+  // crop state
+  const [cropOpen, setCropOpen] = useState(false);
+  const [cropSrc, setCropSrc] = useState("");
+  const [zoom, setZoom] = useState(1);
+  const [offX, setOffX] = useState(0);
+  const [offY, setOffY] = useState(0);
+  const [base, setBase] = useState(1); // base scale to fit viewport
+  const imgRef = useRef({ w: 0, h: 0 });
+  const dragRef = useRef({ active: false, sx: 0, sy: 0, ox: 0, oy: 0 });
+
+  const VIEW = 260; // square viewport (matches CSS)
+
+  const onPick = (e) => {
     const f = e.target.files?.[0];
     if (!f || !f.type?.startsWith("image/")) return;
-    const preview = URL.createObjectURL(f);
-    setImagePreview(preview);
+    const url = URL.createObjectURL(f);
+    setCropSrc(url);
+    setCropOpen(true);
+    setZoom(1);
+    setOffX(0);
+    setOffY(0);
+    setBase(1);
+  };
 
-    try {
+  const onPreviewLoad = (ev) => {
+    const img = ev.currentTarget;
+    const w = img.naturalWidth || 0;
+    const h = img.naturalHeight || 0;
+    imgRef.current = { w, h };
+    if (!w || !h) return;
+    // Fit the smaller side to viewport
+    const minSide = Math.min(w, h);
+    const b = VIEW / minSide;
+    setBase(b);
+  };
+
+  const clampOffsets = (nx, ny) => {
+    const { w, h } = imgRef.current;
+    const scaledW = w * base * zoom;
+    const scaledH = h * base * zoom;
+    const maxX = Math.max(0, (scaledW - VIEW) / 2);
+    const maxY = Math.max(0, (scaledH - VIEW) / 2);
+    return {
+      x: Math.max(-maxX, Math.min(maxX, nx)),
+      y: Math.max(-maxY, Math.min(maxY, ny)),
+    };
+  };
+
+  const onDragStart = (e) => {
+    dragRef.current.active = true;
+    const pt = ("touches" in e) ? e.touches[0] : e;
+    dragRef.current.sx = pt.clientX;
+    dragRef.current.sy = pt.clientY;
+    dragRef.current.ox = offX;
+    dragRef.current.oy = offY;
+  };
+  const onDragMove = (e) => {
+    if (!dragRef.current.active) return;
+    e.preventDefault();
+    const pt = ("touches" in e) ? e.touches[0] : e;
+    const dx = pt.clientX - dragRef.current.sx;
+    const dy = pt.clientY - dragRef.current.sy;
+    const { x, y } = clampOffsets(dragRef.current.ox + dx, dragRef.current.oy + dy);
+    setOffX(x);
+    setOffY(y);
+  };
+  const onDragEnd = () => {
+    dragRef.current.active = false;
+  };
+
+  const cleanupCrop = () => {
+    setCropOpen(false);
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    setCropSrc("");
+  };
+
+  const confirmCrop = async () => {
+    // Draw to canvas (transparent outside the circle)
+    const size = 512; // export size (square)
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext("2d");
+
+    // circle mask
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+
+    // compute draw scale/offset from viewport to canvas coords
+    const { w, h } = imgRef.current;
+    const scale = (base * zoom) * (size / VIEW); // viewport→canvas
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = cropSrc;
+
+    await new Promise((res) => { img.onload = res; });
+
+    // In viewport, the image is centered (50%,50%) then shifted by offX/offY px.
+    // Compute top-left draw position in canvas coords:
+    const drawW = w * scale;
+    const drawH = h * scale;
+    const cx = size / 2 + (offX * (size / VIEW)) - (drawW / 2);
+    const cy = size / 2 + (offY * (size / VIEW)) - (drawH / 2);
+
+    ctx.drawImage(img, cx, cy, drawW, drawH);
+    ctx.restore();
+
+    canvas.toBlob(async (blob) => {
+      if (!blob) return cleanupCrop();
+
       const form = new FormData();
-      form.append("profile_image", f);
-      const { data } = await api.post("/api/admin/me/avatar", form);
-      const updated = data?.admin || {};
-      setProfile((p) => ({ ...p, profile_image_url: updated.profile_image_url || p.profile_image_url }));
-      setImagePreview(updated.profile_image_url || preview);
-      updateUser?.(updated);
-      setMsg({ type: "success", text: "Photo updated 😃" });
-    } catch (err) {
-      setMsg({ type: "error", text: err?.response?.data?.message || "Failed to update photo 😓" });
-    } finally {
-      // cleanup local blob URL later
-      setTimeout(() => URL.revokeObjectURL(preview), 2000);
-    }
+      // keep the field name the same as before
+      form.append("profile_image", blob, "avatar.png");
+
+      try {
+        const { data } = await api.post("/api/admin/me/avatar", form);
+        const updated = data?.admin || {};
+        const url = updated.profile_image_url || imagePreview;
+
+        setProfile((p) => ({ ...p, profile_image_url: url }));
+        setImagePreview(url);
+        updateUser?.(updated);
+        setMsg({ type: "success", text: data?.message || "Photo updated 😃" });
+      } catch (err) {
+        setMsg({ type: "error", text: err?.response?.data?.message || "Failed to update photo 😓" });
+      } finally {
+        cleanupCrop();
+      }
+    }, "image/png", 0.92);
   };
 
   return (
@@ -226,6 +336,59 @@ export default function AdminProfile() {
           </button>
         </form>
       </div>
+
+      {/* Crop modal (NEW) */}
+      {cropOpen && (
+        <div className="crop-overlay" onClick={cleanupCrop} role="dialog" aria-modal="true">
+          <div className="crop-modal" onClick={(e) => e.stopPropagation()}>
+            <h4>Adjust your photo</h4>
+
+            <div
+              className={`crop-viewport ${dragRef.current.active ? "dragging" : ""}`}
+              onMouseDown={onDragStart}
+              onMouseMove={onDragMove}
+              onMouseUp={onDragEnd}
+              onMouseLeave={onDragEnd}
+              onTouchStart={onDragStart}
+              onTouchMove={onDragMove}
+              onTouchEnd={onDragEnd}
+            >
+              {cropSrc && (
+                <img
+                  src={cropSrc}
+                  alt="Crop preview"
+                  className="crop-img"
+                  onLoad={onPreviewLoad}
+                  style={{
+                    transform: `translate(calc(-50% + ${offX}px), calc(-50% + ${offY}px)) scale(${base * zoom})`,
+                  }}
+                />
+              )}
+              <div className="crop-circle" />
+            </div>
+
+            <div className="crop-controls">
+              <input
+                type="range"
+                min="1"
+                max="3"
+                step="0.01"
+                value={zoom}
+                onChange={(e) => setZoom(parseFloat(e.target.value))}
+              />
+              <div className="crop-actions">
+                <button type="button" className="btn-secondary" onClick={cleanupCrop}>
+                  Cancel
+                </button>
+                <button type="button" className="btn-primary" onClick={confirmCrop}>
+                  Use Photo
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      <input ref={fileRef} type="file" accept="image/*" hidden onChange={onPick} />
     </div>
   );
 }

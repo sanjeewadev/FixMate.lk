@@ -1,5 +1,5 @@
 // src/context/AuthContext.jsx
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import api from "../lib/api";
@@ -17,14 +17,38 @@ export function AuthProvider({ children }) {
   const [user, setUser]   = useState(null);
   const [loading, setLoading] = useState(!!token);
 
-  // Mirror the header for current token
+  // Keep axios header synced with token
   useEffect(() => {
     const t = normalizeToken(token);
     if (t) api.defaults.headers.common.Authorization = `Bearer ${t}`;
     else delete api.defaults.headers.common.Authorization;
   }, [token]);
 
-  // Logout ONLY on 401 (not on 403)
+  /* ---------- Stable, idempotent logout ---------- */
+  const loggingOutRef = useRef(false);
+  const logout = useCallback(() => {
+    if (loggingOutRef.current) return; // prevent double logout
+    loggingOutRef.current = true;
+
+    try {
+      localStorage.removeItem("token");
+      localStorage.removeItem("role");
+      delete api.defaults.headers.common.Authorization;
+      setToken(null);
+      setRole(null);
+      setUser(null);
+      setLoading(false);
+    } finally {
+      // release guard on next tick
+      setTimeout(() => { loggingOutRef.current = false; }, 0);
+    }
+  }, []);
+
+  // Expose latest logout to interceptor via ref (no re-install needed)
+  const logoutRef = useRef(logout);
+  useEffect(() => { logoutRef.current = logout; }, [logout]);
+
+  // Install a single axios interceptor; use logoutRef inside it
   const interceptorInstalled = useRef(false);
   useEffect(() => {
     if (interceptorInstalled.current) return;
@@ -33,7 +57,8 @@ export function AuthProvider({ children }) {
       (err) => {
         const s = err?.response?.status;
         if (s === 401) {
-          logout();
+          logoutRef.current?.();
+          // Hard redirect to login if not already there
           if (window.location.pathname !== "/login") {
             window.location.replace("/login?expired=1");
           }
@@ -43,7 +68,6 @@ export function AuthProvider({ children }) {
     );
     interceptorInstalled.current = true;
     return () => api.interceptors.response.eject(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Load profile for token+role
@@ -57,7 +81,7 @@ export function AuthProvider({ children }) {
           if (res?.data) return res;
         } catch (e) {
           const status = e?.response?.status;
-          if (status === 401) { logout(); break; }
+          if (status === 401) { logoutRef.current?.(); break; }
           if (status !== 404) throw e;
         }
       }
@@ -67,19 +91,16 @@ export function AuthProvider({ children }) {
     async function loadProfile() {
       if (!token || !role) { setLoading(false); return; }
 
-      // ✅ Correct per-role /me endpoints
       const endpoints = {
-        customer:   "/api/customer/me",
+        customer: "/api/customer/me",
         technician: "/api/technician/me",
-        coordinator:"/api/coordinator/coordinator/me",   // <-- NEW
-        staff:      "/api/staff/me",                    // legacy; keeping for safety
-        admin:      "/api/admin/me",
-        super_admin:"/api/admin/me",                    // super-admin also uses admin /me
+        staff: "/api/staff/me",
+        admin: "/api/admin/me",
+        super_admin: "/api/admin/me",
       };
 
       try {
         let data = null;
-
         if (role === "admin" || role === "super_admin") {
           const res = await getWithFallback(["/api/admin/me"]);
           data = res?.data || null;
@@ -87,10 +108,9 @@ export function AuthProvider({ children }) {
           const res = await api.get(endpoints[role]);
           data = res.data;
         }
-
         if (!cancelled) setUser(data ? { ...data, role } : null);
       } catch {
-        if (!cancelled) logout();
+        if (!cancelled) logoutRef.current?.();
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -100,9 +120,7 @@ export function AuthProvider({ children }) {
     return () => { cancelled = true; };
   }, [token, role]);
 
-  // NOTE: login() here assumes your login request is done elsewhere
-  // and you pass in the token + { role, ...user } payload.
-  const login = (newToken, userObj) => {
+  const login = useCallback((newToken, userObj) => {
     if (!newToken || !userObj?.role) return;
     const normalizedRole = String(userObj.role).toLowerCase();
     const normalizedToken = normalizeToken(newToken);
@@ -113,18 +131,10 @@ export function AuthProvider({ children }) {
     setToken(normalizedToken);
     setRole(normalizedRole);
     setUser({ ...userObj, role: normalizedRole });
+    setLoading(false);
 
     api.defaults.headers.common.Authorization = `Bearer ${normalizedToken}`;
-  };
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    setToken(null);
-    setRole(null);
-    setUser(null);
-    delete api.defaults.headers.common.Authorization;
-  };
+  }, []);
 
   // Cross-tab sync
   useEffect(() => {
@@ -132,7 +142,7 @@ export function AuthProvider({ children }) {
       if (e.key === "token") {
         const t = normalizeToken(e.newValue);
         setToken(t);
-        if (!t) { setUser(null); setRole(null); }
+        if (!t) { setUser(null); setRole(null); setLoading(false); }
       }
       if (e.key === "role") setRole(e.newValue?.toLowerCase() || null);
     };
@@ -140,20 +150,18 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
-  // Convenience flags
   const hasRole = (...roles) => roles.map(String).map(r=>r.toLowerCase()).includes(role);
-  const isCustomer    = role === "customer";
-  const isTechnician  = role === "technician";
-  const isCoordinator = role === "coordinator";           // <-- NEW
-  const isStaff       = isCoordinator || role === "staff"; // keep legacy compatibility
-  const isAdmin       = role === "admin";
-  const isSuperAdmin  = role === "super_admin";
+  const isCustomer = role === "customer";
+  const isTechnician = role === "technician";
+  const isStaff = role === "staff";
+  const isAdmin = role === "admin";
+  const isSuperAdmin = role === "super_admin";
 
   const value = useMemo(() => ({
     token, user, role, isAuth: !!user, loading,
     login, logout,
-    hasRole, isCustomer, isTechnician, isCoordinator, isStaff, isAdmin, isSuperAdmin,
-  }), [token, user, role, loading]);
+    hasRole, isCustomer, isTechnician, isStaff, isAdmin, isSuperAdmin,
+  }), [token, user, role, loading, login, logout]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
@@ -164,11 +172,11 @@ export function useAuth() {
   return ctx;
 }
 
-// Guards (unchanged)
+/* Guards */
 export function RequireAuth({ children, fallback = "/login" }) {
   const { isAuth, loading } = useAuth();
   const loc = useLocation();
-  if (loading) return null;
+  if (loading) return null; // no flash
   if (!isAuth) return <Navigate to={fallback} state={{ from: loc }} replace />;
   return children;
 }

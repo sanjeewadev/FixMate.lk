@@ -92,9 +92,7 @@ const router = createBrowserRouter([
   {
     path: "/StaffDashboard/*",
     element: (
-      <ProtectedRoute>
         <StaffDashboard />
-      </ProtectedRoute>
     ),
     children: [{ path: "requests", element: <ServiceRequestsAdmin /> }],
   },

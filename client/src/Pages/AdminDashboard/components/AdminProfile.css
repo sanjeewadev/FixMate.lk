@@ -1,15 +1,16 @@
-/* ===== Admin Profile (styled like Customer Profile, same theme) ===== */
+/* ===========================
+   Admin Profile — aligned with dashboard design tokens
+   =========================== */
 
 .admin-profile {
-  max-width: 760px;
+  max-width: 820px;
   margin: 0 auto;
-  background: var(--white, #fff);
+  background: var(--panel, #fff);
   padding: 36px 40px;
   border-radius: 14px;
   border: 1px solid var(--border, #e5e7eb);
-  box-shadow: 0 10px 24px rgba(0,0,0,.06);
+  box-shadow: var(--shadow-2, 0 10px 24px rgba(0,0,0,.06));
   color: var(--text, #0f172a);
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* Header */
@@ -38,11 +39,10 @@
 
 .profile-img {
   grid-area: img;
-  width: 110px;
-  height: 110px;
+  width: 110px; height: 110px;
   border-radius: 999px;
   object-fit: cover;
-  border: 3px solid var(--blue, #3b82f6);
+  border: 3px solid var(--brand-500, #5b7cff);
   box-shadow: 0 4px 14px rgba(0,0,0,.12);
   transition: transform .22s ease;
 }
@@ -51,18 +51,19 @@
 .change-pic {
   grid-area: btn;
   justify-self: end;
-  background: transparent;
+  background: #fff;
   border: 1px solid var(--border, #e5e7eb);
-  color: var(--blue, #3b82f6);
+  color: var(--brand-700, #2f49c7);
   padding: 8px 14px;
   border-radius: 10px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: background .15s ease, border-color .15s ease;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
 }
 .change-pic:hover {
-  background: rgba(59,130,246,.06);
-  border-color: rgba(59,130,246,.35);
+  background: rgba(91,124,255,.07);
+  border-color: rgba(91,124,255,.35);
+  color: var(--brand-800, #243aa0);
 }
 
 .profile-header h3 {
@@ -83,44 +84,47 @@
 
 /* Inline messages */
 .msg {
-  display: inline-block;
+  display: inline-flex; align-items: center; gap: 8px;
   padding: 9px 12px;
   border-radius: 10px;
   font-size: 14px;
   border: 1px solid transparent;
   animation: msgIn .25s ease both;
 }
-.msg.success { background:#e6ffed; border-color:#34c759; color:#0b5d1e; }
-.msg.error   { background:#ffe9e9; border-color:#ff3b30; color:#6b1111; }
-.msg.info    { background:#eef6ff; border-color: var(--blue, #3b82f6); color:#094a93; }
+.msg.success { background:#eafbf0; border-color:#bdf3cf; color:#115e31; }
+.msg.error   { background:#ffe9e9; border-color:#ffc9c9; color:#7f1d1d; }
+.msg.info    { background:#eef6ff; border-color:#bedbff; color:#094a93; }
 @keyframes msgIn { from {opacity:0; transform:translateY(-6px);} to {opacity:1; transform:translateY(0);} }
 
 /* Edit toggle button */
 .edit-toggle-btn {
   display: block;
   width: 100%;
-  background: transparent;
-  border: 1px solid var(--blue, #3b82f6);
-  color: var(--blue, #3b82f6);
+  background: #fff;
+  border: 1px solid var(--brand-500, #5b7cff);
+  color: var(--brand-700, #2f49c7);
   padding: 10px 16px;
-  font-weight: 700;
+  font-weight: 800;
   border-radius: 10px;
   cursor: pointer;
-  transition: background .15s ease, color .15s ease;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
   margin-bottom: 18px;
 }
-.edit-toggle-btn:hover { background: var(--blue, #3b82f6); color: #fff; }
+.edit-toggle-btn:hover {
+  background: var(--brand-600, #3d5df2);
+  color: #fff;
+  border-color: var(--brand-600, #3d5df2);
+}
 
-/* View mode info cards (grid) */
+/* View mode info cards */
 .info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 22px 32px;
   margin-bottom: 28px;
 }
-@media (max-width: 640px) {
-  .info-grid { grid-template-columns: 1fr; }
-}
+@media (max-width: 640px) { .info-grid { grid-template-columns: 1fr; } }
+
 .info-card {
   background: #f9fafc;
   border: 1px solid var(--border, #e5e7eb);
@@ -138,7 +142,7 @@
 }
 .info-card .value {
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text, #0f172a);
   word-break: break-word;
 }
@@ -150,9 +154,8 @@
   gap: 18px 28px;
   margin-bottom: 28px;
 }
-@media (max-width: 640px) {
-  .profile-form { grid-template-columns: 1fr; }
-}
+@media (max-width: 640px) { .profile-form { grid-template-columns: 1fr; } }
+
 .profile-form input {
   font-size: 15px;
   padding: 12px 14px;
@@ -170,7 +173,7 @@
 
 .btn-save {
   grid-column: span 2;
-  background: var(--blue, #3b82f6);
+  background: var(--brand-600, #3d5df2);
   color: #fff;
   border: none;
   padding: 12px 14px;
@@ -193,16 +196,15 @@
   margin: 0 0 12px 0;
   font-size: 18px;
   font-weight: 800;
-  color: var(--blue, #3b82f6);
+  color: var(--brand-700, #2f49c7);
 }
 .password-form {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px 24px;
 }
-@media (max-width: 640px) {
-  .password-form { grid-template-columns: 1fr; }
-}
+@media (max-width: 640px) { .password-form { grid-template-columns: 1fr; } }
+
 .password-form input {
   font-size: 15px;
   padding: 12px 14px;
@@ -218,7 +220,7 @@
 }
 .btn-password {
   grid-column: span 2;
-  background: var(--blue, #3b82f6);
+  background: var(--brand-600, #3d5df2);
   color: #fff;
   border: none;
   padding: 12px 14px;
@@ -233,3 +235,6 @@
 /* Helpers */
 .tiny { font-size: 12px; }
 .muted { color: var(--muted, #64748b); }
+
+
+
