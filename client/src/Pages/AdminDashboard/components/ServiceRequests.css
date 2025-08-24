@@ -74,5 +74,99 @@
 .sr-modal-context{ margin-top:-6px; }
 .sr-modal-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:8px; }
 
+/* Optional small utilities */
 .tiny{ font-size:12px; }
 .muted{ color: var(--muted); }
+/* ============================
+   FIFO Accepted Techs Section
+   Prefix: .sr-fifo-
+   ============================ */
+
+.sr-fifo {
+  margin: 16px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 12px;
+  background: #f9fafb;
+}
+
+.sr-fifo-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.sr-fifo-head strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text, #0f172a);
+}
+.sr-fifo-head .muted {
+  font-size: 12px;
+  color: var(--muted, #64748b);
+}
+
+.sr-fifo-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sr-fifo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+  background: #fff;
+  transition: background .15s ease, border-color .15s ease;
+}
+.sr-fifo-item:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+.sr-fifo-item.is-selected {
+  border-color: var(--brand-600, #3d5df2);
+  background: #eef2ff;
+}
+
+.sr-fifo-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+.sr-fifo-rank {
+  font-weight: 800;
+  color: var(--brand-600, #3d5df2);
+}
+.sr-fifo-name {
+  font-weight: 600;
+  color: var(--text, #111827);
+}
+.sr-fifo-district {
+  font-size: 13px;
+  color: var(--muted, #6b7280);
+}
+.sr-fifo-time {
+  font-size: 12px;
+  color: var(--muted, #9ca3af);
+}
+.sr-fifo-dot {
+  color: #d1d5db;
+}
+
+.sr-fifo-actions {
+  display: flex;
+  gap: 6px;
+}
+.sr-fifo-actions .sr-btn {
+  height: 28px;
+  font-size: 12px;
+  padding: 0 10px;
+}

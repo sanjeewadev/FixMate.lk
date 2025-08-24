@@ -1,11 +1,10 @@
-// src/Pages/AdminDashboard/components/AdminChat.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import api from "../../../lib/api";
 import { useAuth } from "../../../context/AuthContext.jsx";
 import "./AdminChat.css";
 
 function fmtTime(s) {
-  try { return new Date(s).toLocaleString(); } catch { return s || ""; }
+  try { return new Date(s).toLocaleString(); } catch (s) { return s || ""; }
 }
 const RIGHT_ROLES = new Set(["admin","super_admin","coordinator"]);
 
@@ -91,14 +90,31 @@ export default function AdminChat() {
     return () => clearInterval(pollRef.current);
   }, [activeId]);
 
-  // Build sidebar list with names & spacing
+  // Active conversation (for quick lookup)
+  const activeConvo = useMemo(
+    () => (convos || []).find(c => c._id === activeId),
+    [convos, activeId]
+  );
+
+  // Map (role:userId) -> display name from participants snapshot
+  const nameMap = useMemo(() => {
+    const map = {};
+    (activeConvo?.participants || []).forEach(p => {
+      map[`${p.role}:${String(p.userId)}`] = p.name || p.role;
+    });
+    return map;
+  }, [activeConvo]);
+
+  // Build sidebar list with proper names
   const sidebar = useMemo(() => {
     return (convos || []).map(c => {
       const other = (c.participants || []).find(p => !RIGHT_ROLES.has(p.role));
       const labelName =
-        other?.userId?.full_name ||
+        other?.name ||                           // ✅ use snapshot
+        other?.userId?.full_name ||              // (if you ever populate)
         other?.full_name ||
         (other?.role ? other.role.charAt(0).toUpperCase() + other.role.slice(1) : "Conversation");
+
       const subtitle =
         c.booking?.problemTitle ||
         c.topic ||
@@ -126,7 +142,7 @@ export default function AdminChat() {
       _id: `temp-${Date.now()}`,
       conversation: activeId,
       senderRole: role,
-      senderId: "me",
+      senderId: "me", // local-only marker
       text: text.trim(),
       createdAt: new Date().toISOString()
     };
@@ -138,7 +154,7 @@ export default function AdminChat() {
 
     try {
       await api.post("/api/chat/messages", body);
-      // polling will sync
+      // polling will sync the real message (with ObjectId senderId)
     } catch (e) {
       setMsgs(prev => prev.filter(m => m._id !== temp._id));
       alert(e?.response?.data?.message || "Failed to send");
@@ -192,16 +208,22 @@ export default function AdminChat() {
 
               {msgs.map(m => {
                 const mine = RIGHT_ROLES.has(m.senderRole);
+                const key = `${m.senderRole}:${String(m.senderId)}`;
+                const senderName =
+                  m.senderId === "me"
+                    ? "You"
+                    : (nameMap[key] || (mine ? "You" : m.senderRole));
+
                 return (
                   <div key={m._id} className={`bubble-row ${mine ? "right" : "left"}`}>
-                    {!mine && <div className="role-tag">{m.senderRole}</div>}
+                    {!mine && <div className="role-tag">{senderName}</div>}
                     <div className={`bubble ${mine ? "mine" : ""}`}>
                       <div className="text">{m.text}</div>
                       <div className="meta tiny muted">
-                        {m.senderRole} • {fmtTime(m.createdAt)}
+                        {senderName} • {fmtTime(m.createdAt)}
                       </div>
                     </div>
-                    {mine && <div className="role-tag">{m.senderRole}</div>}
+                    {mine && <div className="role-tag">{senderName}</div>}
                   </div>
                 );
               })}

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import api from "../../../lib/api";
+import api from "../../../lib/api.js";
 import "./ServiceRequests.css";
 import DistrictTechSelect from "./DistrictTechSelect.jsx";
 
@@ -9,21 +9,24 @@ function formatDate(s) {
 
 export default function ServiceRequests() {
   const [unclaimed, setUnclaimed] = useState([]);
-  const [awaiting, setAwaiting] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState({ type: "", text: "" });
+  const [awaiting, setAwaiting]   = useState([]);
+  const [loading, setLoading]     = useState(false);
+  const [msg, setMsg]             = useState({ type: "", text: "" });
 
   const [selectedBooking, setSelectedBooking] = useState(null);
-  const [selectedTech, setSelectedTech] = useState("");
+  const [selectedTech, setSelectedTech]       = useState("");
 
-  const hasData = useMemo(() => (unclaimed.length + awaiting.length) > 0, [unclaimed, awaiting]);
+  const hasData = useMemo(
+    () => (unclaimed.length + awaiting.length) > 0,
+    [unclaimed, awaiting]
+  );
 
   const fetchRequests = async () => {
     try {
       setLoading(true);
       const res = await api.get("/api/coordinator/bookings/dashboard");
-      setUnclaimed(res.data.unclaimed || []);
-      setAwaiting(res.data.awaitingCoordinator || []);
+      setUnclaimed(res.data?.unclaimed || []);
+      setAwaiting(res.data?.awaitingCoordinator || []);
       setMsg({ type: "", text: "" });
     } catch (err) {
       setMsg({ type: "error", text: err?.response?.data?.message || "Failed to load requests" });
@@ -31,7 +34,13 @@ export default function ServiceRequests() {
       setLoading(false);
     }
   };
-  useEffect(() => { fetchRequests(); }, []);
+
+  useEffect(() => {
+  fetchRequests(); // initial
+  const id = setInterval(fetchRequests, 15000); // refresh every 15s
+  return () => clearInterval(id);
+}, []);
+
 
   // close modal with ESC
   useEffect(() => {
@@ -42,9 +51,15 @@ export default function ServiceRequests() {
   }, [selectedBooking]);
 
   const openPicker = (b) => {
-    setSelectedBooking(b);
-    setSelectedTech("");
-  };
+  setSelectedBooking(b);
+
+  // Preselect FIFO #1 if available
+  const first = Array.isArray(b?.acceptedTechs) && b.acceptedTechs.length > 0
+    ? b.acceptedTechs[0].id
+    : "";
+
+  setSelectedTech(first || "");
+};
 
   const assignTech = async (bookingId, technicianId) => {
     if (!technicianId) return alert("Please select a technician");
@@ -74,7 +89,6 @@ export default function ServiceRequests() {
 
   return (
     <div className="sr">
-      {/* Header */}
       <div className="sr-header">
         <div className="sr-title">
           <h2>Service Requests</h2>
@@ -82,15 +96,12 @@ export default function ServiceRequests() {
         </div>
       </div>
 
-      {/* Messages */}
       {msg.text && (
         <div className={`sr-alert ${msg.type === "error" ? "sr-alert--error" : "sr-alert--info"}`}>
           {msg.text}
         </div>
       )}
-      {loading && <div className="sr-alert sr-alert--info">Loading…</div>}
-
-      {/* Empty state */}
+      
       {!loading && !hasData && (
         <div className="sr-card sr-empty">
           <div className="sr-empty-emoji">🗂️</div>
@@ -99,7 +110,6 @@ export default function ServiceRequests() {
         </div>
       )}
 
-      {/* UNCLAIMED */}
       {unclaimed.length > 0 && (
         <section className="sr-card">
           <div className="sr-list-head">
@@ -140,7 +150,6 @@ export default function ServiceRequests() {
         </section>
       )}
 
-      {/* AWAITING */}
       {awaiting.length > 0 && (
         <section className="sr-card">
           <div className="sr-list-head">
@@ -181,7 +190,6 @@ export default function ServiceRequests() {
         </section>
       )}
 
-      {/* Assign modal */}
       {selectedBooking && (
         <div className="sr-modal-overlay" onClick={() => setSelectedBooking(null)} role="dialog" aria-modal="true">
           <div className="sr-modal" onClick={(e) => e.stopPropagation()}>
@@ -193,6 +201,50 @@ export default function ServiceRequests() {
             <div className="sr-modal-context tiny muted">
               {selectedBooking.service?.name || "Service"} • {selectedBooking.customerSnapshot?.district || "—"}
             </div>
+
+            {/* Show FIFO list if this booking is in 'awaiting_coordinator' and has accepted techs */}
+{selectedBooking?.status === 'awaiting_coordinator' && Array.isArray(selectedBooking?.acceptedTechs) && selectedBooking.acceptedTechs.length > 0 && (
+  <div className="sr-fifo">
+    <div className="sr-fifo-head">
+      <strong>Accepted (First‑Come‑First‑Serve)</strong>
+      <span className="tiny muted">Earliest responders first</span>
+    </div>
+    <ol className="sr-fifo-list">
+      {selectedBooking.acceptedTechs.map((t, i) => (
+        <li key={t.id} className={`sr-fifo-item ${selectedTech === t.id ? 'is-selected' : ''}`}>
+          <div className="sr-fifo-main">
+            <span className="sr-fifo-rank">#{i + 1}</span>
+            <span className="sr-fifo-name">{t.full_name}</span>
+            {t.district && <span className="sr-fifo-dot">·</span>}
+            {t.district && <span className="sr-fifo-district">{t.district}</span>}
+            {t.respondedAt && (
+              <>
+                <span className="sr-fifo-dot">·</span>
+                <span className="sr-fifo-time tiny">{new Date(t.respondedAt).toLocaleString()}</span>
+              </>
+            )}
+          </div>
+          <div className="sr-fifo-actions">
+            <button
+              type="button"
+              className="sr-btn sr-btn--sm"
+              onClick={() => setSelectedTech(t.id)}
+            >
+              Select
+            </button>
+            <button
+              type="button"
+              className="sr-btn sr-btn--sm sr-btn--primary"
+              onClick={() => assignTech(selectedBooking._id, t.id)}
+            >
+              Assign #{i + 1}
+            </button>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </div>
+)}
 
             <DistrictTechSelect
               booking={selectedBooking}

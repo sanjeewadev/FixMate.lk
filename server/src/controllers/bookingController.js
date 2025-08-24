@@ -178,37 +178,36 @@ exports.listAvailableForTechnician = async (req, res) => {
     }
 
     const tech = await getActiveTechnicianOrBlock(req.user.id, res);
-    if (!tech) return; // 404/403 already sent
+    if (!tech) return;
+
+    const techId = new mongoose.Types.ObjectId(String(req.user.id));
 
     const itemsRaw = await Booking.find({
       'customerSnapshot.district': tech.district,
       assignedTechnician: null,
-      status: 'pending' // keep your adjusted filter
+      // 👇 allow both states so multiple techs can accept
+      status: { $in: ['pending', 'awaiting_coordinator'] },
+      // 👇 don't show if THIS tech already accepted
+      $nor: [{ technicianResponses: { $elemMatch: { technician: techId, status: 'accepted' } } }]
     })
-    .populate('service', 'name category')
-    .sort({ createdAt: -1 })
-    .lean();
+      .populate('service', 'name category')
+      .sort({ createdAt: -1 })
+      .lean();
 
-    // Build response without phone_number
     const items = itemsRaw.map(b => ({
       _id: b._id,
-      service: {
-        _id: b.service?._id,
-        name: b.service?.name,            // Service Type (name)
-        category: b.service?.category     // Service Category
-      },
+      service: { _id: b.service?._id, name: b.service?.name, category: b.service?.category },
       problemTitle: b.problemTitle,
       problemDescription: b.problemDescription,
-      media: b.media,                     // uploaded images
+      media: b.media,
       brandModel: b.brandModel,
       equipmentAge: b.equipmentAge,
       preferredAt: b.preferredAt,
       timeSlot: b.timeSlot,
-      serviceAddress: b.customerSnapshot.address,  // needed to accept
+      serviceAddress: b.customerSnapshot.address,
       customerSnapshot: {
         full_name: b.customerSnapshot.full_name,
         district: b.customerSnapshot.district
-        // phone_number intentionally omitted
       },
       createdAt: b.createdAt
     }));
@@ -568,24 +567,49 @@ exports.coordinatorDashboard = async (req, res) => {
         'technicianResponses.status': 'accepted'
       })
         .populate('service', 'name category')
-        .populate('technicianResponses.technician', 'full_name phone_number district specialization experience_years profile_image_url')
+        .populate(
+          'technicianResponses.technician',
+          'full_name phone_number email district specialization experience_years profile_image_url'
+        )
         .sort({ createdAt: -1 })
         .lean()
     ]);
 
+    // helper: count accepts
     const addCounts = b => ({
       ...b,
       acceptedCount: (b.technicianResponses || []).filter(r => r.status === 'accepted').length
     });
 
+    // Build FIFO list of accepted techs with safe fields for the UI
+    const withFifoAccepted = b => {
+      const accepted = (b.technicianResponses || [])
+        .filter(r => r.status === 'accepted' && r.technician) // populated
+        .sort((a, z) => new Date(a.respondedAt || 0) - new Date(z.respondedAt || 0))
+        .map(r => ({
+          id: String(r.technician._id),
+          full_name: r.technician.full_name,
+          email: r.technician.email || null,
+          phone_number: r.technician.phone_number || null,
+          district: r.technician.district || null,
+          specialization: r.technician.specialization || [],
+          experience_years: r.technician.experience_years || 0,
+          profile_image_url: r.technician.profile_image_url || null,
+          respondedAt: r.respondedAt || null
+        }));
+
+      return { ...b, acceptedTechs: accepted };
+    };
+
     return res.json({
-      unclaimed: unclaimed.map(addCounts),                 // brand new – no accepted tech yet
-      awaitingCoordinator: awaiting.map(addCounts)         // at least one tech accepted
+      unclaimed: unclaimed.map(addCounts),
+      awaitingCoordinator: awaiting.map(addCounts).map(withFifoAccepted)
     });
   } catch (e) {
     return res.status(500).json({ message: e.message });
   }
 };
+
 
 // COORDINATOR/ADMIN: manual assign (even if no tech accepted yet)
 // POST /api/coordinator/bookings/:id/assign
@@ -810,6 +834,3 @@ exports.candidatesForBooking = async (req, res) => {
     res.status(500).json({ message: e.message || 'Server error' });
   }
 };
-
-
-

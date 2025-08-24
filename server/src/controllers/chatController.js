@@ -25,7 +25,25 @@ async function getDisplayName(role, id) {
   }
 }
 
-// Create (or reuse) a conversation
+async function ensureParticipantNames(convoDoc) {
+  const convo = convoDoc.toObject ? convoDoc.toObject() : convoDoc; // works with lean or doc
+  let changed = false;
+
+  const parts = await Promise.all((convo.participants || []).map(async (p) => {
+    if (p?.name && String(p.name).trim().length > 0) return p;
+    const name = await getDisplayName(p.role, p.userId);
+    if (!name) return p; // no change if lookup fails
+    changed = true;
+    return { ...p, name };
+  }));
+
+  if (changed) {
+    await ChatConversation.updateOne({ _id: convo._id }, { $set: { participants: parts } });
+    return { ...convo, participants: parts };
+  }
+  return convo;
+}
+
 exports.ensureConversation = async (req, res) => {
   try {
     const { bookingId, withRole, withUserId, topic = '' } = req.body || {};
@@ -43,7 +61,7 @@ exports.ensureConversation = async (req, res) => {
       if (!booking) return res.status(404).json({ message: 'Booking not found' });
     }
 
-    // Find existing with same participant pair + same booking
+    // Find existing with same pair + same booking
     const existing = await ChatConversation.findOne({
       booking: booking ? booking._id : null,
       $and: [
@@ -51,9 +69,13 @@ exports.ensureConversation = async (req, res) => {
         { participants: { $elemMatch: { role: withRole, userId: withUserId } } }
       ]
     });
-    if (existing) return res.json(existing);
 
-    // Snapshot names into participants
+    if (existing) {
+      const fixed = await ensureParticipantNames(existing);   // ✅ backfill names on old rows
+      return res.json(fixed);
+    }
+
+    // Fresh conversation → snapshot both names
     const meName = await getDisplayName(req.user.role, req.user.id);
     const otherName = await getDisplayName(withRole, withUserId);
 
@@ -141,6 +163,7 @@ exports.listMessages = async (req, res) => {
 };
 
 // List conversations I can see
+// List conversations I can see
 exports.listConversations = async (req, res) => {
   try {
     const { bookingId } = req.query;
@@ -151,7 +174,6 @@ exports.listConversations = async (req, res) => {
     let q = {};
     if (bookingId) q.booking = bookingId;
 
-    // Non-staff (customer/technician): only see convos they are in
     if (!isStaff) {
       q = {
         ...q,
@@ -159,13 +181,18 @@ exports.listConversations = async (req, res) => {
       };
     }
 
-    const convos = await ChatConversation
+    const raw = await ChatConversation
       .find(q)
       .sort({ updatedAt: -1 })
-      .populate({ path: 'booking', select: 'problemTitle _id' })
-      .lean();
+      .populate({ path: 'booking', select: 'problemTitle _id' });
 
-    // Names are already snapshotted in participants[].name
+    // ✅ Ensure names exist for every participant before returning
+    const convos = [];
+    for (const c of raw) {
+      const fixed = await ensureParticipantNames(c);
+      convos.push(fixed);
+    }
+
     res.json(convos);
   } catch (e) {
     res.status(400).json({ message: e.message });

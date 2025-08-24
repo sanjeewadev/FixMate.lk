@@ -15,10 +15,20 @@ export default function AdminTopbar() {
   return (
     <header className="admin-topbar">
       <div className="left">
+        <strong style={{ marginLeft: 8, marginRight:20, fontSize: "20px" }}>Admin Dashboard</strong>
+
         <button type="button" className="btn outline" onClick={() => navigate("/")}>
           🏠 Home
         </button>
-        <strong style={{ marginLeft: 8 }}>Admin Dashboard</strong>
+
+        {/* ✅ Link to PUBLIC pages */}
+        <button type="button" className="btn outline" onClick={() => navigate("/aboutus")}>
+          ℹ️ About Us
+        </button>
+        <button type="button" className="btn outline" onClick={() => navigate("/services")}>
+          🧩 Services
+        </button>
+
       </div>
 
       <div className="right">

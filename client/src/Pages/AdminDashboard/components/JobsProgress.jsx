@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import api from "../../../lib/api";
 import "./JobsProgress.css";
 
@@ -59,14 +59,20 @@ function Timeline({ b }) {
 export default function JobsProgress() {
   const [tab, setTab] = useState("coordinator_approved");
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);   // used only to disable Refresh button
   const [err, setErr] = useState("");
 
   const [open, setOpen] = useState(null);      // booking object when details open
   const [openLoading, setOpenLoading] = useState(false);
 
-  async function load() {
-    setLoading(true); setErr("");
+  const [ready, setReady] = useState(false);   // first fetch done?
+  const pollRef = useRef(null);
+
+  // Load list (silent by default; pass { silent:false } to show button loading state only)
+  async function load(opts = { silent: true }) {
+    const silent = opts?.silent ?? true;
+    if (!silent) setLoading(true);
+    setErr("");
     try {
       const { data } = await api.get("/api/coordinator/bookings", { params: { status: tab } });
       setItems(Array.isArray(data) ? data : (data?.items || []));
@@ -74,11 +80,23 @@ export default function JobsProgress() {
       setErr(e?.response?.data?.message || "Failed to load jobs");
       setItems([]);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
+      setReady(true);
     }
   }
 
-  useEffect(() => { load(); }, [tab]);
+  // Initial load (silent)
+  useEffect(() => { load({ silent: true }); }, []); // mount
+
+  // Reload silently on tab change
+  useEffect(() => { load({ silent: true }); }, [tab]);
+
+  // Background polling (silent)
+  useEffect(() => {
+    // refresh every 5s; reset when tab changes
+    pollRef.current = setInterval(() => load({ silent: true }), 5000);
+    return () => clearInterval(pollRef.current);
+  }, [tab]);
 
   async function openDetails(id) {
     setOpenLoading(true);
@@ -102,14 +120,13 @@ export default function JobsProgress() {
       created: b.createdAt,
       status: b.status,
       acceptedCount: Number(b.acceptedCount || 0),
-      aassignedTech: b?.assignedTechnician?.full_name || "—",
     }));
   }, [items]);
 
   return (
     <div className="jobs-page">
       <div className="page-header">
-        <h2>Jobs & Progress</h2>
+        <h2>Jobs and Progress</h2>
         <div className="muted tiny">Track assigned work, live status, expenses, and payments.</div>
       </div>
 
@@ -122,7 +139,9 @@ export default function JobsProgress() {
           </button>
         ))}
         <div className="tabs-spacer" />
-        <button className="btn small" onClick={load} disabled={loading}>Refresh</button>
+        <button className="btn small" onClick={() => load({ silent: false })} disabled={loading}>
+          {loading ? "Refreshing…" : "Refresh"}
+        </button>
       </div>
 
       {err && <div className="msg error">{err}</div>}
@@ -141,10 +160,11 @@ export default function JobsProgress() {
             </tr>
           </thead>
           <tbody>
-            {loading ? (
-              <tr><td colSpan={7} style={{padding:16}}>Loading…</td></tr>
+            {!ready ? (
+              // First render: stay silent (no loading text)
+              <tr><td colSpan={8} style={{ padding: 12 }} /></tr>
             ) : rows.length === 0 ? (
-              <tr><td colSpan={7} style={{padding:16}}>No records.</td></tr>
+              <tr><td colSpan={8} style={{ padding: 16 }}>No records.</td></tr>
             ) : rows.map(r => (
               <tr key={r.id}>
                 <td>{r.title}</td>
@@ -179,7 +199,7 @@ export default function JobsProgress() {
             </div>
 
             {openLoading ? (
-              <div className="pad">Loading details…</div>
+              <div className="pad" />
             ) : (
               <div className="jp-content">
                 {/* Left column: timeline + notes */}
@@ -213,44 +233,46 @@ export default function JobsProgress() {
                         <div className="thumbs">
                           {open.media.map((m,i) => (
                             <a key={i} href={m.url} target="_blank" rel="noreferrer">
-                              <img src={m.url}
-                                   alt={`media-${i}`}
-                                   onError={(e)=>{ e.currentTarget.src="/fallback-image.png"; e.currentTarget.onerror=null; }} />
+                              <img
+                                src={m.url}
+                                alt={`media-${i}`}
+                                onError={(e)=>{ e.currentTarget.src="/fallback-image.png"; e.currentTarget.onerror=null; }}
+                              />
                             </a>
                           ))}
                         </div>
                       </>
                     )}
                   </div>
-                  {open?.assignedTechnician && (
-  <div className="card">
-    <div className="card-title">Technician</div>
-    <div className="tech-box">
-      <img
-        src={open.assignedTechnician.profile_image_url || "/default-profile.png"}
-        alt="Technician"
-        onError={(e)=>{ e.currentTarget.src="/default-profile.png"; e.currentTarget.onerror=null; }}
-      />
-      <div className="tech-meta">
-        <div className="tech-name">{open.assignedTechnician.full_name || "—"}</div>
-        <div className="tiny muted">
-          {open.assignedTechnician.email || "—"} · {open.assignedTechnician.phone_number || "—"}
-        </div>
-        <div className="tiny muted">
-          District: {open.assignedTechnician.district || "—"} · {open.assignedTechnician.experience_years || 0} yrs exp
-        </div>
-        <div className="chips">
-          {(Array.isArray(open.assignedTechnician.specialization) ? open.assignedTechnician.specialization : [])
-            .map((s, i) => {
-              const label = typeof s === "object" ? (s.name || s.code || s.category || s.slug) : String(s);
-              return <span key={i} className="chip2">{label}</span>;
-            })}
-        </div>
-      </div>
-    </div>
-  </div>
-)}
 
+                  {open?.assignedTechnician && (
+                    <div className="card">
+                      <div className="card-title">Technician</div>
+                      <div className="tech-box">
+                        <img
+                          src={open.assignedTechnician.profile_image_url || "/default-profile.png"}
+                          alt="Technician"
+                          onError={(e)=>{ e.currentTarget.src="/default-profile.png"; e.currentTarget.onerror=null; }}
+                        />
+                        <div className="tech-meta">
+                          <div className="tech-name">{open.assignedTechnician.full_name || "—"}</div>
+                          <div className="tiny muted">
+                            {open.assignedTechnician.email || "—"} · {open.assignedTechnician.phone_number || "—"}
+                          </div>
+                          <div className="tiny muted">
+                            District: {open.assignedTechnician.district || "—"} · {open.assignedTechnician.experience_years || 0} yrs exp
+                          </div>
+                          <div className="chips">
+                            {(Array.isArray(open.assignedTechnician.specialization) ? open.assignedTechnician.specialization : [])
+                              .map((s, i) => {
+                                const label = typeof s === "object" ? (s.name || s.code || s.category || s.slug) : String(s);
+                                return <span key={i} className="chip2">{label}</span>;
+                              })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="card">
                     <div className="card-title">Expenses</div>
