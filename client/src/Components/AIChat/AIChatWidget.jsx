@@ -1,3 +1,4 @@
+// src/Components/AIChat/AIChatWidget.jsx
 import { useEffect, useRef, useState } from "react";
 import { aiChat } from "../../services/ai";
 import "./AIChat.css";
@@ -8,7 +9,6 @@ export default function AIChatWidget() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
 
-  // simple chat history for UI + backend
   const [messages, setMessages] = useState([
     {
       role: "assistant",
@@ -32,28 +32,28 @@ export default function AIChatWidget() {
     setErr(null);
 
     // optimistic append
-    setMessages((m) => [...m, { role: "user", content: msg }]);
+    const nextHistory = [...messages, { role: "user", content: msg }];
+    setMessages(nextHistory);
     setInput("");
     setBusy(true);
 
     try {
-      // convert our UI history into backend format
-      const history = messages.map(({ role, content }) => ({ role, content }));
-      const { answer, sources } = await aiChat({ message: msg, history });
+      const { answer, sources } = await aiChat({
+        message: msg,
+        history: nextHistory.map(({ role, content }) => ({ role, content })),
+      });
 
       setMessages((m) => [
         ...m,
-        { role: "assistant", content: answer || "…" , sources: sources || [] },
+        { role: "assistant", content: answer || "…", sources: sources || [] },
       ]);
     } catch (e) {
       setErr(e?.response?.data?.message || "Failed to reach AI service.");
-      // fallback assistant bubble for UX
       setMessages((m) => [
         ...m,
         {
           role: "assistant",
-          content:
-            "Sorry—something went wrong. Please try again in a moment.",
+          content: "Sorry—something went wrong. Please try again in a moment.",
           sources: [],
         },
       ]);
@@ -64,16 +64,15 @@ export default function AIChatWidget() {
 
   return (
     <>
-      {/* Floating button */}
       <button
         className="ai-fab"
         aria-label="Open AI assistant"
         onClick={() => setOpen((o) => !o)}
+        type="button"
       >
         {open ? "×" : "AI"}
       </button>
 
-      {/* Panel */}
       {open && (
         <div className="ai-panel" role="dialog" aria-modal="true">
           <header className="ai-head">
@@ -81,7 +80,9 @@ export default function AIChatWidget() {
               <span className="dot online" />
               FixMate Assistant
             </div>
-            <button className="x" onClick={() => setOpen(false)} aria-label="Close">×</button>
+            <button className="x" onClick={() => setOpen(false)} aria-label="Close" type="button">
+              ×
+            </button>
           </header>
 
           <div className="ai-body" ref={listRef}>
@@ -112,10 +113,7 @@ function Message({ role, content, sources = [] }) {
   const mine = role === "user";
   return (
     <div className={`ai-bubble ${mine ? "me" : "bot"}`}>
-      <div className="tx">
-        {/* Render as plain text. If you later want markdown, add a renderer. */}
-        {content}
-      </div>
+      <div className="tx">{content}</div>
       {!mine && sources?.length > 0 && (
         <div className="ai-sources">
           {sources.map((s) => (

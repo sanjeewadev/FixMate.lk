@@ -1,4 +1,3 @@
-/* Overlay sits above navbar and blurs everything behind */
 .login-modal-overlay {
   position: fixed;
   inset: 0;
@@ -8,7 +7,6 @@
   z-index: 5000;
 }
 
-/* Modal is hard-centered from first paint */
 .login-modal {
   position: fixed;
   top: 50%;
@@ -27,13 +25,11 @@
   contain: layout paint;
 }
 
-/* Pop in without breaking center */
 @keyframes modalPop {
   from { opacity: 0; transform: translate(-50%, -52%) scale(0.98); }
   to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
-/* Close button */
 .close-btn {
   position: absolute;
   top: 12px;
@@ -57,13 +53,11 @@
   background: rgba(0, 112, 243, 0.1);
 }
 
-/* Title */
 .login-title {
   margin-bottom: 20px;
   color: #1a1a1a;
 }
 
-/* Form styling */
 .login-modal form {
   display: flex;
   flex-direction: column;
@@ -101,7 +95,6 @@
   cursor: not-allowed;
 }
 
-/* Register link */
 .register {
   margin-top: 16px;
   font-size: 14px;
@@ -115,7 +108,6 @@
   text-decoration: underline;
 }
 
-/* Messages */
 .msg-slot {
   margin-top: 7px;
   min-height: 40px;

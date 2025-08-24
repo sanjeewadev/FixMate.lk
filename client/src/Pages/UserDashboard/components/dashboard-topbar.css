@@ -1,56 +1,134 @@
 .db-topbar {
-  position: sticky; top: 0; z-index: 20;
-  height: 64px; background: #fff; border-bottom: 1px solid #eaecef;
-  display: flex; align-items: center; gap: 16px; padding: 0 16px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: 64px;
+  background: #fff;
+  border-bottom: 1px solid #eaecef;
+
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+
+  /* defeat any global font/anchor/button cascades inside */
+  font: inherit;
+  color: inherit;
 }
 
-.db-topbar__left { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-.db-brand { font-weight: 800; font-size: 18px; letter-spacing: .2px; }
+/* brand */
+.db-topbar__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.db-brand {
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: .2px;
+}
 
-.db-topbar__nav { display: flex; gap: 12px; flex: 1; }
-.db-link { padding: 8px 12px; border-radius: 8px; color: #333; text-decoration: none; }
-.db-link.active { background: #eef5ff; color: #2363eb; }
+/* nav */
+.db-topbar__nav {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+  flex-wrap: wrap;
+}
 
-.db-topbar__right { display: flex; gap: 10px; flex-wrap: nowrap; }
+/* links – win against global `a, button` styles */
+.db-topbar .db-link,
+.db-topbar .db-link:visited {
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: #333 !important;
+  text-decoration: none !important;
+  font-weight: 600;
+  display: inline-block;
+}
+.db-topbar .db-link:hover {
+  background: #f6f8fa;
+  color: #111 !important;
+}
+.db-topbar .db-link.active {
+  background: #eef5ff;
+  color: #2363eb !important;
+}
 
-/* Reset + style ONLY the dashboard buttons */
+/* right actions */
+.db-topbar__right {
+  display: flex;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+/* buttons – isolate from global button rules */
 .db-topbar .db-btn {
-  width: auto !important;      /* defeat any global width:100% */
-  padding: 0 12px !important;  /* defeat any global padding */
+  width: auto !important;          /* kill any global width:100% */
+  padding: 0 12px !important;      /* kill any global padding */
   margin: 0 !important;
+
   height: 36px;
   border-radius: 8px;
-  font-weight: 600;
   border: 1px solid transparent;
-  cursor: pointer;
+
+  background: #fff;
+  color: #111;
+
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   white-space: nowrap;
-  background: #fff;
-  color: #111;
-  font-size: 14px;
-  line-height: 1;
+  text-decoration: none;
+
+  cursor: pointer;
 }
 
+/* variants */
 .db-topbar .db-btn.outline {
-  background: #fff; border-color: #d0d7de;
+  background: #fff;
+  border-color: #d0d7de;
 }
 .db-topbar .db-btn.outline:hover {
   background: #f6f8fa;
 }
 
 .db-topbar .db-btn.primary2 {
-  background: #2363eb; color: #fff; border-color: #2363eb;
-  /* no fixed width here */
+  background: #2363eb;
+  color: #fff;
+  border-color: #2363eb;
 }
 .db-topbar .db-btn.primary2:hover {
   background: #1b4fc0;
 }
 
 .db-topbar .db-btn.danger {
-  background: #fff3f3; color: #c62828; border-color: #ffcdd2;
+  background: #fff3f3;
+  color: #c62828;
+  border-color: #ffcdd2;
 }
 .db-topbar .db-btn.danger:hover {
   background: #ffe5e5;
+}
+
+/* small screens */
+@media (max-width: 720px) {
+  .db-topbar {
+    padding: 0 12px;
+    gap: 12px;
+  }
+  .db-topbar__nav {
+    gap: 8px;
+  }
+  .db-topbar .db-link,
+  .db-topbar .db-link:visited {
+    padding: 6px 10px;
+  }
 }

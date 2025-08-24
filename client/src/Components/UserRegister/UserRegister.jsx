@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from "react";
 import "./UserRegister.css";
 
+const SRI_LANKA_DISTRICTS = [
+  "Ampara","Anuradhapura","Badulla","Batticaloa","Colombo","Galle","Gampaha",
+  "Hambantota","Jaffna","Kalutara","Kandy","Kegalle","Kilinochchi","Kurunegala",
+  "Mannar","Matale","Matara","Monaragala","Mullaitivu","Nuwara Eliya",
+  "Polonnaruwa","Puttalam","Ratnapura","Trincomalee","Vavuniya"
+];
+
 function UserRegister({ onSwitch }) {
   const [form, setForm] = useState({
     fullName: "", email: "", password: "", confirmPassword: "",
@@ -103,8 +110,20 @@ function UserRegister({ onSwitch }) {
                onChange={(e) => update("phone", e.target.value)} />
         <input type="text" name="address" placeholder="Address*" value={form.address}
                onChange={(e) => update("address", e.target.value)} required />
-        <input type="text" name="district" placeholder="District*" value={form.district}
-               onChange={(e) => update("district", e.target.value)} required />
+
+        {/* ▼ District dropdown (same field name & value) */}
+        <select
+          name="district"
+          value={form.district}
+          onChange={(e) => update("district", e.target.value)}
+          required
+          aria-label="District"
+        >
+          <option value="" disabled>Select District*</option>
+          {SRI_LANKA_DISTRICTS.map((d) => (
+            <option key={d} value={d}>{d}</option>
+          ))}
+        </select>
 
         <input type="file" accept="image/*" onChange={onImageChange} />
         {imagePreview && <img className="profile-preview" src={imagePreview} alt="Profile Preview" />}

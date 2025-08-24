@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ensureConversation, listMessages, postMessage } from "../../services/chat";
 import { listSupportStaff } from "../../services/support";
 import { useAuth } from "../../context/AuthContext.jsx";
-import "./chat.css"; // reuse your existing chat styles
+import "./chat.css";
 
 const POLL_MS = 4000;
 
@@ -10,18 +10,18 @@ export default function TeamChatWindow() {
   const { user } = useAuth();
   const myId = useMemo(() => String(user?.id || user?._id || ""), [user]);
 
-  const [staff, setStaff] = useState([]);       // { _id, full_name, role, ... } (coordinators/admins)
-  const [convos, setConvos] = useState({});     // staffId -> conversationId
-  const [messages, setMessages] = useState([]); // merged stream
+  const [staff, setStaff] = useState([]);
+  const [convos, setConvos] = useState({});
+  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [text, setText] = useState("");
 
   const pollRef = useRef(null);
   const endRef = useRef(null);
-  const sentCache = useRef(new Set()); // collapse our own fan-out echoes
+  const sentCache = useRef(new Set());
 
-  /* 1) fetch staff directory */
+  /* fetch staff directory */
   useEffect(() => {
     let dead = false;
     (async () => {
@@ -36,7 +36,6 @@ export default function TeamChatWindow() {
     return () => { dead = true; };
   }, []);
 
-  /* 2) ensure/reuse a 1:1 conversation for each staff member */
   useEffect(() => {
     if (!staff.length) { setLoading(false); return; }
     let dead = false;
@@ -58,7 +57,6 @@ export default function TeamChatWindow() {
     return () => { dead = true; };
   }, [staff]);
 
-  /* 3) poll every convo and MERGE messages */
   useEffect(() => {
     if (!Object.keys(convos).length) return;
     let abort = false;
@@ -84,14 +82,14 @@ export default function TeamChatWindow() {
     return () => { abort = true; if (pollRef.current) clearInterval(pollRef.current); };
   }, [convos, myId]);
 
-  /* 4) autoscroll */
+  /* autoscroll */
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages.length]);
 
   const labelFor = (m) => {
     if (String(m.senderId) === myId) return "You";
     const s = staff.find(x => String(x._id) === String(m.__staffId));
     return s?.full_name || m.senderRole || "staff";
-    // if you want role too: `${s?.full_name || "staff"} (${m.senderRole})`
+    // if want role too: `${s?.full_name || "staff"} (${m.senderRole})`
   };
 
   const onSubmit = async (e) => {
@@ -173,7 +171,7 @@ export default function TeamChatWindow() {
   );
 }
 
-/* ----- helpers to collapse our fan-out duplicates ----- */
+/* helpers to collapse our fan-out duplicates */
 function roundToBucket(iso, bucketSec = 30) {
   const t = new Date(iso).getTime();
   const b = Math.floor(t / (bucketSec * 1000)) * (bucketSec * 1000);

@@ -48,6 +48,7 @@
   flex-direction: column;
   gap: 10px;
   overflow: auto;
+  padding: 0;
 }
 
 .ctItem {
@@ -60,6 +61,7 @@
   justify-content: space-between;
   gap: 8px;
   cursor: pointer;
+  width: 100%;
 }
 
 .ctItem.is-active {

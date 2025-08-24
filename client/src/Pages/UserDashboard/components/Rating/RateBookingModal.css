@@ -1,0 +1,17 @@
+.rateBack{position:fixed;inset:0;background:rgba(0,0,0,.35);display:grid;place-items:center;z-index:5000}
+.rateCard{width:min(520px,92vw);background:#fff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;box-shadow:0 18px 36px rgba(0,0,0,.18)}
+.rateHead{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #eef1f4}
+.rateTitle{font-weight:800}
+.rateX{border:0;background:#f3f4f6;width:28px;height:28px;border-radius:50%;cursor:pointer}
+.rateForm{display:flex;flex-direction:column;gap:10px;padding:12px}
+.rateForm textarea{border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;outline:none}
+.rateForm textarea:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+.stars{display:flex;gap:6px}
+.star{border:0;background:none;font-size:26px;color:#cbd5e1;cursor:pointer;transition:transform .1s}
+.star.on{color:#f59e0b}
+.star:hover{transform:translateY(-1px)}
+.rateActions{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
+.btn{border:0;border-radius:10px;padding:8px 14px;font-weight:700;cursor:pointer}
+.btn.primary{background:#2563eb;color:#fff}
+.btn.ghost{background:#eef2f7}
+.rateMsg.error{color:#dc2626;margin:0 12px}

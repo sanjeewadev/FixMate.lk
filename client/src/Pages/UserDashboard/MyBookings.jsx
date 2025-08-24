@@ -77,15 +77,6 @@ export default function MyBookings() {
                         <>
                           <button
                             className="mbLink"
-                            onClick={() =>
-                              navigate(`/UserDashboard/receipt/${b._id}`)
-                            }
-                          >
-                            View receipt
-                          </button>
-                          {" | "}
-                          <button
-                            className="mbLink"
                             onClick={async () => {
                               try {
                                 await downloadReceiptPdf(b._id);
@@ -97,8 +88,17 @@ export default function MyBookings() {
                               }
                             }}
                           >
-                            Download PDF
-                          </button>
+                          Download PDF
+                        </button>
+                        {" | "}
+                        <button
+                          className="mbLink"
+                          onClick={() =>
+                            navigate(`/UserDashboard/booking/${b._id}`)
+                          }
+                        >
+                          View
+                        </button>
                         </>
                       ) : (
                         <button
