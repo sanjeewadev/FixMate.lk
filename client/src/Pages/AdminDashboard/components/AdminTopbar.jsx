@@ -17,17 +17,17 @@ export default function AdminTopbar() {
       <div className="left">
         <strong style={{ marginLeft: 8, marginRight:20, fontSize: "20px" }}>Admin Dashboard</strong>
 
-        <button type="button" className="btn outline" onClick={() => navigate("/")}>
+        {/* <button type="button" className="btn outline" onClick={() => navigate("/")}>
           🏠 Home
-        </button>
+        </button> */}
 
         {/* ✅ Link to PUBLIC pages */}
-        <button type="button" className="btn outline" onClick={() => navigate("/aboutus")}>
+        {/* <button type="button" className="btn outline" onClick={() => navigate("/aboutus")}>
           ℹ️ About Us
-        </button>
-        <button type="button" className="btn outline" onClick={() => navigate("/services")}>
+        </button> */}
+        {/* <button type="button" className="btn outline" onClick={() => navigate("/services")}>
           🧩 Services
-        </button>
+        </button> */}
 
       </div>
 
