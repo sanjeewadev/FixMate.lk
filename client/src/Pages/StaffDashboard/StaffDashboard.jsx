@@ -2,12 +2,13 @@
 import React from "react";
 import { Routes, Route, Navigate, NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
+
+// Keep staff CSS file, but it now mirrors admin design tokens/styles
 import "./staff-dashboard.css";
 
 import StaffTopbar from "./components/StaffTopbar.jsx";
 import StaffSidebar from "./components/StaffSidebar.jsx";
 
-// pages/components
 import StaffProfile from "./components/StaffProfile.jsx";
 import ServiceRequests from "./components/ServiceRequests.jsx";
 import JobsProgress from "./components/JobsProgress.jsx";
@@ -44,21 +45,27 @@ export default function StaffDashboard() {
 
   return (
     <div className="staff-shell">
+      {/* Sidebar styled exactly like admin */}
       <StaffSidebar />
+
+      {/* Topbar styled exactly like admin */}
+      {/* Make sure StaffTopbar's root element has className="staff-topbar" (it probably already does).
+          Our CSS gives .staff-topbar the same rules as .admin-topbar. */}
       <StaffTopbar />
 
+      {/* Content area styled exactly like admin */}
       <main className="staff-content">
         <Routes>
-  <Route index element={<Navigate to="requests" replace />} />
-  <Route path="requests" element={<ServiceRequests />} />
-  <Route path="jobs" element={<JobsProgress />} />
-  <Route path="complaints" element={<ManageComplaints role="coordinator" />} />
-  <Route path="chat" element={<AdminChat />} />
-  <Route path="profile" element={<StaffProfile />} />
-  <Route path="techlist" element={<TechniciansList />} />
-  <Route path="customerlist" element={<CustomersList />} />
-  <Route path="*" element={<Navigate to="requests" replace />} />
-</Routes>
+          <Route index element={<Navigate to="requests" replace />} />
+          <Route path="requests" element={<ServiceRequests />} />
+          <Route path="jobs" element={<JobsProgress />} />
+          <Route path="complaints" element={<ManageComplaints role="coordinator" />} />
+          <Route path="chat" element={<AdminChat />} />
+          <Route path="profile" element={<StaffProfile />} />
+          <Route path="techlist" element={<TechniciansList />} />
+          <Route path="customerlist" element={<CustomersList />} />
+          <Route path="*" element={<Navigate to="requests" replace />} />
+        </Routes>
       </main>
     </div>
   );

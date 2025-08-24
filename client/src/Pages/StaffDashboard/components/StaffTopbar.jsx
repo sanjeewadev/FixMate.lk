@@ -1,3 +1,4 @@
+// src/Pages/StaffDashboard/components/StaffTopbar.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext.jsx";
@@ -14,11 +15,22 @@ export default function StaffTopbar() {
   return (
     <header className="staff-topbar">
       <div className="left">
+
+        <strong style={{ marginLeft: 8, marginRight:20, fontSize: "20px" }}>Coordinator Dashboard</strong>
+
         <button type="button" className="btn outline" onClick={() => navigate("/")}>
           🏠 Home
         </button>
-        <strong style={{ marginLeft: 8 }}>Coordinator Dashboard</strong>
-      </div>
+
+        {/* ✅ Link to PUBLIC pages */}
+        <button type="button" className="btn outline" onClick={() => navigate("/aboutus")}>
+          ℹ️ About Us
+        </button>
+        <button type="button" className="btn outline" onClick={() => navigate("/services")}>
+          🧩 Services
+        </button>
+
+        </div>
 
       <div className="right">
         <div className="user-badge">

@@ -1,3 +1,4 @@
+// src/Pages/StaffDashboard/components/StaffSidebar.jsx
 import React from "react";
 import { NavLink } from "react-router-dom";
 
@@ -24,8 +25,8 @@ export default function StaffSidebar() {
         </NavLink>
 
         <NavLink
-            to="/StaffDashboard/chat"
-            className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}
+          to="/StaffDashboard/chat"
+          className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}
         >
           💬 Chat
         </NavLink>
@@ -38,20 +39,18 @@ export default function StaffSidebar() {
         </NavLink>
 
         <NavLink
-            to="/StaffDashboard/customerlist"
-            className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}
+          to="/StaffDashboard/customerlist"
+          className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}
         >
           👤 Customers
         </NavLink>
 
         <NavLink
-            to="/StaffDashboard/techlist"
-            className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}
+          to="/StaffDashboard/techlist"
+          className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}
         >
           🧑‍🔧 Technicians
         </NavLink>
-
-        
 
         <div className="side-section">Account</div>
         <NavLink

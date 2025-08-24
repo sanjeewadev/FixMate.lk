@@ -35,7 +35,12 @@ export default function ServiceRequests() {
     }
   };
 
-  useEffect(() => { fetchRequests(); }, []);
+  useEffect(() => {
+  fetchRequests(); // initial
+  const id = setInterval(fetchRequests, 15000); // refresh every 15s
+  return () => clearInterval(id);
+}, []);
+
 
   // close modal with ESC
   useEffect(() => {
@@ -46,9 +51,15 @@ export default function ServiceRequests() {
   }, [selectedBooking]);
 
   const openPicker = (b) => {
-    setSelectedBooking(b);
-    setSelectedTech("");
-  };
+  setSelectedBooking(b);
+
+  // Preselect FIFO #1 if available
+  const first = Array.isArray(b?.acceptedTechs) && b.acceptedTechs.length > 0
+    ? b.acceptedTechs[0].id
+    : "";
+
+  setSelectedTech(first || "");
+};
 
   const assignTech = async (bookingId, technicianId) => {
     if (!technicianId) return alert("Please select a technician");
@@ -90,8 +101,7 @@ export default function ServiceRequests() {
           {msg.text}
         </div>
       )}
-      {loading && <div className="sr-alert sr-alert--info">Loading…</div>}
-
+      
       {!loading && !hasData && (
         <div className="sr-card sr-empty">
           <div className="sr-empty-emoji">🗂️</div>
@@ -191,6 +201,50 @@ export default function ServiceRequests() {
             <div className="sr-modal-context tiny muted">
               {selectedBooking.service?.name || "Service"} • {selectedBooking.customerSnapshot?.district || "—"}
             </div>
+
+            {/* Show FIFO list if this booking is in 'awaiting_coordinator' and has accepted techs */}
+{selectedBooking?.status === 'awaiting_coordinator' && Array.isArray(selectedBooking?.acceptedTechs) && selectedBooking.acceptedTechs.length > 0 && (
+  <div className="sr-fifo">
+    <div className="sr-fifo-head">
+      <strong>Accepted (First‑Come‑First‑Serve)</strong>
+      <span className="tiny muted">Earliest responders first</span>
+    </div>
+    <ol className="sr-fifo-list">
+      {selectedBooking.acceptedTechs.map((t, i) => (
+        <li key={t.id} className={`sr-fifo-item ${selectedTech === t.id ? 'is-selected' : ''}`}>
+          <div className="sr-fifo-main">
+            <span className="sr-fifo-rank">#{i + 1}</span>
+            <span className="sr-fifo-name">{t.full_name}</span>
+            {t.district && <span className="sr-fifo-dot">·</span>}
+            {t.district && <span className="sr-fifo-district">{t.district}</span>}
+            {t.respondedAt && (
+              <>
+                <span className="sr-fifo-dot">·</span>
+                <span className="sr-fifo-time tiny">{new Date(t.respondedAt).toLocaleString()}</span>
+              </>
+            )}
+          </div>
+          <div className="sr-fifo-actions">
+            <button
+              type="button"
+              className="sr-btn sr-btn--sm"
+              onClick={() => setSelectedTech(t.id)}
+            >
+              Select
+            </button>
+            <button
+              type="button"
+              className="sr-btn sr-btn--sm sr-btn--primary"
+              onClick={() => assignTech(selectedBooking._id, t.id)}
+            >
+              Assign #{i + 1}
+            </button>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </div>
+)}
 
             <DistrictTechSelect
               booking={selectedBooking}

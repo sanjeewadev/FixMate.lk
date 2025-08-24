@@ -102,6 +102,32 @@
   border-radius:10px; border:1px solid var(--border); background:#fff; cursor:pointer;
   transition: filter .15s ease, transform .06s ease;
 }
+
+.btn.small {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background-color: #3b82f6;   /* Tailwind blue-500 */
+  color: #fff;
+  font-weight: 600;
+
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn.small:hover {
+  background-color: #2563eb;   /* Darker blue */
+}
+
+.btn.small:active {
+  transform: translateY(1px);
+}
+
 .btn:hover{ filter:brightness(.97); }
 .btn:active{ transform: translateY(1px); }
 .btn.small{ height:32px; font-size:13px; }

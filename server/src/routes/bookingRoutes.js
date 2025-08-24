@@ -138,4 +138,14 @@ router.delete(
   coordinatorDelete
 );
 
+const {
+  listTechniciansForCoordinator,
+  candidatesForBooking,
+} = require('../controllers/bookingController'); // or separate controller if you split it
+
+const allowCoord = requireRole('coordinator','admin','super_admin');
+
+router.get('/coordinator/technicians', verifyToken, allowCoord, listTechniciansForCoordinator);
+router.get('/coordinator/technicians/candidates', verifyToken, allowCoord, candidatesForBooking);
+
 module.exports = router;
