@@ -91,8 +91,9 @@ export function AuthProvider({ children }) {
     async function loadProfile() {
       if (!token || !role) { setLoading(false); return; }
 
+      // ✅ Correct per-role /me endpoints
       const endpoints = {
-        customer: "/api/customer/me",
+        customer:   "/api/customer/me",
         technician: "/api/technician/me",
         staff: "/api/staff/me",
         admin: "/api/admin/me",
@@ -101,6 +102,7 @@ export function AuthProvider({ children }) {
 
       try {
         let data = null;
+
         if (role === "admin" || role === "super_admin") {
           const res = await getWithFallback(["/api/admin/me"]);
           data = res?.data || null;
@@ -108,6 +110,7 @@ export function AuthProvider({ children }) {
           const res = await api.get(endpoints[role]);
           data = res.data;
         }
+
         if (!cancelled) setUser(data ? { ...data, role } : null);
       } catch {
         if (!cancelled) logoutRef.current?.();
@@ -150,12 +153,14 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
+  // Convenience flags
   const hasRole = (...roles) => roles.map(String).map(r=>r.toLowerCase()).includes(role);
-  const isCustomer = role === "customer";
-  const isTechnician = role === "technician";
-  const isStaff = role === "staff";
-  const isAdmin = role === "admin";
-  const isSuperAdmin = role === "super_admin";
+  const isCustomer    = role === "customer";
+  const isTechnician  = role === "technician";
+  const isCoordinator = role === "coordinator";           // <-- NEW
+  const isStaff       = isCoordinator || role === "staff"; // keep legacy compatibility
+  const isAdmin       = role === "admin";
+  const isSuperAdmin  = role === "super_admin";
 
   const value = useMemo(() => ({
     token, user, role, isAuth: !!user, loading,

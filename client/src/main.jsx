@@ -5,10 +5,12 @@ import "./index.css";
 import App from "./App.jsx";
 import AboutUs from "./Pages/AboutUs/AboutUs.jsx";
 import Services from "./Pages/Services/Services.jsx";
+
 import AdminDashboard from "./Pages/AdminDashboard/AdminDashboard.jsx";
 import UserDashboard from "./Pages/UserDashboard/UserDashboard.jsx";
 import TechnicianDashboard from "./Pages/TechnicianDashboard/TechnicianDashboard.jsx";
 import StaffDashboard from "./Pages/StaffDashboard/StaffDashboard.jsx";
+
 import UserProfile from "./Components/UserProfile/UserProfile.jsx";
 import BookService from "./Pages/BookService/BookService.jsx";
 
@@ -16,14 +18,6 @@ import Overview from "./Pages/UserDashboard/Overview.jsx";
 import MyBookings from "./Pages/UserDashboard/MyBookings.jsx";
 import BookingDetails from "./Pages/UserDashboard/BookingDetails.jsx";
 
-import ManageUsers from "./Pages/AdminDashboard/components/ManageUsers.jsx";
-import ManageStaff from "./Pages/AdminDashboard/components/ManageStaff.jsx";
-import ManageTechnicians from "./Pages/AdminDashboard/components/ManageTechnicians.jsx";
-import ManageAdmins from "./Pages/AdminDashboard/components/ManageAdmins.jsx";
-import ManageServices from "./Pages/AdminDashboard/components/ManageServices.jsx";
-import ServiceRequests from "./Pages/AdminDashboard/components/ServiceRequests.jsx";
-import ManageComplaints from "./Pages/AdminDashboard/components/ManageComplaints.jsx";
-import RateTechnician from "./Pages/AdminDashboard/components/RateTechnician.jsx";
 import Chatwithtechni from "./Components/chat/ChatPanel.jsx";
 import ReceiptDetails from "./Pages/UserDashboard/ReceiptDetails.jsx";
 import Receipts from "./Pages/UserDashboard/Receipts.jsx";
@@ -31,7 +25,7 @@ import Support from "./Pages/UserDashboard/Support.jsx";
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-// 🔐 Auth context + route guard
+// 🔐 Auth
 import { AuthProvider } from "./context/AuthContext.jsx";
 import ProtectedRoute from "./Components/ProtectedRoute.jsx";
 
@@ -40,7 +34,7 @@ const router = createBrowserRouter([
   { path: "/AboutUs", element: <AboutUs /> },
   { path: "/Services", element: <Services /> },
 
-  // Only logged-in customers should access booking
+  // only logged-in customers should access booking
   {
     path: "/book",
     element: (
@@ -50,23 +44,35 @@ const router = createBrowserRouter([
     ),
   },
 
-  { path: "/AdminDashboard/*", 
-    element:( 
-    <AdminDashboard />),
-    children: [
-    { path: "manage-users", element: <ManageUsers /> },
-    { path: "staff", element: <ManageStaff /> },
-    { path: "technicians", element: <ManageTechnicians /> },
-    { path: "admins", element: <ManageAdmins /> },
-    { path: "services", element: <ManageServices /> },
-    { path: "requests", element: <ServiceRequests /> },
-    { path: "complaints", element: <ManageComplaints /> },
-    { path: "rating", element: <RateTechnician /> },
-   ]  
-   },
+  // Dashboards: use /* so nested routes resolve (e.g., /StaffDashboard/profile)
+  {
+    path: "/AdminDashboard/*",
+    element: (
+      <ProtectedRoute>
+        <AdminDashboard />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/TechnicianDashboard/*",
+    element: (
+      <ProtectedRoute>
+        <TechnicianDashboard />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/StaffDashboard/*",
+    element: (
+      <ProtectedRoute>
+        <StaffDashboard />
+      </ProtectedRoute>
+    ),
+  },
 
-  // FULL User Dashboard with nested pages (all protected)
-  {path: "/UserDashboard",
+  // FULL User Dashboard (kept as nested routes)
+  {
+    path: "/UserDashboard",
     element: (
       <ProtectedRoute>
         <UserDashboard />
@@ -81,20 +87,9 @@ const router = createBrowserRouter([
       { path: "profile", element: <UserProfile /> },
       { path: "chat", element: <Chatwithtechni /> },
       { path: "support", element: <Support /> },
-
-      // 🔽 NEW
       { path: "receipts", element: <Receipts /> },
       { path: "receipt/:id", element: <ReceiptDetails /> },
     ],
-  },
-
-  {path: "/TechnicianDashboard", element: (<TechnicianDashboard /> ),
-  },
-  
-  {path: "/StaffDashboard", element: <StaffDashboard />,
-     children: [
-     { path: "requests", element: <ServiceRequests /> },
-  ],
   },
 ]);
 
