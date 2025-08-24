@@ -99,6 +99,10 @@ BookingSchema.index({ status: 1, "payment.confirmedByTechnicianAt": -1 });
 BookingSchema.index({ service: 1, "payment.confirmedByTechnicianAt": -1 });
 BookingSchema.index({ assignedTechnician: 1, "payment.confirmedByTechnicianAt": -1 });
 BookingSchema.index({ "customerSnapshot.district": 1, "payment.confirmedByTechnicianAt": -1 });
+// In Booking schema file, add:
+BookingSchema.index({ 'technicianResponses.status': 1, 'technicianResponses.respondedAt': 1 });
+BookingSchema.index({ 'technicianResponses.technician': 1, 'technicianResponses.status': 1 });
+BookingSchema.index({ assignedTechnician: 1, status: 1 });
 
 
 

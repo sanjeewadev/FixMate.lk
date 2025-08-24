@@ -1,3 +1,4 @@
+// src/main.jsx (or wherever your router is bootstrapped)
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
@@ -7,7 +8,7 @@ import AboutUs from "./Pages/AboutUs/AboutUs.jsx";
 import Services from "./Pages/Services/Services.jsx";
 import AdminDashboard from "./Pages/AdminDashboard/AdminDashboard.jsx";
 import UserDashboard from "./Pages/UserDashboard/UserDashboard.jsx";
-import TechnicianDashboard from "./Pages/TechnicianDashboard/TechnicianDashboard.jsx";
+import TechnicianDashboard from "./Pages/TechnicianDashboard/TechnicianDashboard.jsx"; // ✅ fixed path
 import StaffDashboard from "./Pages/StaffDashboard/StaffDashboard.jsx";
 import UserProfile from "./Components/UserProfile/UserProfile.jsx";
 import BookService from "./Pages/BookService/BookService.jsx";
@@ -50,23 +51,25 @@ const router = createBrowserRouter([
     ),
   },
 
-  { path: "/AdminDashboard/*", 
-    element:( 
-    <AdminDashboard />),
+  // Admin dashboard with nested pages
+  {
+    path: "/AdminDashboard",
+    element: <AdminDashboard />,
     children: [
-    { path: "manage-users", element: <ManageUsers /> },
-    { path: "staff", element: <ManageStaff /> },
-    { path: "technicians", element: <ManageTechnicians /> },
-    { path: "admins", element: <ManageAdmins /> },
-    { path: "services", element: <ManageServices /> },
-    { path: "requests", element: <ServiceRequests /> },
-    { path: "complaints", element: <ManageComplaints /> },
-    { path: "rating", element: <RateTechnician /> },
-   ]  
-   },
+      { path: "manage-users", element: <ManageUsers /> },
+      { path: "staff", element: <ManageStaff /> },
+      { path: "technicians", element: <ManageTechnicians /> },
+      { path: "admins", element: <ManageAdmins /> },
+      { path: "services", element: <ManageServices /> },
+      { path: "requests", element: <ServiceRequests /> },
+      { path: "complaints", element: <ManageComplaints /> },
+      { path: "rating", element: <RateTechnician /> },
+    ],
+  },
 
-  // FULL User Dashboard with nested pages (all protected)
-  {path: "/UserDashboard",
+  // FULL User Dashboard with nested pages (protected)
+  {
+    path: "/UserDashboard",
     element: (
       <ProtectedRoute>
         <UserDashboard />
@@ -81,20 +84,24 @@ const router = createBrowserRouter([
       { path: "profile", element: <UserProfile /> },
       { path: "chat", element: <Chatwithtechni /> },
       { path: "support", element: <Support /> },
-
-      // 🔽 NEW
       { path: "receipts", element: <Receipts /> },
       { path: "receipt/:id", element: <ReceiptDetails /> },
     ],
   },
 
-  {path: "/TechnicianDashboard", element: (<TechnicianDashboard /> ),
-  },
-  
-  {path: "/StaffDashboard", element: <StaffDashboard />,
-     children: [
-     { path: "requests", element: <ServiceRequests /> },
-  ],
+  // Technician dashboard (tabbed internally)
+  { path: "/TechnicianDashboard", element: <TechnicianDashboard /> },
+  // ✅ Extra route so "/TechnicianDashboard/chat" opens the same component
+  //    (your TechnicianDashboard will switch to the Chat tab based on location)
+  { path: "/TechnicianDashboard/chat", element: <TechnicianDashboard /> },
+
+  // Staff
+  {
+    path: "/StaffDashboard",
+    element: <StaffDashboard />,
+    children: [
+      { path: "requests", element: <ServiceRequests /> },
+    ],
   },
 ]);
 
