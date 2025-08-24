@@ -5,7 +5,7 @@ import { NavLink } from "react-router-dom";
 export default function StaffSidebar() {
   return (
     <aside className="staff-sidebar">
-      <div className="brand">FixMate.lk</div>
+      <div className="brand">FixMate.LK</div>
 
       <nav className="side-nav">
         <div className="side-section">Coordinator</div>
