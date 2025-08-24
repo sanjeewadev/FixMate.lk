@@ -1,0 +1,165 @@
+/* Approved Tab — elegant, scoped, and independent of your global styles */
+
+.approved-tab .muted { color: #64748b; }
+.approved-tab .small { font-size: 12px; }
+.approved-tab .pad { padding: 12px 2px; }
+
+.approved-tab .tab-head{
+  display:flex; align-items:center; justify-content:space-between;
+  margin: 4px 0 10px;
+}
+.approved-tab .tab-head h3{ margin:0; font-size:1.15rem; }
+.approved-tab .tab-head .actions{ display:flex; gap:8px; }
+
+/* Toast */
+.approved-tab .toast{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:8px 12px; border-radius:10px; border:1px solid transparent;
+  margin:6px 0 12px 0; background:#eef6ff; color:#0b4a93;
+}
+.approved-tab .toast.success{ background:#eafbf0; color:#115e31; border-color:#bdf3cf; }
+.approved-tab .toast.error{ background:#ffe9e9; color:#7f1d1d; border-color:#ffc9c9; }
+
+/* Buttons */
+.approved-tab .btn{
+  padding: 9px 14px; border-radius: 10px; border:1px solid #e2e8f0;
+  background:#f8fafc; color:#0f172a; cursor:pointer; font-weight:600;
+  transition: transform .12s ease, box-shadow .2s ease, background .15s ease, border-color .15s ease;
+}
+.approved-tab .btn:hover{ transform: translateY(-1px); box-shadow: 0 2px 10px rgba(15,23,42,.06); }
+.approved-tab .btn:disabled{ background:#e5e7eb; color:#94a3b8; cursor:not-allowed; }
+.approved-tab .btn.primary{ background:#3b82f6; color:#fff; border-color:#dbeafe; }
+.approved-tab .btn.primary:hover{ background:#2563eb; }
+.approved-tab .btn.ghost{ background:#fff; }
+.approved-tab .btn.gray{ background:#6b7280; color:#fff; border-color:#e5e7eb; }
+.approved-tab .btn.info{ background:#0ea5e9; color:#fff; border-color:#bae6fd; }
+.approved-tab .btn.success{ background:#22c55e; color:#fff; border-color:#dcfce7; margin-top: 10px; margin-left: 150px; }
+
+/* Table */
+.approved-tab .approved-table{
+  width:100%; border-collapse:separate; border-spacing:0; min-width:700px;
+  background:#fff; border:1px solid #e2e8f0; border-radius:14px; overflow:hidden;
+}
+.approved-tab .approved-table th{
+  background:#f1f5f9; text-align:left; padding:12px 14px; font-weight:800; color:#0f172a;
+  border-bottom:1px solid #e2e8f0;
+}
+.approved-tab .approved-table td{
+  padding:12px 14px; border-bottom:1px solid #e2e8f0; vertical-align:middle;
+}
+.approved-tab .approved-table tbody tr:hover{ background:#f8fafc; }
+.approved-tab .approved-table .truncate{
+  max-width: 420px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.approved-tab .approved-table .row-actions{ display:flex; gap:8px; }
+
+/* Modal */
+.approved-tab .modal{
+  position: fixed; inset: 0; padding:18px; z-index:1000;
+  display:flex; align-items:center; justify-content:center;
+  background: rgba(30,41,59,.45);
+}
+.approved-tab .modal-card{
+  background:#fff; border:1px solid #e2e8f0; border-radius:16px; width:560px; max-width:95vw;
+  box-shadow: 0 14px 34px rgba(15,23,42,.12);
+}
+.approved-tab .modal-card.wide{ width:960px; max-height:90vh; overflow:auto; }
+.approved-tab .modal-card.chat{ width:580px; max-height:84vh; display:flex; flex-direction:column; }
+
+.approved-tab .modal-head{
+  display:flex; align-items:flex-start; justify-content:space-between; gap:14px;
+  padding:16px 18px; border-bottom:1px dashed #e2e8f0;
+}
+.approved-tab .modal-head .eyebrow{ font-size:12px; color:#64748b; }
+.approved-tab .modal-head h3{ margin:4px 0 4px; }
+
+.approved-tab .modal-grid{
+  display:grid; grid-template-columns: 1.1fr .9fr; gap:16px; padding:16px;
+}
+@media (max-width: 980px){
+  .approved-tab .modal-card.wide{ width:94vw; }
+  .approved-tab .modal-grid{ grid-template-columns: 1fr; }
+}
+.approved-tab .col{ display:grid; gap:16px; }
+
+/* Cards */
+.approved-tab .card{
+  background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:14px;
+  box-shadow: 0 2px 10px rgba(15,23,42,.06);
+}
+.approved-tab .card-title{ font-weight:800; margin-bottom:10px; color:#0f172a; }
+.approved-tab .btn-row{ display:flex; gap:10px; flex-wrap:wrap; }
+.approved-tab .hint{ margin-top:8px; }
+
+/* Key/Value list */
+.approved-tab .kv{ display:grid; gap:8px; }
+.approved-tab .kv > div{ display:flex; justify-content:space-between; gap:12px; }
+.approved-tab .kv > div > span{ color:#64748b; }
+.approved-tab .kv > div > b{ color:#0f172a; }
+
+/* Expense form + cart */
+.approved-tab .exp-form{
+  display:grid; grid-template-columns: 1fr 140px; gap:10px; align-items:end; margin-bottom:10px;
+}
+.approved-tab .exp-form input[type="text"],
+.approved-tab .exp-form input[type="number"]{
+  padding:10px 12px; border:1px solid #e2e8f0; border-radius:10px; background:#f8fafc;
+}
+.approved-tab .exp-form .file{
+  grid-column: span 2; font-size:12px; color:#475569;
+  display:inline-flex; gap:8px; align-items:center;
+}
+.approved-tab .exp-form .file input{ display:block; }
+
+.approved-tab .cart-list{ margin-top:6px; display:grid; gap:8px; }
+.approved-tab .cart-row{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 12px; border:1px dashed #e2e8f0; border-radius:10px; background:#f8fafc;
+}
+.approved-tab .cr-label{ font-weight:700; }
+.approved-tab .totals{ margin-top:10px; display:flex; justify-content:flex-end; }
+.approved-tab .totals > div{
+  background:#eef2ff; border:1px solid #e2e8f0; border-radius:10px; padding:8px 12px; font-weight:800;
+}
+
+/* Notes */
+.approved-tab textarea{
+  width:100%; min-height:90px; padding:10px 12px;
+  border:1px solid #e2e8f0; border-radius:10px; background:#f8fafc;
+}
+
+/* Complete block */
+.approved-tab .complete-grid{
+  display:grid; grid-template-columns: 1fr 160px; gap:10px; align-items: start;
+}
+.approved-tab .complete-grid input,
+.approved-tab .complete-grid select{
+  padding:10px 12px; border:1px solid #e2e8f0; border-radius:10px; background:#f8fafc;
+}
+.approved-tab .amount-due{
+  grid-column: span 2; margin-top:6px; border:1px solid #e2e8f0; border-radius:12px;
+  padding:10px 12px; background:#f9fafb;
+}
+.approved-tab .amount-due .row{
+  display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed #e2e8f0;
+}
+.approved-tab .amount-due .row:last-child{ border-bottom:none; }
+.approved-tab .amount-due .row.grand b{ font-size:1.05rem; }
+
+/* Chat */
+.approved-tab .chat-box{
+  flex:1; margin:12px 16px; padding:12px; background:#f8fafc;
+  border:1px solid #e2e8f0; border-radius:12px; overflow:auto;
+}
+.approved-tab .bubble{
+  background:#eef2ff; border:1px solid #e2e8f0; border-radius:12px; padding:10px 12px; margin-bottom:10px;
+}
+.approved-tab .bubble .b-head{
+  display:flex; justify-content:space-between; margin-bottom:6px;
+}
+.approved-tab .chat-input{
+  display:flex; gap:10px; padding:0 16px 16px;
+}
+.approved-tab .chat-input input{
+  flex:1; padding:10px 12px; border:1px solid #e2e8f0; border-radius:10px; background:#fff;
+}

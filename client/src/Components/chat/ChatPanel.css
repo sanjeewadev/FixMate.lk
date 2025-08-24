@@ -1,13 +1,9 @@
-/* ===== ChatPanel.css ===== */
-
-/* Container */
 .chat-wrap {
   background: #fff;
   border: 1px solid #e5e7eb;
   border-radius: 16px;
   display: flex;
   flex-direction: column;
-  /* default "floating" size; .inline overrides */
   width: min(380px, 92vw);
   height: 520px;
   position: fixed;
@@ -32,7 +28,6 @@
   to   { transform: translateY(0);   opacity: 1; }
 }
 
-/* Header */
 .chat-head {
   display: flex;
   align-items: center;
@@ -70,41 +65,39 @@
   font-size: 18px;
 }
 
-/* Empty states */
 .chat-empty {
   padding: 18px;
   color: #374151;
   font-size: 14px;
 }
 
-/* Messages list */
 .chat-list {
   flex: 1;
-  min-height: 0;                 /* allows proper scroll height in flex parent */
+  min-height: 0;        
   overflow: auto;
   padding: 12px;
   background: linear-gradient(180deg, #f9fafb, #ffffff);
-  display: flex;                  /* ← important */
-  flex-direction: column;         /* each message = a row */
-  gap: 0;                         /* handled by bubble margins */
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
-/* Bubbles */
+
 .bubble {
   max-width: 80%;
   border: 1px solid #e5e7eb;
   border-radius: 14px;
   padding: 8px 10px;
   margin: 6px 0;
-  background: #f8fafc;           /* default (them) */
+  background: #f8fafc;
   box-shadow: 0 1px 0 rgba(0,0,0,.03);
-  align-self: flex-start;         /* default left */
-  display: block;                 /* keeps width to content */
+  align-self: flex-start;
+  display: block;
   word-break: break-word;
 }
 
 .bubble.me {
-  align-self: flex-end;           /* snap to the right */
+  align-self: flex-end;
   background: #eef6ff;
   border-color: #bfdbfe;
 }
@@ -164,13 +157,6 @@
 .chat-input button:disabled {
   opacity: .6;
   cursor: not-allowed;
-}
-
-/* Scrollbar (optional, nice on Windows) */
-.chat-list::-webkit-scrollbar { width: 10px; }
-.chat-list::-webkit-scrollbar-thumb {
-  background: #e5e7eb;
-  border-radius: 8px;
 }
 
 /* Small screens */

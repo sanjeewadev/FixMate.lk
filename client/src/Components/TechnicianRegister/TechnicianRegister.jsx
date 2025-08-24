@@ -38,7 +38,7 @@ export default function TechnicianRegister() {
   const [preview, setPreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Message area (info by default)
+  // Message area
   const [msg, setMsg] = useState({
     type: "info",
     text: "After you submit this form, we will review it and contact you via phone or email."
@@ -74,7 +74,7 @@ export default function TechnicianRegister() {
     e.preventDefault();
     setMsg(null);
 
-    // basic validations
+    //validations
     if (!form.full_name || !form.email || !form.phone_number || !form.address || !form.district || !form.specialization) {
       setMsg({ type: "error", text: "Please fill all required fields." });
       return;
@@ -90,8 +90,6 @@ export default function TechnicianRegister() {
       const payload = {
         ...form,
         experience_years: Number(form.experience_years || 0),
-        // If your service expects FormData, it can build it internally from this object.
-        // If it already expects FormData, keep your original service implementation.
         profile_image: file || undefined
       };
       const res = await createApplication(payload);

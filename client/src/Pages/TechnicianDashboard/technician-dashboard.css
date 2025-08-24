@@ -189,10 +189,10 @@ body {
 .btn.view    { background: var(--brand); color:#fff; border-color:#dbeafe; }
 .btn.view:hover{ background: var(--brand-strong); }
 
-.btn.accept  { background: var(--ok); color:#fff; border-color:#dcfce7; }
+.btn.accept  { background: var(--ok); color:#fff; border-color:#dcfce7; margin-left: 10px; }
 .btn.accept:hover{ background: var(--ok-strong); }
 
-.btn.decline { background: var(--danger); color:#fff; border-color:#fee2e2; }
+.btn.decline { background: var(--danger); color:#fff; border-color:#fee2e2;margin-left: 10px; }
 .btn.decline:hover{ background: var(--danger-strong); }
 
 .btn.status  { background: var(--info); color:#fff; border-color:#bae6fd; }

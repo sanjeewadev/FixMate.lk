@@ -1,4 +1,3 @@
-// src/Pages/Technician/TechnicianSidebar.jsx
 import React from "react";
 import "./technician-dashboard.css";
 
@@ -9,6 +8,7 @@ export default function TechnicianSidebar({ setActiveTab, activeTab }) {
     { key: "pending",   label: "Pending Approval",   icon: "⏳" },
     { key: "approved",  label: "Approved Requests",  icon: "✅" },
     { key: "completed", label: "Completed",          icon: "🏁" },
+    { key: "chat",      label: "Chat",               icon: "💬" }, // 👈 NEW
     { key: "profile",   label: "Profile",            icon: "👤" },
   ];
 

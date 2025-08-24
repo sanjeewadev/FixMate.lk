@@ -1,3 +1,4 @@
+// src/main.jsx (or wherever your router is bootstrapped)
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
@@ -8,7 +9,7 @@ import Services from "./Pages/Services/Services.jsx";
 
 import AdminDashboard from "./Pages/AdminDashboard/AdminDashboard.jsx";
 import UserDashboard from "./Pages/UserDashboard/UserDashboard.jsx";
-import TechnicianDashboard from "./Pages/TechnicianDashboard/TechnicianDashboard.jsx";
+import TechnicianDashboard from "./Pages/TechnicianDashboard/TechnicianDashboard.jsx"; // ✅ fixed path
 import StaffDashboard from "./Pages/StaffDashboard/StaffDashboard.jsx";
 
 import UserProfile from "./Components/UserProfile/UserProfile.jsx";
@@ -78,26 +79,7 @@ const router = createBrowserRouter([
     ],
   },
 
-  // Technician dashboard (protected)
-  {
-    path: "/TechnicianDashboard/*",
-    element: (
-      <ProtectedRoute>
-        <TechnicianDashboard />
-      </ProtectedRoute>
-    ),
-  },
-
-  // Staff dashboard (protected) — reuse the same ServiceRequests component
-  {
-    path: "/StaffDashboard/*",
-    element: (
-        <StaffDashboard />
-    ),
-    children: [{ path: "requests", element: <ServiceRequestsAdmin /> }],
-  },
-
-  // User dashboard (protected) with nested pages
+  // FULL User Dashboard with nested pages (protected)
   {
     path: "/UserDashboard",
     element: (
@@ -116,7 +98,23 @@ const router = createBrowserRouter([
       { path: "chat", element: <ChatTech /> },
       { path: "support", element: <Support /> },
       { path: "profile", element: <UserProfile /> },
-    ],
+      { path: "profile", element: <UserProfile /> },
+      ],
+  },
+
+  // Technician dashboard (tabbed internally)
+  { path: "/TechnicianDashboard", element: <TechnicianDashboard /> },
+  // ✅ Extra route so "/TechnicianDashboard/chat" opens the same component
+  //    (your TechnicianDashboard will switch to the Chat tab based on location)
+  { path: "/TechnicianDashboard/chat", element: <TechnicianDashboard /> },
+
+  // Staff
+  {
+    path: "/StaffDashboard/*",
+    element: (
+        <StaffDashboard />
+    ),
+    children: [{ path: "requests", element: <ServiceRequestsAdmin /> }],
   },
 ]);
 

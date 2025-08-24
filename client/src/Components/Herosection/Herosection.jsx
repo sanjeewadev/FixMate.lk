@@ -45,7 +45,7 @@ export default function Herosection() {
             Book a technician
           </NavLink>
 
-        <NavLink to="/Services" className="cta cta--ghost">
+          <NavLink to="/Services" className="cta cta--ghost">
             Explore services
           </NavLink>
         </div>
