@@ -120,8 +120,7 @@ export default function PublicNavBar() {
           <nav className={`navLinks ${open ? "open" : ""}`}>
             <NavLink to="/" end className="navLink" onClick={closeMenus}>Home</NavLink>
             <NavLink to="/AboutUs" className="navLink" onClick={closeMenus}>About</NavLink>
-            <NavLink to="/Contact" className="navLink" onClick={closeMenus}>Contact</NavLink>
-            <NavLink to="/FAQ" className="navLink" onClick={closeMenus}>FAQ</NavLink>
+            <NavLink to="/TechnicianRegisterForm" className="navLink" onClick={closeMenus}>Become a Technician</NavLink>
 
             <NavLink
               to={isAuth ? "/UserDashboard" : "#"}

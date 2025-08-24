@@ -87,6 +87,7 @@
   border: 1px solid transparent;
   display: inline-block;
   animation: msgIn .25s ease both;
+  width: 100%;
 }
 .msg.success { background:#e6ffed; border-color:#34c759; color:#0b5d1e; }
 .msg.error   { background:#ffe9e9; border-color:#ff3b30; color:#6b1111; }

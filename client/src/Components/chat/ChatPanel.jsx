@@ -3,7 +3,7 @@ import { ensureConversation, listMessages, postMessage } from "../../services/ch
 import { useAuth } from "../../context/AuthContext.jsx";
 import "./ChatPanel.css";
 
-const ALLOWED = new Set(["coordinator_approved"]);
+const ALLOWED = new Set(["coordinator_approved", "in_progress"]);
 
 export default function ChatPanel({ booking, onClose, mode = "inline" }) {
   const { user } = useAuth();

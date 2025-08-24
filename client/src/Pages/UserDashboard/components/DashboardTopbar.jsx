@@ -27,12 +27,6 @@ export default function DashboardTopbar() {
       </nav>
 
       <div className="db-topbar__right">
-        <button
-          className="db-btn primary2"
-          onClick={() => navigate("/TechnicianRegisterForm")}
-        >
-          Become a Tasker
-        </button>
         <button className="db-btn outline" onClick={goHome}>Home</button>
         <button className="db-btn danger" onClick={logout}>Logout</button>
       </div>

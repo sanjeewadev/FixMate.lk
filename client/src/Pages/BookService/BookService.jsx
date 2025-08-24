@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./BookService.css";
 
@@ -17,11 +17,11 @@ function BookService() {
   const qsSlug = qs.get("slug");
 
   const [services, setServices] = useState([]);
-  const [service, setService] = useState(null);     // currently selected service object
+  const [prefetchedService, setPrefetchedService] = useState(null); // when loaded by slug
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(true);
 
-  const [msg, setMsg] = useState(null);             // {type, text}
+  const [msg, setMsg] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   // Form state
@@ -39,10 +39,11 @@ function BookService() {
     phone_number: "",
   });
 
-  const [files, setFiles] = useState([]);    // File[]
+  // uploads
+  const [files, setFiles] = useState([]);     // File[]
   const [previews, setPreviews] = useState([]); // blob URLs
+  const fileInputRef = useRef(null);
 
-  // Dropdown options; if profile has a district not in the list, include it so React doesn't warn.
   const districtOptions = useMemo(() => {
     if (form.district && !DISTRICTS.includes(form.district)) {
       return [form.district, ...DISTRICTS];
@@ -50,58 +51,49 @@ function BookService() {
     return DISTRICTS;
   }, [form.district]);
 
-  // -------- Fetch services list or preselected service --------
+  // ---------- Fetch services & optional slug selection ----------
   useEffect(() => {
     let abort = false;
-
-    async function fetchServices() {
+    (async () => {
       try {
-        // If we have a slug, fetch that one service first
+        // If a slug is given, prefetch that specific service, BUT DO NOT RETURN.
         if (qsSlug) {
           const r = await fetch(`/api/services/${qsSlug}`);
-          if (abort) return;
-          if (r.ok) {
+          if (!abort && r.ok) {
             const s = await r.json();
-            setService(s);
+            setPrefetchedService(s);
             setForm((f) => ({ ...f, serviceId: s._id || s.id || f.serviceId }));
-            setLoading(false);
-            return;
           }
         }
 
-        // Otherwise fetch a page of services for dropdown
+        // Always load list so the user can change the service
         const r2 = await fetch(`/api/services?limit=100`);
         if (abort) return;
         if (!r2.ok) throw new Error("Failed to load services");
-
         const data = await r2.json();
         const list = data?.data || [];
         setServices(list);
 
-        // If serviceId came via query, preselect it
+        // If serviceId came in query, preselect it
         if (qsServiceId) {
           const found = list.find((x) => String(x._id) === String(qsServiceId));
           if (found) {
-            setService(found);
             setForm((f) => ({ ...f, serviceId: found._id }));
           }
         }
-
       } catch (e) {
-        setMsg({ type: "error", text: e.message || "Failed to load services" });
+        if (!abort) setMsg({ type: "error", text: e.message || "Failed to load services" });
       } finally {
-        setLoading(false);
+        if (!abort) setLoading(false);
       }
-    }
-
-    fetchServices();
+    })();
     return () => { abort = true; };
   }, [qsServiceId, qsSlug]);
 
-  // -------- Fetch customer profile to autofill snapshot fields --------
+  // ---------- Fetch customer profile ----------
   useEffect(() => {
     let abort = false;
-    async function fetchProfile() {
+    (async () => {
       try {
         const token = localStorage.getItem("token");
         if (!token) {
@@ -109,12 +101,8 @@ function BookService() {
           setProfileLoading(false);
           return;
         }
-        // Adjust the path if your route is different (e.g., /api/customer/profile)
-        const r = await fetch("/api/customer/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (abort) return;
-        if (r.ok) {
+        const r = await fetch("/api/customer/me", { headers: { Authorization: `Bearer ${token}` } });
+        if (!abort && r.ok) {
           const me = await r.json();
           setForm((f) => ({
             ...f,
@@ -122,52 +110,41 @@ function BookService() {
             district: me.district || f.district,
             phone_number: me.phone_number || f.phone_number,
           }));
-        } else if (r.status === 401) {
-          setMsg({ type: "info", text: "Please login to book a service." });
-        } else {
-          // try alternate path if your API uses /profile
-          const r2 = await fetch("/api/customer/profile", {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (!abort && r2.ok) {
-            const me2 = await r2.json();
-            setForm((f) => ({
-              ...f,
-              address: me2.address || f.address,
-              district: me2.district || f.district,
-              phone_number: me2.phone_number || f.phone_number,
-            }));
-          }
         }
-      } catch {
-        /* ignore, non-blocking */
-      } finally {
-        if (!abort) setProfileLoading(false);
-      }
-    }
-
-    fetchProfile();
+      } catch { /* non-blocking */ }
+      finally { if (!abort) setProfileLoading(false); }
+    })();
     return () => { abort = true; };
   }, []);
 
-  // -------- file previews --------
+  // ---------- previews ----------
   useEffect(() => {
+    // revoke previous
     previews.forEach((u) => URL.revokeObjectURL(u));
     const urls = files.map((f) => URL.createObjectURL(f));
     setPreviews(urls);
-    // revoke on unmount/next change
     return () => { urls.forEach((u) => URL.revokeObjectURL(u)); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [files.length]);
+  }, [files]); // <— depend on files (not files.length)
 
   const update = (name, value) => setForm((f) => ({ ...f, [name]: value }));
+
   const onFiles = (e) => {
     const list = Array.from(e.target.files || []);
-    // Optional: cap to 6 images
-    setFiles(list.slice(0, 6));
+    // append and cap to 6
+    setFiles((prev) => [...prev, ...list].slice(0, 6));
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  // -------- Validation --------
+  const removeFile = (idx) => {
+    setFiles((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const clearAllFiles = () => {
+    setFiles([]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  // ---------- validate & submit ----------
   const validate = () => {
     if (!form.serviceId) return "Please choose a service.";
     if (!form.problemTitle.trim()) return "Please enter a short problem title.";
@@ -178,11 +155,9 @@ function BookService() {
     return null;
   };
 
-  // -------- Submit --------
   const onSubmit = async (e) => {
     e.preventDefault();
     setMsg(null);
-
     const v = validate();
     if (v) { setMsg({ type: "error", text: v }); return; }
 
@@ -193,7 +168,7 @@ function BookService() {
       setSubmitting(true);
       const fd = new FormData();
       fd.append("serviceId", form.serviceId);
-      fd.append("preferredAt", form.preferredAt);      // yyyy-mm-dd, backend new Date() is fine
+      fd.append("preferredAt", form.preferredAt);
       if (form.timeSlot) fd.append("timeSlot", form.timeSlot);
       if (form.brandModel) fd.append("brandModel", form.brandModel);
       if (form.equipmentAge) fd.append("equipmentAge", form.equipmentAge);
@@ -203,42 +178,31 @@ function BookService() {
       fd.append("address", form.address);
       fd.append("district", form.district);
       fd.append("phone_number", form.phone_number);
-      // files (field name 'media' expected by your uploader)
       files.forEach((f) => fd.append("media", f));
 
       const r = await fetch("/api/bookings", {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` }, // DO NOT set Content-Type here
+        headers: { Authorization: `Bearer ${token}` },
         body: fd,
       });
 
-      let data = {};
-      try { data = await r.json(); } catch {}
-
+      const data = await r.json().catch(() => ({}));
       if (!r.ok) {
-        const text = data?.message || "Could not create booking.";
-        setMsg({ type: "error", text });
+        setMsg({ type: "error", text: data?.message || "Could not create booking." });
         return;
       }
-
       setMsg({ type: "success", text: "Booking created! We’ll follow up soon." });
-      // Optional: route to "My bookings" if you have it
-      // setTimeout(() => navigate("/my-bookings"), 900);
-
-    } catch (err) {
+      // navigate("/UserDashboard/history");
+    } catch {
       setMsg({ type: "error", text: "Network error. Please try again." });
     } finally {
       setSubmitting(false);
     }
   };
 
-  // -------- Today min for date --------
   const today = useMemo(() => {
     const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${dd}`;
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   }, []);
 
   const timeSlots = [
@@ -249,39 +213,17 @@ function BookService() {
     "Evening (16:00–18:00)",
   ];
 
-  const serviceSelector = (
-    <div className="field">
-      <label>Service *</label>
-      {loading ? (
-        <div className="skeleton">Loading services…</div>
-      ) : (
-        <select
-          value={form.serviceId}
-          onChange={(e) => {
-            const id = e.target.value;
-            update("serviceId", id);
-            const found = services.find((s) => String(s._id) === String(id));
-            setService(found || null);
-          }}
-          required
-        >
-          <option value="">Select a service</option>
-          {services.map((s) => (
-            <option key={s._id} value={s._id}>
-              {s.name} {s.category ? `— ${s.category}` : ""}
-            </option>
-          ))}
-        </select>
-      )}
-    </div>
-  );
+  // Selected service object (from list or slug prefetch)
+  const selectedService =
+    services.find((s) => String(s._id) === String(form.serviceId)) ||
+    prefetchedService ||
+    null;
 
   return (
     <div className="booking-page">
       <div className="booking-card">
         <h1 className="title">Book a Service</h1>
 
-        {/* Message bar */}
         <div className="msg-slot" aria-live="polite" aria-atomic="true">
           {msg?.text && <div className={`msg ${msg.type} show`}>{msg.text}</div>}
           {!msg && (profileLoading || loading) && (
@@ -290,24 +232,45 @@ function BookService() {
         </div>
 
         <form onSubmit={onSubmit} className="booking-form">
-          {/* LEFT COLUMN */}
+          {/* LEFT */}
           <section className="col">
-            {/* Service picker or preselected */}
-            {service && form.serviceId ? (
+            {/* Always show the selector so the user can CHANGE it */}
+            <div className="field">
+              <label>Service *</label>
+              {loading ? (
+                <div className="skeleton">Loading services…</div>
+              ) : (
+                <select
+                  value={form.serviceId}
+                  onChange={(e) => update("serviceId", e.target.value)}
+                  required
+                >
+                  <option value="">Select a service</option>
+                  {services.map((s) => (
+                    <option key={s._id} value={s._id}>
+                      {s.name} {s.category ? `— ${s.category}` : ""}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            {/* Optional summary card of the selection */}
+            {selectedService && (
               <div className="service-picked">
                 <div className="service-thumb">
                   <img
-                    src={service?.serviceImages?.[0]?.url || "/assets/default.jpg"}
-                    alt={service?.name || "Service"}
+                    src={selectedService?.serviceImages?.[0]?.url || "/assets/default.jpg"}
+                    alt={selectedService?.name || "Service"}
                   />
                 </div>
                 <div className="service-about">
-                  <div className="service-name">{service?.name}</div>
-                  {service?.category && <div className="service-cat">{service.category}</div>}
+                  <div className="service-name">{selectedService?.name}</div>
+                  {selectedService?.category && (
+                    <div className="service-cat">{selectedService.category}</div>
+                  )}
                 </div>
               </div>
-            ) : (
-              serviceSelector
             )}
 
             <div className="grid2">
@@ -324,7 +287,8 @@ function BookService() {
 
               <div className="field">
                 <label>Preferred Time</label>
-                <select className="select-field-book-service"
+                <select
+                  className="select-field-book-service"
                   value={form.timeSlot}
                   onChange={(e) => update("timeSlot", e.target.value)}
                 >
@@ -389,7 +353,7 @@ function BookService() {
             </div>
           </section>
 
-          {/* RIGHT COLUMN */}
+          {/* RIGHT */}
           <section className="col">
             <div className="group-head">Service Address & Contact</div>
 
@@ -415,11 +379,10 @@ function BookService() {
               />
             </div>
 
-            {/* ▼ District dropdown (same field name & value) */}
             <div className="field">
               <label>District *</label>
               <select
-                value={DISTRICTS.includes(form.district) ? form.district : (form.district ? form.district : "")}
+                value={DISTRICTS.includes(form.district) ? form.district : (form.district || "")}
                 onChange={(e) => update("district", e.target.value)}
                 required
               >
@@ -432,13 +395,37 @@ function BookService() {
 
             <div className="field">
               <label>Upload Photos (optional, up to 6)</label>
-              <input type="file" accept="image/*" multiple onChange={onFiles} />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={onFiles}
+              />
               {previews.length > 0 && (
-                <div className="preview-grid">
-                  {previews.map((src, i) => (
-                    <img key={i} src={src} alt={`upload-${i}`} />
-                  ))}
-                </div>
+                <>
+                  <div className="preview-grid">
+                    {previews.map((src, i) => (
+                      <div key={i} className="thumb">
+                        <img src={src} alt={`upload-${i}`} />
+                        <button
+                          type="button"
+                          className="remove"
+                          onClick={() => removeFile(i)}
+                          aria-label="Remove image"
+                        >×</button>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    className="link-btn"
+                    onClick={clearAllFiles}
+                    style={{ marginTop: 6 }}
+                  >
+                    Remove all
+                  </button>
+                </>
               )}
             </div>
 
@@ -446,9 +433,7 @@ function BookService() {
               {submitting ? "Booking..." : "Confirm Booking"}
             </button>
 
-            <p className="hint">
-              By booking you agree to our service terms and scheduling policies.
-            </p>
+            <p className="hint">By booking you agree to our service terms and scheduling policies.</p>
           </section>
         </form>
       </div>
