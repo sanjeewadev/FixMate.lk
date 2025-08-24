@@ -64,9 +64,9 @@ const router = createBrowserRouter([
   {
     path: "/StaffDashboard/*",
     element: (
-      <ProtectedRoute>
+      
         <StaffDashboard />
-      </ProtectedRoute>
+      
     ),
   },
 
