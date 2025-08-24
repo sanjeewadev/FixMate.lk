@@ -17,18 +17,26 @@ import BookService from "./Pages/BookService/BookService.jsx";
 import Overview from "./Pages/UserDashboard/Overview.jsx";
 import MyBookings from "./Pages/UserDashboard/MyBookings.jsx";
 import BookingDetails from "./Pages/UserDashboard/BookingDetails.jsx";
-
-import Chatwithtechni from "./Components/chat/ChatPanel.jsx";
-// import ReceiptDetails from "./Pages/UserDashboard/ReceiptDetails.jsx";
 import Support from "./Pages/UserDashboard/Support.jsx";
-import TechnicianRegisterForm from "./Pages/TechnicianRegisterForm/TechnicianRegisterForm.jsx";
 import Complaints from "./Pages/UserDashboard/Complaints.jsx";
 import Ratings from "./Pages/UserDashboard/Ratings.jsx";
 import ChatTech from "./Pages/UserDashboard/ChatTech.jsx";
 
+// Admin nested pages
+import ManageUsers from "./Pages/AdminDashboard/components/ManageUsers.jsx";
+import ManageStaff from "./Pages/AdminDashboard/components/ManageStaff.jsx";
+import ManageTechnicians from "./Pages/AdminDashboard/components/ManageTechnicians.jsx";
+import ManageAdmins from "./Pages/AdminDashboard/components/ManageAdmins.jsx";
+import ManageServices from "./Pages/AdminDashboard/components/ManageServices.jsx";
+import ServiceRequestsAdmin from "./Pages/AdminDashboard/components/ServiceRequests.jsx";
+import ManageComplaints from "./Pages/AdminDashboard/components/ManageComplaints.jsx";
+import RateTechnician from "./Pages/AdminDashboard/components/RateTechnician.jsx";
+
+import TechnicianRegisterForm from "./Pages/TechnicianRegisterForm/TechnicianRegisterForm.jsx";
+
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-// 🔐 Auth
+// Auth guard
 import { AuthProvider } from "./context/AuthContext.jsx";
 import ProtectedRoute from "./Components/ProtectedRoute.jsx";
 
@@ -37,7 +45,10 @@ const router = createBrowserRouter([
   { path: "/AboutUs", element: <AboutUs /> },
   { path: "/Services", element: <Services /> },
 
-  // only logged-in customers should access booking
+  // Public technician registration
+  { path: "/TechnicianRegisterForm", element: <TechnicianRegisterForm /> },
+
+  // Only logged-in customers can access booking
   {
     path: "/book",
     element: (
@@ -47,7 +58,7 @@ const router = createBrowserRouter([
     ),
   },
 
-  // Dashboards: use /* so nested routes resolve (e.g., /StaffDashboard/profile)
+  // Admin dashboard (protected) with nested routes
   {
     path: "/AdminDashboard/*",
     element: (
@@ -55,7 +66,19 @@ const router = createBrowserRouter([
         <AdminDashboard />
       </ProtectedRoute>
     ),
+    children: [
+      { path: "manage-users", element: <ManageUsers /> },
+      { path: "staff", element: <ManageStaff /> },
+      { path: "technicians", element: <ManageTechnicians /> },
+      { path: "admins", element: <ManageAdmins /> },
+      { path: "services", element: <ManageServices /> },
+      { path: "requests", element: <ServiceRequestsAdmin /> },
+      { path: "complaints", element: <ManageComplaints /> },
+      { path: "rating", element: <RateTechnician /> },
+    ],
   },
+
+  // Technician dashboard (protected)
   {
     path: "/TechnicianDashboard/*",
     element: (
@@ -64,6 +87,8 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+
+  // Staff dashboard (protected) — reuse the same ServiceRequests component
   {
     path: "/StaffDashboard/*",
     element: (
@@ -71,9 +96,10 @@ const router = createBrowserRouter([
         <StaffDashboard />
       </ProtectedRoute>
     ),
+    children: [{ path: "requests", element: <ServiceRequestsAdmin /> }],
   },
 
-  // FULL User Dashboard (kept as nested routes)
+  // User dashboard (protected) with nested pages
   {
     path: "/UserDashboard",
     element: (
@@ -91,26 +117,9 @@ const router = createBrowserRouter([
       { path: "ratings", element: <Ratings /> },
       { path: "chat", element: <ChatTech /> },
       { path: "support", element: <Support /> },
-<<<<<<< HEAD
-      { path: "receipts", element: <Receipts /> },
-      { path: "receipt/:id", element: <ReceiptDetails /> },
-    ],
-  },
-=======
-      // { path: "receipt/:id", element: <ReceiptDetails /> },
       { path: "profile", element: <UserProfile /> },
     ],
   },
-
-  {path: "/TechnicianDashboard", element: (<TechnicianDashboard /> ), },
-  {path: "/TechnicianRegisterForm", element: (<TechnicianRegisterForm /> ), },
-
-  {path: "/StaffDashboard", element: <StaffDashboard />,
-     children: [
-     { path: "requests", element: <ServiceRequests /> },
-  ],
-  },
->>>>>>> final-backup-08/22-sanjeewa
 ]);
 
 createRoot(document.getElementById("root")).render(
