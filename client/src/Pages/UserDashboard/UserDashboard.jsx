@@ -6,7 +6,7 @@ import DashboardLayout from "../../Components/DashboardLayout/DashboardLayout.js
 const UserDashboard = () => {
   return (
     <>
-      <Navbar />               {/* <= add this back */}
+      <Navbar />
       <DashboardLayout role="user" />
     </>
   );
