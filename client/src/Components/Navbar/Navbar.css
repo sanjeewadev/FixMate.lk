@@ -15,14 +15,13 @@
   transition: all 0.4s ease;
 }
 
-/* When scrolled */
 .navbar-links.scrolled {
-  background: #ffffffee; /* slightly transparent white */
+  background: #ffffffee;
   border-radius: 30px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-  top: 15px; /* moves down slightly */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  top: 15px;
   width: 90%;
-  backdrop-filter: blur(10px); /* glass effect */
+  backdrop-filter: blur(10px);
 }
 
 .navbar-menu {
@@ -88,4 +87,6 @@
   align-items: center;
   gap: 10px;
 }
-.navbar-buttons .tswitch-wrap { margin-right: 6px; }
+.navbar-buttons .tswitch-wrap {
+  margin-right: 6px;
+}

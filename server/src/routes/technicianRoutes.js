@@ -5,17 +5,17 @@ const {
   getMyProfile,
   updateMyProfile,
   changeMyPassword,
-  changeMyProfileImage
+  changeMyProfileImage,
 } = require("../controllers/technicianController");
 
-// ✅ Middlewares
+//  Middlewares
 const verifyToken = require("../middleware/verifyToken");
 const requireRole = require("../middleware/requireRole");
 const getUploadMiddleware = require("../middleware/cloudinaryUploader");
 
 const router = express.Router();
 
-// ✅ Upload middleware for technicians
+//  Upload middleware for technicians
 // Profile images go under: fixmate/technicians
 const upload = getUploadMiddleware("technicians");
 
@@ -26,7 +26,12 @@ router.post("/login", loginTechnician);
 // Technician self-account routes
 router.get("/me", verifyToken, requireRole("technician"), getMyProfile);
 router.patch("/me", verifyToken, requireRole("technician"), updateMyProfile);
-router.patch("/me/password", verifyToken, requireRole("technician"), changeMyPassword);
+router.patch(
+  "/me/password",
+  verifyToken,
+  requireRole("technician"),
+  changeMyPassword,
+);
 
 // Change profile picture
 router.post(
@@ -34,7 +39,7 @@ router.post(
   verifyToken,
   requireRole("technician"),
   upload.single("profile_image"),
-  changeMyProfileImage
+  changeMyProfileImage,
 );
 
 module.exports = router;

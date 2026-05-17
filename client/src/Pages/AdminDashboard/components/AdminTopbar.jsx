@@ -15,28 +15,34 @@ export default function AdminTopbar() {
   return (
     <header className="admin-topbar">
       <div className="left">
-        <strong style={{ marginLeft: 8, marginRight:20, fontSize: "20px" }}>Admin Dashboard</strong>
+        <strong style={{ marginLeft: 8, marginRight: 20, fontSize: "20px" }}>
+          Admin Dashboard
+        </strong>
 
         {/* <button type="button" className="btn outline" onClick={() => navigate("/")}>
           🏠 Home
         </button> */}
 
-        {/* ✅ Link to PUBLIC pages */}
+        {/*  Link to PUBLIC pages */}
         {/* <button type="button" className="btn outline" onClick={() => navigate("/aboutus")}>
           ℹ️ About Us
         </button> */}
         {/* <button type="button" className="btn outline" onClick={() => navigate("/services")}>
           🧩 Services
         </button> */}
-
       </div>
 
       <div className="right">
         <div className="user-badge">
           {user?.profile_image_url ? (
-            <img src={user.profile_image_url} alt={user?.full_name || "Admin"} />
+            <img
+              src={user.profile_image_url}
+              alt={user?.full_name || "Admin"}
+            />
           ) : (
-            <div className="avatar-fallback">{user?.full_name?.[0]?.toUpperCase() || "A"}</div>
+            <div className="avatar-fallback">
+              {user?.full_name?.[0]?.toUpperCase() || "A"}
+            </div>
           )}
           <div style={{ lineHeight: 1 }}>
             <div className="name">{user?.full_name || "Admin"}</div>

@@ -33,7 +33,9 @@
   padding: 6px 0;
   text-decoration: none !important;
   font-weight: 100;
-  transition: color .18s ease, transform .18s ease;
+  transition:
+    color 0.18s ease,
+    transform 0.18s ease;
 }
 
 .footerLink:hover {
@@ -41,7 +43,7 @@
 }
 
 .footerLink:focus-visible {
-  outline: 2px solid rgba(37, 99, 235, .8);
+  outline: 2px solid rgba(37, 99, 235, 0.8);
   outline-offset: 2px;
   border-radius: 6px;
 }
@@ -56,7 +58,9 @@
   width: 18px;
   height: 18px;
   display: block;
-  transition: opacity .15s, transform .15s;
+  transition:
+    opacity 0.15s,
+    transform 0.15s;
 }
 
 .footerSocial:hover img {
@@ -74,8 +78,16 @@
 .siteFooter.isDark {
   color: #cbd5e1;
   background:
-    radial-gradient(1200px 600px at 50% -20%, rgba(255, 255, 255, .04), transparent 60%),
-    radial-gradient(900px 500px at 110% 10%, rgba(255, 255, 255, .03), transparent 60%),
+    radial-gradient(
+      1200px 600px at 50% -20%,
+      rgba(255, 255, 255, 0.04),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 500px at 110% 10%,
+      rgba(255, 255, 255, 0.03),
+      transparent 60%
+    ),
     linear-gradient(#0b0f19, #0b0f19);
 }
 
@@ -84,9 +96,17 @@
   position: absolute;
   inset: 0;
   background-image:
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, .015) 0 1px, transparent 1px 2px),
-    repeating-linear-gradient(0deg, rgba(255, 255, 255, .015) 0 1px, transparent 1px 2px);
-  opacity: .25;
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.015) 0 1px,
+      transparent 1px 2px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.015) 0 1px,
+      transparent 1px 2px
+    );
+  opacity: 0.25;
 }
 
 .siteFooter.isDark::after {
@@ -97,13 +117,13 @@
   font-weight: 900;
   letter-spacing: -0.04em;
   font-size: clamp(120px, 22vw, 320px);
-  color: rgba(255, 255, 255, .04);
+  color: rgba(255, 255, 255, 0.04);
 }
 
 .isDark .footerHead {
   color: #e5e7eb;
   font-weight: 800;
-  letter-spacing: .06em;
+  letter-spacing: 0.06em;
   font-size: 14px;
   margin: 0 0 12px;
 }
@@ -117,19 +137,27 @@
 }
 
 .isDark .footerSocial img {
-  filter: brightness(0) invert(1) opacity(.8);
+  filter: brightness(0) invert(1) opacity(0.8);
 }
 
 .isDark .footerBar {
-  border-top: 1px solid rgba(148, 163, 184, .16);
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
   color: #94a3b8;
 }
 
 .siteFooter.isLight {
   color: #334155;
   background:
-    radial-gradient(1200px 600px at 50% -20%, rgba(0, 0, 0, .035), transparent 60%),
-    radial-gradient(900px 500px at 110% 10%, rgba(0, 0, 0, .03), transparent 60%),
+    radial-gradient(
+      1200px 600px at 50% -20%,
+      rgba(0, 0, 0, 0.035),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 500px at 110% 10%,
+      rgba(0, 0, 0, 0.03),
+      transparent 60%
+    ),
     linear-gradient(#f8fafc, #f1f5f9);
 }
 
@@ -138,9 +166,17 @@
   position: absolute;
   inset: 0;
   background-image:
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, .012) 0 1px, transparent 1px 2px),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, .012) 0 1px, transparent 1px 2px);
-  opacity: .35;
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.012) 0 1px,
+      transparent 1px 2px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.012) 0 1px,
+      transparent 1px 2px
+    );
+  opacity: 0.35;
 }
 
 .siteFooter.isLight::after {
@@ -151,13 +187,13 @@
   font-weight: 900;
   letter-spacing: -0.04em;
   font-size: clamp(120px, 22vw, 320px);
-  color: rgba(2, 6, 23, .06);
+  color: rgba(2, 6, 23, 0.06);
 }
 
 .isLight .footerHead {
   color: #0f172a;
   font-weight: 800;
-  letter-spacing: .06em;
+  letter-spacing: 0.06em;
   font-size: 14px;
   margin: 0 0 12px;
 }
@@ -172,7 +208,7 @@
 
 .isLight .footerSocial img {
   filter: none;
-  opacity: .85;
+  opacity: 0.85;
 }
 
 .isLight .footerBar {

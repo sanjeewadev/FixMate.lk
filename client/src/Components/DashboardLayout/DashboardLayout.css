@@ -8,8 +8,8 @@
   --primary-light: #3b82f6;
   --primary-dark: #1d4ed8;
   --radius: 12px;
-  --shadow: 0 4px 12px rgba(0,0,0,0.1);
-  --shadow-hover: 0 6px 18px rgba(0,0,0,0.15);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-hover: 0 6px 18px rgba(0, 0, 0, 0.15);
 }
 
 body {
@@ -19,21 +19,19 @@ body {
   color: var(--text);
 }
 
-/* Layout */
 .dashboard-wrapper {
   display: grid;
   grid-template-columns: 260px 1fr;
   min-height: 100vh;
 }
 
-/* Sidebar */
 .sidebar {
   background: var(--sidebar-bg);
   backdrop-filter: blur(12px);
   padding: 22px 18px;
   display: flex;
   flex-direction: column;
-  box-shadow: inset -1px 0 0 rgba(255,255,255,0.1);
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.1);
 }
 
 .sidebar h2 {
@@ -60,7 +58,10 @@ body {
   text-decoration: none;
   color: #f1f5f9;
   font-weight: 500;
-  transition: background 0.25s, box-shadow 0.25s, transform 0.15s;
+  transition:
+    background 0.25s,
+    box-shadow 0.25s,
+    transform 0.15s;
 }
 
 .sidebar li a:hover {
@@ -75,11 +76,10 @@ body {
   box-shadow: var(--shadow-hover);
 }
 
-/* Content area */
 .dashboard-content {
   background: var(--content-bg);
   padding: 32px;
-  box-shadow: inset 0 1px 0 rgba(0,0,0,0.05);
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.05);
   backdrop-filter: blur(8px);
 }
 
@@ -90,14 +90,15 @@ body {
   color: #1f2a38;
 }
 
-/* Card utility */
 .card {
   background: white;
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 22px;
   margin-bottom: 22px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .card:hover {
@@ -105,14 +106,15 @@ body {
   box-shadow: var(--shadow-hover);
 }
 
-/* Buttons */
 .btn {
   padding: 10px 18px;
   border-radius: var(--radius);
   border: none;
   cursor: pointer;
   font-weight: 600;
-  transition: background 0.2s, transform 0.15s;
+  transition:
+    background 0.2s,
+    transform 0.15s;
 }
 
 .btn-primary {
@@ -134,7 +136,6 @@ body {
   background: #cbd5e1;
 }
 
-/* Responsive */
 @media (max-width: 900px) {
   .dashboard-wrapper {
     grid-template-columns: 1fr;

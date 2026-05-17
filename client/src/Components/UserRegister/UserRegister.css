@@ -1,11 +1,10 @@
 .userregister-form {
   display: flex;
   flex-direction: column;
-  align-items: stretch;   /* full width inputs */
+  align-items: stretch;
   gap: 5px;
 }
 
-/* Inputs inside the modal should fill width */
 .userregister-form input[type="text"],
 .userregister-form input[type="email"],
 .userregister-form input[type="password"],
@@ -20,12 +19,10 @@
   margin: 4px;
 }
 
-/* Submit button matches login styles (login-modal button already styles it) */
 .userregister-form button[type="submit"] {
   margin-top: 6px;
 }
 
-/* Avatar preview */
 .profile-preview {
   width: 120px;
   height: 120px;
@@ -35,13 +32,12 @@
   border: 1px solid #e5e7eb;
 }
 
-.register-text{
+.register-text {
   margin-top: 0px;
   margin-bottom: 10px;
   padding: 0px;
 }
 
-/* Link row */
 .userregister-link {
   margin-top: 8px;
   margin-bottom: 0;
@@ -49,7 +45,6 @@
   font-size: 15px;
 }
 
-/* Messages (same tokens as Login) */
 .msg-slot {
   min-height: 38px;
   text-align: center;
@@ -62,13 +57,32 @@
   border: 1px solid transparent;
 }
 
-.msg.success { background: #e6ffed; border-color: #34c759; color: #0b5d1e; }
-.msg.error   { background: #ffe9e9; border-color: #ff3b30; color: #6b1111; }
-.msg.info    { background: #eef6ff; border-color: #0a84ff; color: #094a93; }
-
+.msg.success {
+  background: #e6ffed;
+  border-color: #34c759;
+  color: #0b5d1e;
+}
+.msg.error {
+  background: #ffe9e9;
+  border-color: #ff3b30;
+  color: #6b1111;
+}
+.msg.info {
+  background: #eef6ff;
+  border-color: #0a84ff;
+  color: #094a93;
+}
 
 @keyframes fadeSlideIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-.msg.show { animation: fadeSlideIn 220ms ease; }
+.msg.show {
+  animation: fadeSlideIn 220ms ease;
+}

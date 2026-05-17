@@ -9,7 +9,7 @@ import Services from "./Pages/Services/Services.jsx";
 
 import AdminDashboard from "./Pages/AdminDashboard/AdminDashboard.jsx";
 import UserDashboard from "./Pages/UserDashboard/UserDashboard.jsx";
-import TechnicianDashboard from "./Pages/TechnicianDashboard/TechnicianDashboard.jsx"; // ✅ fixed path
+import TechnicianDashboard from "./Pages/TechnicianDashboard/TechnicianDashboard.jsx"; //  fixed path
 import StaffDashboard from "./Pages/StaffDashboard/StaffDashboard.jsx";
 
 import UserProfile from "./Components/UserProfile/UserProfile.jsx";
@@ -99,21 +99,19 @@ const router = createBrowserRouter([
       { path: "support", element: <Support /> },
       { path: "profile", element: <UserProfile /> },
       { path: "profile", element: <UserProfile /> },
-      ],
+    ],
   },
 
   // Technician dashboard (tabbed internally)
   { path: "/TechnicianDashboard", element: <TechnicianDashboard /> },
-  // ✅ Extra route so "/TechnicianDashboard/chat" opens the same component
+  //  Extra route so "/TechnicianDashboard/chat" opens the same component
   //    (your TechnicianDashboard will switch to the Chat tab based on location)
   { path: "/TechnicianDashboard/chat", element: <TechnicianDashboard /> },
 
   // Staff
   {
     path: "/StaffDashboard/*",
-    element: (
-        <StaffDashboard />
-    ),
+    element: <StaffDashboard />,
     children: [{ path: "requests", element: <ServiceRequestsAdmin /> }],
   },
 ]);
@@ -125,5 +123,5 @@ createRoot(document.getElementById("root")).render(
         <RouterProvider router={router} />
       </AuthProvider>
     </div>
-  </StrictMode>
+  </StrictMode>,
 );

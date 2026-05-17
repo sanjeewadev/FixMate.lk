@@ -11,12 +11,10 @@
   gap: 16px;
   padding: 0 16px;
 
-  /* defeat any global font/anchor/button cascades inside */
   font: inherit;
   color: inherit;
 }
 
-/* brand */
 .db-topbar__left {
   display: flex;
   align-items: center;
@@ -26,10 +24,9 @@
 .db-brand {
   font-weight: 800;
   font-size: 18px;
-  letter-spacing: .2px;
+  letter-spacing: 0.2px;
 }
 
-/* nav */
 .db-topbar__nav {
   display: flex;
   gap: 12px;
@@ -37,7 +34,6 @@
   flex-wrap: wrap;
 }
 
-/* links – win against global `a, button` styles */
 .db-topbar .db-link,
 .db-topbar .db-link:visited {
   padding: 8px 12px;
@@ -56,17 +52,15 @@
   color: #2363eb !important;
 }
 
-/* right actions */
 .db-topbar__right {
   display: flex;
   gap: 10px;
   flex-wrap: nowrap;
 }
 
-/* buttons – isolate from global button rules */
 .db-topbar .db-btn {
-  width: auto !important;          /* kill any global width:100% */
-  padding: 0 12px !important;      /* kill any global padding */
+  width: auto !important;
+  padding: 0 12px !important;
   margin: 0 !important;
 
   height: 36px;
@@ -91,7 +85,6 @@
   cursor: pointer;
 }
 
-/* variants */
 .db-topbar .db-btn.outline {
   background: #fff;
   border-color: #d0d7de;
@@ -118,7 +111,6 @@
   background: #ffe5e5;
 }
 
-/* small screens */
 @media (max-width: 720px) {
   .db-topbar {
     padding: 0 12px;

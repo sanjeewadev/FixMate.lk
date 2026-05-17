@@ -1,9 +1,8 @@
-/* src/Components/AIChat/AIChat.css */
+.ai-panel,
+.ai-panel * {
+  box-sizing: border-box;
+}
 
-/* Keep layout predictable inside the widget only */
-.ai-panel, .ai-panel * { box-sizing: border-box; }
-
-/* Hard reset common globals that were leaking in */
 .ai-panel button,
 .ai-panel input,
 .ai-panel a {
@@ -11,87 +10,186 @@
   box-sizing: border-box;
   font: inherit;
 }
-.ai-panel button { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
-.ai-panel input { display: block; }
+.ai-panel button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.ai-panel input {
+  display: block;
+}
 
-/* Floating action button is outside the panel — ensure immunity there too */
 .ai-fab {
   all: unset;
-  position: fixed; right: 18px; bottom: 18px;
-  width: 56px; height: 56px; border-radius: 50%;
-  background: #2563eb; color: #fff; font-weight: 800; font-size: 16px;
-  box-shadow: 0 12px 28px rgba(0,0,0,.18);
-  cursor: pointer; z-index: 5000; text-align: center;
-  display: grid; place-items: center;
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 800;
+  font-size: 16px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  z-index: 5000;
+  text-align: center;
+  display: grid;
+  place-items: center;
 }
-.ai-fab:active { transform: translateY(1px); }
+.ai-fab:active {
+  transform: translateY(1px);
+}
 
-/* Panel */
 .ai-panel {
-  position: fixed; right: 18px; bottom: 86px;
-  width: min(420px, 94vw); height: 560px;
-  background: #fff; border: 1px solid #e5e7eb; border-radius: 16px;
-  display: flex; flex-direction: column; overflow: hidden;
-  box-shadow: 0 20px 48px rgba(0,0,0,.18); z-index: 5000;
-  animation: aiIn .18s ease;
+  position: fixed;
+  right: 18px;
+  bottom: 86px;
+  width: min(420px, 94vw);
+  height: 560px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.18);
+  z-index: 5000;
+  animation: aiIn 0.18s ease;
 }
-@keyframes aiIn { from { transform: translateY(8px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+@keyframes aiIn {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
 
-/* Header */
 .ai-head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 12px; border-bottom: 1px solid #eef1f4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eef1f4;
 }
-.ai-title { display: flex; align-items: center; gap: 8px; font-weight: 800; color: #0f172a; }
-.dot { width: 10px; height: 10px; border-radius: 50%; background: #9ca3af; }
-.dot.online { background: #10b981; }
+.ai-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  color: #0f172a;
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #9ca3af;
+}
+.dot.online {
+  background: #10b981;
+}
 .x {
-  width: 28px; height: 28px; border-radius: 50%;
-  background: #f3f4f6; color:#111; padding:0 0 2px; line-height: 1;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: #111;
+  padding: 0 0 2px;
+  line-height: 1;
 }
 
-/* Body */
 .ai-body {
-  flex: 1; overflow: auto; padding: 12px;
-  background: linear-gradient(180deg,#f9fafb,#ffffff);
+  flex: 1;
+  overflow: auto;
+  padding: 12px;
+  background: linear-gradient(180deg, #f9fafb, #ffffff);
 }
 
-/* Messages */
 .ai-bubble {
-  max-width: 82%; margin: 8px 0; padding: 10px 12px; border-radius: 14px;
-  border: 1px solid #e5e7eb; background: #f8fafc;
+  max-width: 82%;
+  margin: 8px 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
 }
-.ai-bubble.me { margin-left: auto; background: #eef6ff; border-color: #bfdbfe; }
-.ai-bubble .tx { white-space: pre-wrap; color: #111827; font-size: 14px; }
+.ai-bubble.me {
+  margin-left: auto;
+  background: #eef6ff;
+  border-color: #bfdbfe;
+}
+.ai-bubble .tx {
+  white-space: pre-wrap;
+  color: #111827;
+  font-size: 14px;
+}
 
-.ai-sources { margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; }
-.badge { background: #111827; color: #fff; padding: 2px 6px; border-radius: 8px; font-size: 11px; }
+.ai-sources {
+  margin-top: 6px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.badge {
+  background: #111827;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 11px;
+}
 
-/* Input row */
 .ai-input {
-  display: flex; gap: 8px; padding: 10px; border-top: 1px solid #eef1f4;
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  border-top: 1px solid #eef1f4;
 }
 .ai-input input {
-  flex: 1; border: 1px solid #d1d5db; border-radius: 12px; padding: 10px 12px; outline: none; background: #fff;
+  flex: 1;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 10px 12px;
+  outline: none;
+  background: #fff;
 }
-.ai-input input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+.ai-input input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
 .ai-input button {
-  min-width: 88px; height: 40px;
-  border-radius: 12px; padding: 0 14px; font-weight: 700;
-  background: #2563eb; color: #fff;
+  min-width: 88px;
+  height: 40px;
+  border-radius: 12px;
+  padding: 0 14px;
+  font-weight: 700;
+  background: #2563eb;
+  color: #fff;
 }
-.ai-input button:disabled { opacity: .6; cursor: not-allowed; }
+.ai-input button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
-/* Errors */
 .ai-msg.error {
-  margin: 8px 0; padding: 10px 12px;
-  background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; border-radius: 8px;
+  margin: 8px 0;
+  padding: 10px 12px;
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
 }
 
-/* If you still want badges hidden, keep this. Remove to show sources. */
-.ai-panel .badge { display: none !important; }
+.ai-panel .badge {
+  display: none !important;
+}
 
-/* Mobile: shorter panel */
 @media (max-width: 480px) {
-  .ai-panel { height: 70vh; }
+  .ai-panel {
+    height: 70vh;
+  }
 }

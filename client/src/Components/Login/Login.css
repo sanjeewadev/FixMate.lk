@@ -15,7 +15,7 @@
   background: #fff;
   padding: 40px;
   border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   width: 100%;
   max-width: 400px;
   text-align: center;
@@ -26,8 +26,14 @@
 }
 
 @keyframes modalPop {
-  from { opacity: 0; transform: translate(-50%, -52%) scale(0.98); }
-  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  from {
+    opacity: 0;
+    transform: translate(-50%, -52%) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 
 .close-btn {
@@ -46,7 +52,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color .2s, background .2s;
+  transition:
+    color 0.2s,
+    background 0.2s;
 }
 .close-btn:hover {
   color: #0070f3;
@@ -119,6 +127,18 @@
   font-size: 14px;
   border: 1px solid transparent;
 }
-.msg.success { background: #e6ffed; border-color: #34c759; color: #0b5d1e; }
-.msg.error   { background: #ffe9e9; border-color: #ff3b30; color: #6b1111; }
-.msg.info    { background: #eef6ff; border-color: #0a84ff; color: #094a93; }
+.msg.success {
+  background: #e6ffed;
+  border-color: #34c759;
+  color: #0b5d1e;
+}
+.msg.error {
+  background: #ffe9e9;
+  border-color: #ff3b30;
+  color: #6b1111;
+}
+.msg.info {
+  background: #eef6ff;
+  border-color: #0a84ff;
+  color: #094a93;
+}

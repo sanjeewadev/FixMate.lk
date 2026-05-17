@@ -1,13 +1,76 @@
-.cmpBack{ position:fixed; inset:0; background:rgba(0,0,0,.35); display:grid; place-items:center; z-index:5000; }
-.cmpCard{ width:min(560px,92vw); border-radius:16px; background:#fff; border:1px solid #e5e7eb; box-shadow:0 18px 36px rgba(0,0,0,.18); overflow:hidden; }
-.cmpHead{ display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-bottom:1px solid #eef1f4; }
-.cmpTitle{ font-weight:800; }
-.cmpX{ border:0; background:#f3f4f6; width:28px; height:28px; border-radius:50%; cursor:pointer; }
-.cmpForm{ display:flex; flex-direction:column; gap:10px; padding:12px; }
-.cmpForm input, .cmpForm textarea{ border:1px solid #e5e7eb; border-radius:10px; padding:10px 12px; outline:none; }
-.cmpForm input:focus, .cmpForm textarea:focus{ border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.15); }
-.cmpActions{ display:flex; gap:8px; justify-content:flex-end; margin-top:6px; }
-.cmpBtn{ border:0; border-radius:10px; padding:8px 14px; font-weight:700; cursor:pointer; }
-.cmpBtn.primary{ background:#2563eb; color:#fff; }
-.cmpBtn.ghost{ background:#eef2f7; }
-.cmpMsg.error{ color:#dc2626; margin: 0 12px; }
+.cmpBack {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: grid;
+  place-items: center;
+  z-index: 5000;
+}
+.cmpCard {
+  width: min(560px, 92vw);
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+.cmpHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid #eef1f4;
+}
+.cmpTitle {
+  font-weight: 800;
+}
+.cmpX {
+  border: 0;
+  background: #f3f4f6;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.cmpForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+}
+.cmpForm input,
+.cmpForm textarea {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  outline: none;
+}
+.cmpForm input:focus,
+.cmpForm textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+.cmpActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+.cmpBtn {
+  border: 0;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.cmpBtn.primary {
+  background: #2563eb;
+  color: #fff;
+}
+.cmpBtn.ghost {
+  background: #eef2f7;
+}
+.cmpMsg.error {
+  color: #dc2626;
+  margin: 0 12px;
+}

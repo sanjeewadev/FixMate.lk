@@ -65,13 +65,22 @@
 }
 
 .ctItem.is-active {
-  outline: 2px solid rgba(37, 99, 235, .14);
+  outline: 2px solid rgba(37, 99, 235, 0.14);
   background: #f5f8ff;
 }
 
-.ctMain { display: grid; gap: 4px; }
-.ctTitle { font-weight: 600; }
-.ctSub { font-size: 12px; color: #6b7280; text-transform: capitalize; }
+.ctMain {
+  display: grid;
+  gap: 4px;
+}
+.ctTitle {
+  font-weight: 600;
+}
+.ctSub {
+  font-size: 12px;
+  color: #6b7280;
+  text-transform: capitalize;
+}
 
 .ctStatus {
   padding: 2px 8px;
@@ -80,10 +89,18 @@
   background: #f3f4f6;
 }
 
-.ctStatus.coordinator_approved { background: #e0f2fe; }
-.ctStatus.in_progress { background: #fef9c3; }
+.ctStatus.coordinator_approved {
+  background: #e0f2fe;
+}
+.ctStatus.in_progress {
+  background: #fef9c3;
+}
 
-.ctTech { display: flex; align-items: center; gap: 8px; }
+.ctTech {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
 .ctAvatar {
   width: 36px;
@@ -102,7 +119,10 @@
   object-fit: cover;
 }
 
-.ctTechName { font-size: 13px; color: #374151; }
+.ctTechName {
+  font-size: 13px;
+  color: #374151;
+}
 
 .ctSkeleton.large {
   height: 120px;
@@ -113,8 +133,12 @@
 }
 
 @keyframes ctSk {
-  0% { background-position: 200% 0; }
-  100% { background-position: 0 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
 }
 
 .ctEmpty {
@@ -137,11 +161,19 @@
   color: var(--ink);
 }
 
-.ctMsg.error { color: #dc2626; }
-.ctMsg.info { color: #6b7280; }
+.ctMsg.error {
+  color: #dc2626;
+}
+.ctMsg.info {
+  color: #6b7280;
+}
 
-.ctPanelHolder { height: 100%; }
+.ctPanelHolder {
+  height: 100%;
+}
 
 @media (max-width: 900px) {
-  .ctGrid { grid-template-columns: 1fr; }
+  .ctGrid {
+    grid-template-columns: 1fr;
+  }
 }

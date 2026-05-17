@@ -10,7 +10,6 @@
   font-weight: 800;
 }
 
-/* messages */
 .cMsg {
   padding: 10px 12px;
   border-radius: 10px;
@@ -28,7 +27,6 @@
   border-color: #dbeafe;
 }
 
-/* simple card */
 .cCard {
   border: 1px solid #e5e7eb;
   border-radius: 12px;
@@ -36,7 +34,6 @@
   padding: 12px;
 }
 
-/* list + item */
 .cList {
   display: flex;
   flex-direction: column;
@@ -49,7 +46,6 @@
   overflow: hidden;
 }
 
-/* header */
 .cHeader {
   padding: 12px;
   border-bottom: 1px solid #eef1f4;
@@ -69,16 +65,21 @@
   background: #f3f4f6;
   text-transform: capitalize;
 }
-.cStatus.in_progress { background: #e0e7ff; }
-.cStatus.resolved    { background: #dcfce7; }
-.cStatus.closed      { background: #fde68a; }
+.cStatus.in_progress {
+  background: #e0e7ff;
+}
+.cStatus.resolved {
+  background: #dcfce7;
+}
+.cStatus.closed {
+  background: #fde68a;
+}
 
 .cDetails {
   color: #6b7280;
   margin-top: 4px;
 }
 
-/* link-styled button (more specific to beat globals) */
 .cLink {
   appearance: none;
   background: transparent;
@@ -89,14 +90,15 @@
   font-weight: 700;
   cursor: pointer;
 }
-.cLink:hover { text-decoration: underline; }
+.cLink:hover {
+  text-decoration: underline;
+}
 .cLink:focus-visible {
   outline: 2px solid var(--c-brand, #2563eb);
   outline-offset: 2px;
   border-radius: 6px;
 }
 
-/* thread */
 .cThread {
   background: linear-gradient(180deg, #fafafa, #ffffff);
   padding: 12px;
@@ -125,10 +127,14 @@
   color: #6b7280;
   margin-bottom: 4px;
 }
-.cText { white-space: pre-wrap; }
-.cEmptyNote { color: #9ca3af; font-size: 13px; }
+.cText {
+  white-space: pre-wrap;
+}
+.cEmptyNote {
+  color: #9ca3af;
+  font-size: 13px;
+}
 
-/* footer + contained button (beats global button rules) */
 .cFooter {
   display: flex;
   justify-content: flex-end;
@@ -147,21 +153,33 @@ button.cBtn {
   cursor: pointer;
   color: #ffffff;
   background: var(--c-brand, #2563eb);
-  transition: filter 120ms ease, transform 60ms ease;
+  transition:
+    filter 120ms ease,
+    transform 60ms ease;
 }
-button.cBtn:hover   { filter: brightness(.98); }
-button.cBtn:active  { transform: translateY(1px); }
-button.cBtn:disabled{ opacity: .6; cursor: not-allowed; }
+button.cBtn:hover {
+  filter: brightness(0.98);
+}
+button.cBtn:active {
+  transform: translateY(1px);
+}
+button.cBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
-/* ghost variant */
 button.cBtn.ghost {
   background: #eef2f7;
   color: #0f172a;
   border: 1px solid #e5e7eb;
   font-weight: 600;
 }
-button.cBtn.ghost:hover { background: #e6ecf7; }
+button.cBtn.ghost:hover {
+  background: #e6ecf7;
+}
 
 @media (max-width: 640px) {
-  .cThread { max-height: 360px; }
+  .cThread {
+    max-height: 360px;
+  }
 }

@@ -15,7 +15,7 @@ export default function RateTechnician({ booking, role }) {
   const [message, setMessage] = useState("");
   const [submitted, setSubmitted] = useState(!!booking?.rating);
 
-  // ✅ Customer can submit only if booking is completed and not yet rated
+  //  Customer can submit only if booking is completed and not yet rated
   const canRate =
     role === "customer" && booking.status === "completed" && !booking.rating;
 
@@ -29,7 +29,7 @@ export default function RateTechnician({ booking, role }) {
       const res = await axios.patch(
         `/api/bookings/${booking._id}/rate`,
         { stars, comment },
-        { withCredentials: true }
+        { withCredentials: true },
       );
       setMessage(res.data.message || "Submitted!");
       setSubmitted(true);
@@ -38,7 +38,7 @@ export default function RateTechnician({ booking, role }) {
     }
   };
 
-  // ✅ Read-only mode (already rated OR not a customer)
+  //  Read-only mode (already rated OR not a customer)
   if (submitted || booking.rating || role !== "customer") {
     const r = booking.rating || { stars, comment, createdAt: new Date() };
     return (
@@ -53,14 +53,16 @@ export default function RateTechnician({ booking, role }) {
         </div>
         <p className="comment">{r.comment || "No comment provided."}</p>
         {r.createdAt && (
-          <p className="date">Rated on {new Date(r.createdAt).toLocaleString()}</p>
+          <p className="date">
+            Rated on {new Date(r.createdAt).toLocaleString()}
+          </p>
         )}
         {message && <p className="msg">{message}</p>}
       </div>
     );
   }
 
-  // ✅ Rating form (customer only, completed, no rating yet)
+  //  Rating form (customer only, completed, no rating yet)
   return (
     <div className="rate-technician">
       <h4>Rate Your Technician</h4>
@@ -74,8 +76,7 @@ export default function RateTechnician({ booking, role }) {
               className={star <= (hover || stars) ? "star filled" : "star"}
               onClick={() => setStars(star)}
               onMouseEnter={() => setHover(star)}
-              onMouseLeave={() => setHover(0)}
-            >
+              onMouseLeave={() => setHover(0)}>
               ★
             </span>
           ))}
@@ -84,10 +85,11 @@ export default function RateTechnician({ booking, role }) {
         <textarea
           placeholder="Leave a comment (optional)"
           value={comment}
-          onChange={(e) => setComment(e.target.value)}
-        ></textarea>
+          onChange={(e) => setComment(e.target.value)}></textarea>
 
-        <button type="submit" className="btn">Submit Rating</button>
+        <button type="submit" className="btn">
+          Submit Rating
+        </button>
       </form>
     </div>
   );

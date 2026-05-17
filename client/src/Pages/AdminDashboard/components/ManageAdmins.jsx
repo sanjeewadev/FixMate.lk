@@ -26,7 +26,13 @@ export default function ManageAdmins() {
   const [base, setBase] = useState(1);
   const [offX, setOffX] = useState(0);
   const [offY, setOffY] = useState(0);
-  const dragRef = useRef({ active: false, startX: 0, startY: 0, startOffX: 0, startOffY: 0 });
+  const dragRef = useRef({
+    active: false,
+    startX: 0,
+    startY: 0,
+    startOffX: 0,
+    startOffY: 0,
+  });
   const imgMeta = useRef({ w: 0, h: 0 });
 
   // ---------- Load ----------
@@ -38,7 +44,8 @@ export default function ManageAdmins() {
     } catch (err) {
       const s = err?.response?.status;
       if (s === 401) setMessage("Unauthorized. Please log in again.");
-      else if (s === 403) setMessage("Forbidden. You must be admin or super admin.");
+      else if (s === 403)
+        setMessage("Forbidden. You must be admin or super admin.");
       else setMessage(err?.response?.data?.message || "Failed to load admins");
       console.error(err);
     } finally {
@@ -46,10 +53,13 @@ export default function ManageAdmins() {
     }
   };
 
-  useEffect(() => { fetchAdmins(); }, []);
+  useEffect(() => {
+    fetchAdmins();
+  }, []);
 
   // ---------- Form handlers ----------
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
   const resetForm = () => {
     setEditingId(null);
@@ -61,7 +71,7 @@ export default function ManageAdmins() {
   const buildPayload = (isCreate) => {
     const payload = {
       full_name: form.full_name,
-      email: form.email,               // keep email in both create & update
+      email: form.email, // keep email in both create & update
       phone_number: form.phone_number,
     };
     if (isCreate) payload.password = form.password;
@@ -74,15 +84,19 @@ export default function ManageAdmins() {
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      if (!form.password) { setMessage("Password is required for new admin."); return; }
+      if (!form.password) {
+        setMessage("Password is required for new admin.");
+        return;
+      }
       await api.post("/api/admin/admins", buildPayload(true));
-      setMessage("Admin created successfully ✅");
+      setMessage("Admin created successfully ");
       resetForm();
       fetchAdmins();
     } catch (err) {
       const s = err?.response?.status;
       if (s === 401) setMessage("Unauthorized. Please log in again.");
-      else if (s === 403) setMessage("Forbidden. You must be admin or super admin.");
+      else if (s === 403)
+        setMessage("Forbidden. You must be admin or super admin.");
       else setMessage(err?.response?.data?.message || "Error creating admin");
     }
   };
@@ -103,7 +117,8 @@ export default function ManageAdmins() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Delete this admin? (Only super admin can delete)")) return;
+    if (!window.confirm("Delete this admin? (Only super admin can delete)"))
+      return;
     try {
       await api.delete(`/api/admin/admins/${id}`);
       setMessage("Admin deleted 🗑️");
@@ -145,7 +160,10 @@ export default function ManageAdmins() {
     imgMeta.current = { w: img.naturalWidth, h: img.naturalHeight };
     const size = 256;
     const fit = Math.max(size / img.naturalWidth, size / img.naturalHeight);
-    setBase(fit); setZoom(1); setOffX(0); setOffY(0);
+    setBase(fit);
+    setZoom(1);
+    setOffX(0);
+    setOffY(0);
   };
 
   function clampPan(x, y, z) {
@@ -154,21 +172,35 @@ export default function ManageAdmins() {
     const scaledH = imgMeta.current.h * base * z;
     const maxX = Math.max(0, (scaledW - size) / 2);
     const maxY = Math.max(0, (scaledH - size) / 2);
-    return { x: Math.max(-maxX, Math.min(maxX, x)), y: Math.max(-maxY, Math.min(maxY, y)) };
+    return {
+      x: Math.max(-maxX, Math.min(maxX, x)),
+      y: Math.max(-maxY, Math.min(maxY, y)),
+    };
   }
 
   const onDragStart = (e) => {
     e.preventDefault();
     const pt = e.touches ? e.touches[0] : e;
-    dragRef.current = { active: true, startX: pt.clientX, startY: pt.clientY, startOffX: offX, startOffY: offY };
+    dragRef.current = {
+      active: true,
+      startX: pt.clientX,
+      startY: pt.clientY,
+      startOffX: offX,
+      startOffY: offY,
+    };
   };
   const onDragMove = (e) => {
     if (!dragRef.current.active) return;
     const pt = e.touches ? e.touches[0] : e;
     const dx = pt.clientX - dragRef.current.startX;
     const dy = pt.clientY - dragRef.current.startY;
-    const next = clampPan(dragRef.current.startOffX + dx, dragRef.current.startOffY + dy, zoom);
-    setOffX(next.x); setOffY(next.y);
+    const next = clampPan(
+      dragRef.current.startOffX + dx,
+      dragRef.current.startOffY + dy,
+      zoom,
+    );
+    setOffX(next.x);
+    setOffY(next.y);
   };
   const onDragEnd = () => (dragRef.current.active = false);
 
@@ -183,7 +215,8 @@ export default function ManageAdmins() {
 
   function exportCroppedDataUrl(img, size = 256, startQ = 0.75) {
     const canvas = document.createElement("canvas");
-    canvas.width = size; canvas.height = size;
+    canvas.width = size;
+    canvas.height = size;
     const ctx = canvas.getContext("2d");
 
     const scale = base * zoom;
@@ -193,8 +226,12 @@ export default function ManageAdmins() {
     const dy = (size - drawH) / 2 + offY;
 
     ctx.save();
-    ctx.beginPath(); ctx.arc(size/2, size/2, size/2, 0, Math.PI*2); ctx.closePath(); ctx.clip();
-    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
     ctx.drawImage(img, dx, dy, drawW, drawH);
     ctx.restore();
 
@@ -221,7 +258,8 @@ export default function ManageAdmins() {
 
   const cleanupCrop = () => {
     if (cropSrc) URL.revokeObjectURL(cropSrc);
-    setCropSrc(null); setCropOpen(false);
+    setCropSrc(null);
+    setCropOpen(false);
   };
 
   return (
@@ -229,17 +267,32 @@ export default function ManageAdmins() {
       <div className="ma-header">
         <div className="ma-title">
           <h2>Manage Admins</h2>
-          <div className="ma-sub">Create, update, or remove admin accounts. Avatars are optional.</div>
+          <div className="ma-sub">
+            Create, update, or remove admin accounts. Avatars are optional.
+          </div>
         </div>
       </div>
 
       {message && <div className="ma-alert ma-alert--info">{message}</div>}
 
       {/* Form */}
-      <form onSubmit={editingId ? handleUpdate : handleCreate} className="ma-card ma-form" autoComplete="off">
+      <form
+        onSubmit={editingId ? handleUpdate : handleCreate}
+        className="ma-card ma-form"
+        autoComplete="off">
         {/* decoys to avoid autofill chaos */}
-        <input type="text" name="username" autoComplete="username" style={{ display: "none" }} />
-        <input type="password" name="password" autoComplete="current-password" style={{ display: "none" }} />
+        <input
+          type="text"
+          name="username"
+          autoComplete="username"
+          style={{ display: "none" }}
+        />
+        <input
+          type="password"
+          name="password"
+          autoComplete="current-password"
+          style={{ display: "none" }}
+        />
 
         <div className="ma-form-grid">
           <div className="ma-fields">
@@ -264,7 +317,9 @@ export default function ManageAdmins() {
                 placeholder="email@example.com"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
-                onBlur={(e) => setForm((f) => ({ ...f, email: e.target.value.trim() }))}
+                onBlur={(e) =>
+                  setForm((f) => ({ ...f, email: e.target.value.trim() }))
+                }
                 required
                 autoComplete="off"
                 autoCapitalize="none"
@@ -273,18 +328,30 @@ export default function ManageAdmins() {
                 data-lpignore="true"
                 spellCheck={false}
               />
-              {editingId && <div className="tiny muted">Changing email updates the admin’s login address.</div>}
+              {editingId && (
+                <div className="tiny muted">
+                  Changing email updates the admin’s login address.
+                </div>
+              )}
             </div>
 
             <div className="ma-cols-2">
               <div className="ma-field">
-                <label>{editingId ? "New Password (optional)" : "Password"}</label>
+                <label>
+                  {editingId ? "New Password (optional)" : "Password"}
+                </label>
                 <input
                   type="password"
                   name="__no_password"
-                  placeholder={editingId ? "Leave blank to keep current password" : "Set a strong password"}
+                  placeholder={
+                    editingId
+                      ? "Leave blank to keep current password"
+                      : "Set a strong password"
+                  }
                   value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, password: e.target.value })
+                  }
                   required={!editingId}
                   autoComplete="new-password"
                   data-1p-ignore="true"
@@ -311,7 +378,10 @@ export default function ManageAdmins() {
                 {editingId ? "Update Admin" : "Create Admin"}
               </button>
               {editingId && (
-                <button type="button" className="ma-btn ma-btn--outline" onClick={resetForm}>
+                <button
+                  type="button"
+                  className="ma-btn ma-btn--outline"
+                  onClick={resetForm}>
                   Cancel
                 </button>
               )}
@@ -321,24 +391,41 @@ export default function ManageAdmins() {
           {/* Avatar side */}
           <div className="ma-avatar-card">
             <div className="ma-avatar-wrap">
-              <img src={imagePreview || "/default-profile.png"} alt="profile" className="ma-avatar" />
+              <img
+                src={imagePreview || "/default-profile.png"}
+                alt="profile"
+                className="ma-avatar"
+              />
             </div>
             <div className="ma-avatar-actions">
-              <input ref={fileRef} type="file" accept="image/*" hidden onChange={onPick} />
-              <button type="button" className="ma-btn ma-btn--secondary" onClick={pickFile}>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={onPick}
+              />
+              <button
+                type="button"
+                className="ma-btn ma-btn--secondary"
+                onClick={pickFile}>
                 {imagePreview ? "Change Photo" : "Upload Photo"}
               </button>
               {imagePreview && (
                 <button
                   type="button"
                   className="ma-btn ma-btn--danger"
-                  onClick={() => { setImagePreview(""); setImageDataUrl(""); }}
-                >
+                  onClick={() => {
+                    setImagePreview("");
+                    setImageDataUrl("");
+                  }}>
                   Remove Photo
                 </button>
               )}
             </div>
-            <div className="ma-hint tiny">Square images look best · JPG/PNG</div>
+            <div className="ma-hint tiny">
+              Square images look best · JPG/PNG
+            </div>
           </div>
         </div>
       </form>
@@ -347,7 +434,10 @@ export default function ManageAdmins() {
       <div className="ma-card">
         <div className="ma-list-head">
           <h3>Admin List</h3>
-          <button className="ma-btn ma-btn--outline" onClick={fetchAdmins} disabled={loading}>
+          <button
+            className="ma-btn ma-btn--outline"
+            onClick={fetchAdmins}
+            disabled={loading}>
             {loading ? "Refreshing…" : "Refresh"}
           </button>
         </div>
@@ -367,19 +457,49 @@ export default function ManageAdmins() {
             <tbody>
               {admins.map((a) => (
                 <tr key={a._id}>
-                  <td>{a.profile_image_url ? <img src={a.profile_image_url} className="ma-avatar--sm" alt="profile" /> : "—"}</td>
+                  <td>
+                    {a.profile_image_url ? (
+                      <img
+                        src={a.profile_image_url}
+                        className="ma-avatar--sm"
+                        alt="profile"
+                      />
+                    ) : (
+                      "—"
+                    )}
+                  </td>
                   <td>{a.full_name}</td>
                   <td className="ma-clip">{a.email}</td>
                   <td>{a.phone_number}</td>
-                  <td><span className={`ma-role ${a.role === "super_admin" ? "super" : "admin"}`}>{a.role}</span></td>
+                  <td>
+                    <span
+                      className={`ma-role ${a.role === "super_admin" ? "super" : "admin"}`}>
+                      {a.role}
+                    </span>
+                  </td>
                   <td className="ma-row-actions">
-                    <button onClick={() => startEdit(a)} className="ma-btn ma-btn--small ma-btn--primary">Edit</button>
-                    <button onClick={() => handleDelete(a._id)} className="ma-btn ma-btn--small ma-btn--danger">Delete</button>
+                    <button
+                      onClick={() => startEdit(a)}
+                      className="ma-btn ma-btn--small ma-btn--primary">
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(a._id)}
+                      className="ma-btn ma-btn--small ma-btn--danger">
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}
               {admins.length === 0 && !loading && (
-                <tr><td colSpan="6" style={{ textAlign: "center" }} className="muted">No admins</td></tr>
+                <tr>
+                  <td
+                    colSpan="6"
+                    style={{ textAlign: "center" }}
+                    className="muted">
+                    No admins
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
@@ -388,11 +508,20 @@ export default function ManageAdmins() {
 
       {/* Crop modal */}
       {cropOpen && (
-        <div className="crop-overlay" onClick={cleanupCrop} role="dialog" aria-modal="true">
+        <div
+          className="crop-overlay"
+          onClick={cleanupCrop}
+          role="dialog"
+          aria-modal="true">
           <div className="crop-modal" onClick={(e) => e.stopPropagation()}>
             <div className="crop-head">
               <h4>Adjust Photo</h4>
-              <button type="button" className="ma-btn ma-btn--danger ma-btn--small" onClick={cleanupCrop}>Close</button>
+              <button
+                type="button"
+                className="ma-btn ma-btn--danger ma-btn--small"
+                onClick={cleanupCrop}>
+                Close
+              </button>
             </div>
 
             <div
@@ -403,15 +532,16 @@ export default function ManageAdmins() {
               onMouseLeave={onDragEnd}
               onTouchStart={onDragStart}
               onTouchMove={onDragMove}
-              onTouchEnd={onDragEnd}
-            >
+              onTouchEnd={onDragEnd}>
               {cropSrc && (
                 <img
                   src={cropSrc}
                   alt="Crop preview"
                   className="crop-img"
                   onLoad={onPreviewLoad}
-                  style={{ transform: `translate(calc(-50% + ${offX}px), calc(-50% + ${offY}px)) scale(${base * zoom})` }}
+                  style={{
+                    transform: `translate(calc(-50% + ${offX}px), calc(-50% + ${offY}px)) scale(${base * zoom})`,
+                  }}
                 />
               )}
               <div className="crop-circle" />
@@ -427,8 +557,18 @@ export default function ManageAdmins() {
                 onChange={(e) => setZoom(parseFloat(e.target.value))}
               />
               <div className="crop-actions">
-                <button type="button" className="ma-btn ma-btn--danger ma-btn--outline" onClick={cleanupCrop}>Cancel</button>
-                <button type="button" className="ma-btn ma-btn--primary" onClick={confirmCrop}>Use Photo</button>
+                <button
+                  type="button"
+                  className="ma-btn ma-btn--danger ma-btn--outline"
+                  onClick={cleanupCrop}>
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="ma-btn ma-btn--primary"
+                  onClick={confirmCrop}>
+                  Use Photo
+                </button>
               </div>
             </div>
           </div>

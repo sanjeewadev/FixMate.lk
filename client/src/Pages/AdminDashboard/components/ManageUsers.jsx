@@ -3,10 +3,31 @@ import api from "../../../lib/api";
 import "./ManageUsers.css";
 
 const DISTRICTS = [
-  "Colombo","Gampaha","Kalutara","Kandy","Matale","Nuwara Eliya",
-  "Galle","Matara","Hambantota","Jaffna","Kilinochchi","Mannar","Vavuniya","Mullaitivu",
-  "Batticaloa","Ampara","Trincomalee","Kurunegala","Puttalam",
-  "Anuradhapura","Polonnaruwa","Badulla","Monaragala","Ratnapura","Kegalle",
+  "Colombo",
+  "Gampaha",
+  "Kalutara",
+  "Kandy",
+  "Matale",
+  "Nuwara Eliya",
+  "Galle",
+  "Matara",
+  "Hambantota",
+  "Jaffna",
+  "Kilinochchi",
+  "Mannar",
+  "Vavuniya",
+  "Mullaitivu",
+  "Batticaloa",
+  "Ampara",
+  "Trincomalee",
+  "Kurunegala",
+  "Puttalam",
+  "Anuradhapura",
+  "Polonnaruwa",
+  "Badulla",
+  "Monaragala",
+  "Ratnapura",
+  "Kegalle",
 ];
 
 export default function ManageUsers() {
@@ -36,11 +57,19 @@ export default function ManageUsers() {
   const [base, setBase] = useState(1);
   const [offX, setOffX] = useState(0);
   const [offY, setOffY] = useState(0);
-  const dragRef = useRef({ active:false, startX:0, startY:0, startOffX:0, startOffY:0 });
-  const imgMeta = useRef({ w:0, h:0 });
+  const dragRef = useRef({
+    active: false,
+    startX: 0,
+    startY: 0,
+    startOffX: 0,
+    startOffY: 0,
+  });
+  const imgMeta = useRef({ w: 0, h: 0 });
 
   // ---------- load ----------
-  useEffect(() => { fetchUsers(); }, []);
+  useEffect(() => {
+    fetchUsers();
+  }, []);
   async function fetchUsers() {
     try {
       setLoading(true);
@@ -54,17 +83,30 @@ export default function ManageUsers() {
   }
 
   // ---------- form ----------
-  const handleChange = (e) => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
-  const handleEmailChange = (e) => setForm(p => ({ ...p, email: e.target.value }));
-  const handlePasswordChange = (e) => setForm(p => ({ ...p, password: e.target.value }));
+  const handleChange = (e) =>
+    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+  const handleEmailChange = (e) =>
+    setForm((p) => ({ ...p, email: e.target.value }));
+  const handlePasswordChange = (e) =>
+    setForm((p) => ({ ...p, password: e.target.value }));
 
   // ---------- create/update ----------
   async function handleSubmit(e) {
     e.preventDefault();
     setMsg("");
-    const required = ["full_name","email","phone_number","address","district", ...(editingUser ? [] : ["password"])];
-    const missing = required.filter(k => !String(form[k] ?? "").trim());
-    if (missing.length) { setMsg(`Please fill: ${missing.join(", ")}`); return; }
+    const required = [
+      "full_name",
+      "email",
+      "phone_number",
+      "address",
+      "district",
+      ...(editingUser ? [] : ["password"]),
+    ];
+    const missing = required.filter((k) => !String(form[k] ?? "").trim());
+    if (missing.length) {
+      setMsg(`Please fill: ${missing.join(", ")}`);
+      return;
+    }
 
     try {
       if (editingUser) {
@@ -89,7 +131,7 @@ export default function ManageUsers() {
           ...(imageDataUrl ? { profile_image_url: imageDataUrl } : {}),
         };
         await api.post("/api/admin/customers", payload);
-        setMsg("User created ✅");
+        setMsg("User created ");
       }
       resetForm();
       fetchUsers();
@@ -100,8 +142,12 @@ export default function ManageUsers() {
 
   async function handleDelete(id) {
     if (!window.confirm("Delete this user?")) return;
-    try { await api.delete(`/api/admin/customers/${id}`); fetchUsers(); }
-    catch { setMsg("Error deleting user"); }
+    try {
+      await api.delete(`/api/admin/customers/${id}`);
+      fetchUsers();
+    } catch {
+      setMsg("Error deleting user");
+    }
   }
 
   function startEdit(u) {
@@ -114,14 +160,23 @@ export default function ManageUsers() {
       district: u.district || "",
       password: "",
     });
-    setImagePreview(u.profile_image_url || ""); setImageDataUrl("");
+    setImagePreview(u.profile_image_url || "");
+    setImageDataUrl("");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function resetForm() {
     setEditingUser(null);
-    setForm({ full_name:"", email:"", phone_number:"", address:"", district:"", password:"" });
-    setImagePreview(""); setImageDataUrl("");
+    setForm({
+      full_name: "",
+      email: "",
+      phone_number: "",
+      address: "",
+      district: "",
+      password: "",
+    });
+    setImagePreview("");
+    setImageDataUrl("");
   }
 
   // ---------- pick & crop ----------
@@ -130,7 +185,8 @@ export default function ManageUsers() {
     const f = e.target.files?.[0];
     if (!f || !f.type?.startsWith("image/")) return;
     const url = URL.createObjectURL(f);
-    setCropSrc(url); setCropOpen(true);
+    setCropSrc(url);
+    setCropOpen(true);
     e.target.value = "";
   };
   const onPreviewLoad = (e) => {
@@ -138,34 +194,52 @@ export default function ManageUsers() {
     imgMeta.current = { w: img.naturalWidth, h: img.naturalHeight };
     const S = 256;
     const fit = Math.max(S / img.naturalWidth, S / img.naturalHeight);
-    setBase(fit); setZoom(1); setOffX(0); setOffY(0);
+    setBase(fit);
+    setZoom(1);
+    setOffX(0);
+    setOffY(0);
   };
-  const clampPan = (x,y,z) => {
+  const clampPan = (x, y, z) => {
     const S = 256;
     const w = imgMeta.current.w * base * z;
     const h = imgMeta.current.h * base * z;
     const maxX = Math.max(0, (w - S) / 2);
     const maxY = Math.max(0, (h - S) / 2);
-    return { x: Math.max(-maxX, Math.min(maxX, x)), y: Math.max(-maxY, Math.min(maxY, y)) };
+    return {
+      x: Math.max(-maxX, Math.min(maxX, x)),
+      y: Math.max(-maxY, Math.min(maxY, y)),
+    };
   };
   const onDragStart = (e) => {
     e.preventDefault();
     const p = e.touches ? e.touches[0] : e;
-    dragRef.current = { active:true, startX:p.clientX, startY:p.clientY, startOffX:offX, startOffY:offY };
+    dragRef.current = {
+      active: true,
+      startX: p.clientX,
+      startY: p.clientY,
+      startOffX: offX,
+      startOffY: offY,
+    };
   };
   const onDragMove = (e) => {
     if (!dragRef.current.active) return;
     const p = e.touches ? e.touches[0] : e;
     const dx = p.clientX - dragRef.current.startX;
     const dy = p.clientY - dragRef.current.startY;
-    const next = clampPan(dragRef.current.startOffX + dx, dragRef.current.startOffY + dy, zoom);
-    setOffX(next.x); setOffY(next.y);
+    const next = clampPan(
+      dragRef.current.startOffX + dx,
+      dragRef.current.startOffY + dy,
+      zoom,
+    );
+    setOffX(next.x);
+    setOffY(next.y);
   };
   const onDragEnd = () => (dragRef.current.active = false);
 
   function exportCroppedDataUrl(img, size = 256, startQ = 0.75) {
     const canvas = document.createElement("canvas");
-    canvas.width = size; canvas.height = size;
+    canvas.width = size;
+    canvas.height = size;
     const ctx = canvas.getContext("2d");
     const scale = base * zoom;
     const drawW = img.naturalWidth * scale;
@@ -174,29 +248,42 @@ export default function ManageUsers() {
     const dy = (size - drawH) / 2 + offY;
 
     ctx.save();
-    ctx.beginPath(); ctx.arc(size/2, size/2, size/2, 0, Math.PI*2); ctx.closePath(); ctx.clip();
-    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
     ctx.drawImage(img, dx, dy, drawW, drawH);
     ctx.restore();
 
-    let q = startQ, out = canvas.toDataURL("image/jpeg", q);
+    let q = startQ,
+      out = canvas.toDataURL("image/jpeg", q);
     const maxBytes = 60 * 1024;
-    while (out.length * 0.75 > maxBytes && q > 0.5) { q -= 0.1; out = canvas.toDataURL("image/jpeg", q); }
+    while (out.length * 0.75 > maxBytes && q > 0.5) {
+      q -= 0.1;
+      out = canvas.toDataURL("image/jpeg", q);
+    }
     return out;
   }
 
   const confirmCrop = async () => {
     if (!cropSrc) return;
-    const img = new Image(); img.src = cropSrc;
+    const img = new Image();
+    img.src = cropSrc;
     await new Promise((r) => (img.onload = r));
     const data = exportCroppedDataUrl(img, 256, 0.8);
-    setImageDataUrl(data); setImagePreview(data); setCropOpen(false);
-    if (cropSrc) URL.revokeObjectURL(cropSrc); setCropSrc(null);
+    setImageDataUrl(data);
+    setImagePreview(data);
+    setCropOpen(false);
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    setCropSrc(null);
   };
 
   const cleanupCrop = () => {
     if (cropSrc) URL.revokeObjectURL(cropSrc);
-    setCropSrc(null); setCropOpen(false);
+    setCropSrc(null);
+    setCropOpen(false);
   };
 
   return (
@@ -205,24 +292,46 @@ export default function ManageUsers() {
       <div className="mu-header">
         <div className="mu-title">
           <h2>Manage Users</h2>
-          <div className="mu-sub">Create, update, or remove customers. Avatars are optional.</div>
+          <div className="mu-sub">
+            Create, update, or remove customers. Avatars are optional.
+          </div>
         </div>
       </div>
 
       {msg && <div className="mu-alert mu-alert--info">{msg}</div>}
 
       {/* Form Card */}
-      <form className="mu-card mu-form" onSubmit={handleSubmit} autoComplete="off">
+      <form
+        className="mu-card mu-form"
+        onSubmit={handleSubmit}
+        autoComplete="off">
         {/* decoys */}
-        <input type="text" name="username" autoComplete="username" style={{display:"none"}} />
-        <input type="password" name="password" autoComplete="current-password" style={{display:"none"}} />
+        <input
+          type="text"
+          name="username"
+          autoComplete="username"
+          style={{ display: "none" }}
+        />
+        <input
+          type="password"
+          name="password"
+          autoComplete="current-password"
+          style={{ display: "none" }}
+        />
 
         <div className="mu-form-grid">
           {/* Fields */}
           <div className="mu-fields">
             <div className="mu-field">
               <label>Full Name</label>
-              <input name="full_name" type="text" value={form.full_name} onChange={handleChange} placeholder="Full Name" required />
+              <input
+                name="full_name"
+                type="text"
+                value={form.full_name}
+                onChange={handleChange}
+                placeholder="Full Name"
+                required
+              />
             </div>
 
             <div className="mu-field">
@@ -233,7 +342,9 @@ export default function ManageUsers() {
                 inputMode="email"
                 value={form.email}
                 onChange={handleEmailChange}
-                onBlur={(e)=>setForm(p=>({...p,email:e.target.value.trim()}))}
+                onBlur={(e) =>
+                  setForm((p) => ({ ...p, email: e.target.value.trim() }))
+                }
                 placeholder="email@example.com"
                 required
                 autoComplete="off"
@@ -243,18 +354,28 @@ export default function ManageUsers() {
                 data-1p-ignore="true"
                 data-lpignore="true"
               />
-              {editingUser && <div className="tiny muted">Changing email updates the user’s login.</div>}
+              {editingUser && (
+                <div className="tiny muted">
+                  Changing email updates the user’s login.
+                </div>
+              )}
             </div>
 
             <div className="mu-cols-2">
               <div className="mu-field">
-                <label>{editingUser ? "New Password (optional)" : "Password"}</label>
+                <label>
+                  {editingUser ? "New Password (optional)" : "Password"}
+                </label>
                 <input
                   name="__no_password"
                   type="password"
                   value={form.password}
                   onChange={handlePasswordChange}
-                  placeholder={editingUser ? "Leave blank to keep current password" : "Set a strong password"}
+                  placeholder={
+                    editingUser
+                      ? "Leave blank to keep current password"
+                      : "Set a strong password"
+                  }
                   required={!editingUser}
                   autoComplete="new-password"
                   spellCheck={false}
@@ -265,21 +386,42 @@ export default function ManageUsers() {
 
               <div className="mu-field">
                 <label>Phone Number</label>
-                <input name="phone_number" type="text" value={form.phone_number} onChange={handleChange} placeholder="+94XXXXXXXXX" />
+                <input
+                  name="phone_number"
+                  type="text"
+                  value={form.phone_number}
+                  onChange={handleChange}
+                  placeholder="+94XXXXXXXXX"
+                />
               </div>
             </div>
 
             <div className="mu-cols-2">
               <div className="mu-field">
                 <label>Address</label>
-                <input name="address" type="text" value={form.address} onChange={handleChange} placeholder="Street, City" required />
+                <input
+                  name="address"
+                  type="text"
+                  value={form.address}
+                  onChange={handleChange}
+                  placeholder="Street, City"
+                  required
+                />
               </div>
 
               <div className="mu-field">
                 <label>District</label>
-                <select name="district" value={form.district} onChange={handleChange} required>
+                <select
+                  name="district"
+                  value={form.district}
+                  onChange={handleChange}
+                  required>
                   <option value="">Select district…</option>
-                  {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+                  {DISTRICTS.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -289,7 +431,12 @@ export default function ManageUsers() {
                 {editingUser ? "Update User" : "Create User"}
               </button>
               {editingUser && (
-                <button type="button" className="mu-btn mu-btn--outline" onClick={resetForm}>Cancel</button>
+                <button
+                  type="button"
+                  className="mu-btn mu-btn--outline"
+                  onClick={resetForm}>
+                  Cancel
+                </button>
               )}
             </div>
           </div>
@@ -297,15 +444,34 @@ export default function ManageUsers() {
           {/* Avatar side */}
           <div className="mu-avatar-card">
             <div className="mu-avatar-wrap">
-              <img src={imagePreview || "/default-profile.png"} alt="profile" className="mu-avatar" />
+              <img
+                src={imagePreview || "/default-profile.png"}
+                alt="profile"
+                className="mu-avatar"
+              />
             </div>
             <div className="mu-avatar-actions">
-              <input ref={fileRef} type="file" accept="image/*" hidden onChange={onPick} />
-              <button type="button" className="mu-btn mu-btn--secondary" onClick={pickFile}>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={onPick}
+              />
+              <button
+                type="button"
+                className="mu-btn mu-btn--secondary"
+                onClick={pickFile}>
                 {imagePreview ? "Change Photo" : "Upload Photo"}
               </button>
               {imagePreview && (
-                <button type="button" className="mu-btn mu-btn--danger" onClick={() => { setImagePreview(""); setImageDataUrl(""); }}>
+                <button
+                  type="button"
+                  className="mu-btn mu-btn--danger"
+                  onClick={() => {
+                    setImagePreview("");
+                    setImageDataUrl("");
+                  }}>
                   Remove Photo
                 </button>
               )}
@@ -319,7 +485,10 @@ export default function ManageUsers() {
       <div className="mu-card">
         <div className="mu-list-head">
           <h3>All Users</h3>
-          <button className="mu-btn mu-btn--outline" onClick={fetchUsers} disabled={loading}>
+          <button
+            className="mu-btn mu-btn--outline"
+            onClick={fetchUsers}
+            disabled={loading}>
             {loading ? "Refreshing…" : "Refresh"}
           </button>
         </div>
@@ -328,26 +497,57 @@ export default function ManageUsers() {
           <table className="mu-table">
             <thead>
               <tr>
-                <th>Profile</th><th>Name</th><th>Email</th><th>Phone</th><th>District</th><th>Address</th><th style={{width:150}}>Actions</th>
+                <th>Profile</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>District</th>
+                <th>Address</th>
+                <th style={{ width: 150 }}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {users.map(u => (
+              {users.map((u) => (
                 <tr key={u._id}>
-                  <td>{u.profile_image_url ? <img src={u.profile_image_url} alt={u.full_name} className="mu-avatar--sm" /> : <span className="tiny muted">—</span>}</td>
+                  <td>
+                    {u.profile_image_url ? (
+                      <img
+                        src={u.profile_image_url}
+                        alt={u.full_name}
+                        className="mu-avatar--sm"
+                      />
+                    ) : (
+                      <span className="tiny muted">—</span>
+                    )}
+                  </td>
                   <td>{u.full_name}</td>
                   <td className="mu-clip">{u.email}</td>
                   <td>{u.phone_number || "—"}</td>
                   <td>{u.district}</td>
                   <td className="mu-clip">{u.address}</td>
                   <td className="mu-row-actions">
-                    <button className="mu-btn mu-btn--small mu-btn--primary" onClick={()=>startEdit(u)}>Edit</button>
-                    <button className="mu-btn mu-btn--small mu-btn--danger" onClick={()=>handleDelete(u._id)}>Delete</button>
+                    <button
+                      className="mu-btn mu-btn--small mu-btn--primary"
+                      onClick={() => startEdit(u)}>
+                      Edit
+                    </button>
+                    <button
+                      className="mu-btn mu-btn--small mu-btn--danger"
+                      onClick={() => handleDelete(u._id)}>
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}
               {!users.length && !loading && (
-                <tr><td colSpan="7" className="muted" style={{textAlign:"center"}}>No users found</td></tr>
+                <tr>
+                  <td
+                    colSpan="7"
+                    className="muted"
+                    style={{ textAlign: "center" }}>
+                    No users found
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
@@ -356,11 +556,20 @@ export default function ManageUsers() {
 
       {/* Crop modal */}
       {cropOpen && (
-        <div className="mu-crop-overlay" onClick={cleanupCrop} role="dialog" aria-modal="true">
-          <div className="mu-crop-modal" onClick={(e)=>e.stopPropagation()}>
+        <div
+          className="mu-crop-overlay"
+          onClick={cleanupCrop}
+          role="dialog"
+          aria-modal="true">
+          <div className="mu-crop-modal" onClick={(e) => e.stopPropagation()}>
             <div className="mu-crop-head">
               <h4>Adjust Photo</h4>
-              <button type="button" className="mu-btn mu-btn--danger mu-btn--small" onClick={cleanupCrop}>Close</button>
+              <button
+                type="button"
+                className="mu-btn mu-btn--danger mu-btn--small"
+                onClick={cleanupCrop}>
+                Close
+              </button>
             </div>
 
             <div
@@ -371,25 +580,43 @@ export default function ManageUsers() {
               onMouseLeave={onDragEnd}
               onTouchStart={onDragStart}
               onTouchMove={onDragMove}
-              onTouchEnd={onDragEnd}
-            >
+              onTouchEnd={onDragEnd}>
               {cropSrc && (
                 <img
                   src={cropSrc}
                   alt="Crop preview"
                   className="mu-crop-img"
                   onLoad={onPreviewLoad}
-                  style={{ transform:`translate(calc(-50% + ${offX}px), calc(-50% + ${offY}px)) scale(${base*zoom})` }}
+                  style={{
+                    transform: `translate(calc(-50% + ${offX}px), calc(-50% + ${offY}px)) scale(${base * zoom})`,
+                  }}
                 />
               )}
               <div className="mu-crop-circle" />
             </div>
 
             <div className="mu-crop-controls">
-              <input type="range" min="1" max="3" step="0.01" value={zoom} onChange={(e)=>setZoom(parseFloat(e.target.value))} />
+              <input
+                type="range"
+                min="1"
+                max="3"
+                step="0.01"
+                value={zoom}
+                onChange={(e) => setZoom(parseFloat(e.target.value))}
+              />
               <div className="mu-crop-actions">
-                <button type="button" className="mu-btn mu-btn--danger mu-btn--outline" onClick={cleanupCrop}>Cancel</button>
-                <button type="button" className="mu-btn mu-btn--primary" onClick={confirmCrop}>Use Photo</button>
+                <button
+                  type="button"
+                  className="mu-btn mu-btn--danger mu-btn--outline"
+                  onClick={cleanupCrop}>
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="mu-btn mu-btn--primary"
+                  onClick={confirmCrop}>
+                  Use Photo
+                </button>
               </div>
             </div>
           </div>

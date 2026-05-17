@@ -2,21 +2,16 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Customer = require("../models/Customer");
 
-
 const register = async (req, res) => {
   try {
-    const {
-      full_name,
-      email,
-      password,
-      phone_number,
-      address,
-      district
-    } = req.body;
+    const { full_name, email, password, phone_number, address, district } =
+      req.body;
 
     // Validation
     if (!full_name || !email || !password || !address || !district) {
-      return res.status(400).json({ message: "Please fill in all required fields." });
+      return res
+        .status(400)
+        .json({ message: "Please fill in all required fields." });
     }
 
     // Check if email already exists
@@ -25,7 +20,7 @@ const register = async (req, res) => {
       return res.status(400).json({ message: "Email already registered." });
     }
 
-    // ✅ Get Cloudinary URL
+    //  Get Cloudinary URL
     const profile_image_url = req.file ? req.file.path : ""; // auto-generated public URL from Cloudinary
 
     // Hash password
@@ -46,7 +41,6 @@ const register = async (req, res) => {
     await newCustomer.save();
 
     res.status(201).json({ message: "Customer registered successfully." });
-
   } catch (err) {
     console.error("Register error:", err);
     res.status(500).json({ message: "Server error during registration." });
@@ -65,19 +59,23 @@ const login = async (req, res) => {
 
     const customer = await Customer.findOne({ email });
     if (!customer) {
-      return res.status(401).json({ message: "Email or password is incorrect 😣" });
+      return res
+        .status(401)
+        .json({ message: "Email or password is incorrect 😣" });
     }
 
     const isMatch = await bcrypt.compare(password, customer.password_hash);
     if (!isMatch) {
-      return res.status(401).json({ message: "Email or password is incorrect 😣" });
+      return res
+        .status(401)
+        .json({ message: "Email or password is incorrect 😣" });
     }
 
     // Generate JWT token
     const token = jwt.sign(
       { id: customer._id, role: "customer" },
       process.env.JWT_SECRET,
-      { expiresIn: "2d" }
+      { expiresIn: "2d" },
     );
 
     res.status(200).json({
@@ -101,7 +99,9 @@ const login = async (req, res) => {
 
 const getProfile = async (req, res) => {
   try {
-    const customer = await Customer.findById(req.user.id).select("-password_hash");
+    const customer = await Customer.findById(req.user.id).select(
+      "-password_hash",
+    );
     if (!customer) {
       return res.status(404).json({ message: "Customer not found" });
     }
@@ -113,10 +113,16 @@ const getProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const allowedFields = ['full_name', 'phone_number', 'address', 'district', 'profile_image_url'];
+    const allowedFields = [
+      "full_name",
+      "phone_number",
+      "address",
+      "district",
+      "profile_image_url",
+    ];
     const updates = {};
 
-    allowedFields.forEach(field => {
+    allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) {
         updates[field] = req.body[field];
       }
@@ -125,7 +131,7 @@ const updateProfile = async (req, res) => {
     const updatedCustomer = await Customer.findByIdAndUpdate(
       req.user.id,
       { $set: updates },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     ).select("-password_hash");
 
     res.json({ message: "Profile updated", customer: updatedCustomer });
@@ -144,7 +150,10 @@ const changePassword = async (req, res) => {
       return res.status(404).json({ message: "Customer not found" });
     }
 
-    const isMatch = await bcrypt.compare(currentPassword, customer.password_hash);
+    const isMatch = await bcrypt.compare(
+      currentPassword,
+      customer.password_hash,
+    );
     if (!isMatch) {
       return res.status(400).json({ message: "Current password is incorrect" });
     }
@@ -160,7 +169,6 @@ const changePassword = async (req, res) => {
   }
 };
 
-
 const changeProfileImage = async (req, res) => {
   try {
     if (req.user?.role !== "customer") {
@@ -175,15 +183,18 @@ const changeProfileImage = async (req, res) => {
     const updated = await Customer.findByIdAndUpdate(
       req.user.id,
       { profile_image_url },
-      { new: true }
+      { new: true },
     ).select("-password_hash");
 
-    if (!updated) return res.status(404).json({ message: "Customer not found" });
+    if (!updated)
+      return res.status(404).json({ message: "Customer not found" });
 
     res.json({ message: "Profile picture updated", customer: updated });
   } catch (err) {
     console.error("Change avatar error:", err);
-    res.status(500).json({ message: "Server error while changing profile picture" });
+    res
+      .status(500)
+      .json({ message: "Server error while changing profile picture" });
   }
 };
 
@@ -193,5 +204,5 @@ module.exports = {
   getProfile,
   updateProfile,
   changePassword,
-  changeProfileImage, 
+  changeProfileImage,
 };

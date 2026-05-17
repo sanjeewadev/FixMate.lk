@@ -9,11 +9,15 @@ const statusClass = (s = "") =>
     in_progress: "pill progress",
     resolved: "pill resolved",
     closed: "pill closed",
-  }[s] || "pill open");
+  })[s] || "pill open";
 
 /** Small helper to format dates */
 const fmt = (s) => {
-  try { return new Date(s).toLocaleString(); } catch { return s || ""; }
+  try {
+    return new Date(s).toLocaleString();
+  } catch {
+    return s || "";
+  }
 };
 
 export default function ManageComplaints({ role }) {
@@ -49,7 +53,9 @@ export default function ManageComplaints({ role }) {
     }
   };
 
-  useEffect(() => { fetchComplaints(); /* eslint-disable-next-line */ }, [role]);
+  useEffect(() => {
+    fetchComplaints(); /* eslint-disable-next-line */
+  }, [role]);
 
   // ===== Create complaint (customers) =====
   const handleCreate = async (e) => {
@@ -57,7 +63,7 @@ export default function ManageComplaints({ role }) {
     setMessage("");
     try {
       await api.post("/api/complaints", form);
-      setMessage("Complaint created ✅");
+      setMessage("Complaint created ");
       setForm({ bookingId: "", title: "", details: "" });
       fetchComplaints();
     } catch (e) {
@@ -71,7 +77,7 @@ export default function ManageComplaints({ role }) {
     if (!selected?._id) return;
     try {
       await api.patch(`/api/complaints/${selected._id}/respond`, resp);
-      setMessage("Response posted ✅");
+      setMessage("Response posted ");
       setSelected(null);
       setResp({ text: "", status: "" });
       fetchComplaints();
@@ -81,7 +87,9 @@ export default function ManageComplaints({ role }) {
   };
 
   const filtered = useMemo(() => {
-    let list = complaints.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    let list = complaints
+      .slice()
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     if (statusFilter) list = list.filter((c) => c.status === statusFilter);
     if (q.trim()) {
       const s = q.trim().toLowerCase();
@@ -89,7 +97,7 @@ export default function ManageComplaints({ role }) {
         (c) =>
           (c.title || "").toLowerCase().includes(s) ||
           (c.details || "").toLowerCase().includes(s) ||
-          (c.booking || "").toLowerCase?.().includes?.(s)
+          (c.booking || "").toLowerCase?.().includes?.(s),
       );
     }
     return list;
@@ -109,7 +117,10 @@ export default function ManageComplaints({ role }) {
 
       {/* Create (customers only) */}
       {isCustomer && (
-        <form className="mc-card mc-form" onSubmit={handleCreate} autoComplete="off">
+        <form
+          className="mc-card mc-form"
+          onSubmit={handleCreate}
+          autoComplete="off">
           <div className="mc-form-grid">
             <div className="field">
               <label>Booking ID (optional)</label>
@@ -118,7 +129,9 @@ export default function ManageComplaints({ role }) {
                 name="bookingId"
                 placeholder="643af…"
                 value={form.bookingId}
-                onChange={(e) => setForm((p) => ({ ...p, bookingId: e.target.value }))}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, bookingId: e.target.value }))
+                }
               />
             </div>
             <div className="field">
@@ -129,7 +142,9 @@ export default function ManageComplaints({ role }) {
                 placeholder="Brief summary"
                 required
                 value={form.title}
-                onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, title: e.target.value }))
+                }
               />
             </div>
             <div className="field col-2">
@@ -139,12 +154,16 @@ export default function ManageComplaints({ role }) {
                 rows={4}
                 placeholder="Describe the issue…"
                 value={form.details}
-                onChange={(e) => setForm((p) => ({ ...p, details: e.target.value }))}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, details: e.target.value }))
+                }
               />
             </div>
           </div>
           <div className="actions">
-            <button className="btn primary" type="submit">Submit Complaint</button>
+            <button className="btn primary" type="submit">
+              Submit Complaint
+            </button>
           </div>
         </form>
       )}
@@ -154,7 +173,9 @@ export default function ManageComplaints({ role }) {
         <div className="mc-card mc-filters">
           <div className="field">
             <label>Status</label>
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}>
               <option value="">All</option>
               <option value="open">Open</option>
               <option value="in_progress">In Progress</option>
@@ -172,10 +193,18 @@ export default function ManageComplaints({ role }) {
             />
           </div>
           <div className="actions">
-            <button className="btn outline" onClick={() => { setQ(""); setStatusFilter(""); }}>
+            <button
+              className="btn outline"
+              onClick={() => {
+                setQ("");
+                setStatusFilter("");
+              }}>
               Reset
             </button>
-            <button className="btn" onClick={fetchComplaints} disabled={loading}>
+            <button
+              className="btn"
+              onClick={fetchComplaints}
+              disabled={loading}>
               {loading ? "Refreshing…" : "Refresh"}
             </button>
           </div>
@@ -183,7 +212,9 @@ export default function ManageComplaints({ role }) {
       )}
 
       {/* List */}
-      <h3 className="mc-subtitle">{isCustomer ? "My Complaints" : "All Complaints"}</h3>
+      <h3 className="mc-subtitle">
+        {isCustomer ? "My Complaints" : "All Complaints"}
+      </h3>
       {loading ? (
         <div className="mc-skel">Loading complaints…</div>
       ) : filtered.length === 0 ? (
@@ -197,18 +228,26 @@ export default function ManageComplaints({ role }) {
             <article className="mc-card mc-item" key={c._id}>
               <header className="mc-item-head">
                 <h4 className="title">{c.title}</h4>
-                <span className={statusClass(c.status)}>{c.status?.replace("_", " ")}</span>
+                <span className={statusClass(c.status)}>
+                  {c.status?.replace("_", " ")}
+                </span>
               </header>
 
               <div className="meta tiny muted">
-                <div><b>Created:</b> {fmt(c.createdAt)}</div>
-                {c.booking && <div><b>Booking:</b> {c.booking}</div>}
+                <div>
+                  <b>Created:</b> {fmt(c.createdAt)}
+                </div>
+                {c.booking && (
+                  <div>
+                    <b>Booking:</b> {c.booking}
+                  </div>
+                )}
               </div>
 
               {c.details && <p className="details">{c.details}</p>}
 
               {/* Responses timeline */}
-              {!!(c.responses?.length) && (
+              {!!c.responses?.length && (
                 <div className="timeline">
                   <div className="tl-title">Responses</div>
                   <ul>
@@ -229,7 +268,12 @@ export default function ManageComplaints({ role }) {
               {/* Respond (staff/admin) */}
               {!isCustomer && (
                 <div className="row-actions">
-                  <button className="btn small" onClick={() => { setSelected(c); setResp({ text: "", status: "" }); }}>
+                  <button
+                    className="btn small"
+                    onClick={() => {
+                      setSelected(c);
+                      setResp({ text: "", status: "" });
+                    }}>
                     Respond
                   </button>
                 </div>
@@ -241,14 +285,20 @@ export default function ManageComplaints({ role }) {
 
       {/* Respond Modal */}
       {selected && (
-        <div className="mc-modal" onClick={() => setSelected(null)} role="dialog" aria-modal="true">
+        <div
+          className="mc-modal"
+          onClick={() => setSelected(null)}
+          role="dialog"
+          aria-modal="true">
           <div className="mc-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="mc-modal-head">
               <div>
                 <h4>Respond to complaint</h4>
                 <div className="tiny muted">{selected.title}</div>
               </div>
-              <button className="btn ghost" onClick={() => setSelected(null)}>Close</button>
+              <button className="btn ghost" onClick={() => setSelected(null)}>
+                Close
+              </button>
             </div>
 
             <form className="resp-form" onSubmit={handleRespond}>
@@ -258,7 +308,9 @@ export default function ManageComplaints({ role }) {
                   rows={4}
                   placeholder="Write a helpful, actionable response…"
                   value={resp.text}
-                  onChange={(e) => setResp((p) => ({ ...p, text: e.target.value }))}
+                  onChange={(e) =>
+                    setResp((p) => ({ ...p, text: e.target.value }))
+                  }
                   required
                 />
                 {/* quick suggestions */}
@@ -268,8 +320,16 @@ export default function ManageComplaints({ role }) {
                     "We have escalated this to a coordinator.",
                     "Issue resolved. Please confirm if everything looks good.",
                   ].map((t) => (
-                    <button key={t} type="button" className="chip"
-                      onClick={() => setResp((p) => ({ ...p, text: (p.text ? p.text + " " : "") + t }))}>
+                    <button
+                      key={t}
+                      type="button"
+                      className="chip"
+                      onClick={() =>
+                        setResp((p) => ({
+                          ...p,
+                          text: (p.text ? p.text + " " : "") + t,
+                        }))
+                      }>
                       {t}
                     </button>
                   ))}
@@ -279,25 +339,34 @@ export default function ManageComplaints({ role }) {
               <div className="field">
                 <label>Status</label>
                 <div className="status-row">
-                  {["", "open", "in_progress", "resolved", "closed"].map((s) => (
-                    <label key={s} className="radio-pill">
-                      <input
-                        type="radio"
-                        name="status"
-                        checked={resp.status === s}
-                        onChange={() => setResp((p) => ({ ...p, status: s }))}
-                      />
-                      <span className={statusClass(s || selected.status)}>
-                        {s ? s.replace("_", " ") : "Keep current"}
-                      </span>
-                    </label>
-                  ))}
+                  {["", "open", "in_progress", "resolved", "closed"].map(
+                    (s) => (
+                      <label key={s} className="radio-pill">
+                        <input
+                          type="radio"
+                          name="status"
+                          checked={resp.status === s}
+                          onChange={() => setResp((p) => ({ ...p, status: s }))}
+                        />
+                        <span className={statusClass(s || selected.status)}>
+                          {s ? s.replace("_", " ") : "Keep current"}
+                        </span>
+                      </label>
+                    ),
+                  )}
                 </div>
               </div>
 
               <div className="actions end">
-                <button className="btn primary" type="submit">Send Response</button>
-                <button className="btn" type="button" onClick={() => setSelected(null)}>Cancel</button>
+                <button className="btn primary" type="submit">
+                  Send Response
+                </button>
+                <button
+                  className="btn"
+                  type="button"
+                  onClick={() => setSelected(null)}>
+                  Cancel
+                </button>
               </div>
             </form>
           </div>

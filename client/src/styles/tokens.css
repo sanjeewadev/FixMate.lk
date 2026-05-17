@@ -1,25 +1,30 @@
-:root{
-  /* COLORS (your palette) */
-  --c-ink:#131925;          /* darkest text */
-  --c-brand:#1e698d;        /* primary */
-  --c-brand-2:#789fbb;      /* secondary brand */
-  --c-mist:#c2d5db;         /* lines / subtle bg */
-  --c-sage:#8abca7;         /* accent/success */
-  --c-white:#ffffff;
+:root {
+  --c-ink: #131925;
+  --c-brand: #1e698d;
+  --c-brand-2: #789fbb;
+  --c-mist: #c2d5db;
+  --c-sage: #8abca7;
+  --c-white: #ffffff;
 
-  /* Glass */
-  --glass-bg: rgba(255,255,255,.12);
-  --glass-border: rgba(255,255,255,.35);
+  --glass-bg: rgba(255, 255, 255, 0.12);
+  --glass-border: rgba(255, 255, 255, 0.35);
   --glass-blur: 14px;
 
-  /* RADIUS / SHADOW / SPACING */
-  --r-1:8px; --r-2:14px; --r-3:20px; --pill:999px;
-  --s-1:6px; --s-2:10px; --s-3:16px; --s-4:24px; --s-5:36px;
-  --sh-1:0 6px 18px rgba(19,25,37,.12);
-  --sh-2:0 10px 28px rgba(19,25,37,.16);
+  --r-1: 8px;
+  --r-2: 14px;
+  --r-3: 20px;
+  --pill: 999px;
+  --s-1: 6px;
+  --s-2: 10px;
+  --s-3: 16px;
+  --s-4: 24px;
+  --s-5: 36px;
+  --sh-1: 0 6px 18px rgba(19, 25, 37, 0.12);
+  --sh-2: 0 10px 28px rgba(19, 25, 37, 0.16);
 
-  /* Motion */
-  --ease-out: cubic-bezier(.22,1,.36,1);
-  --ease-snap: cubic-bezier(.2,.8,.2,1);
-  --t-fast:160ms; --t-med:260ms; --t-slow:420ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-snap: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --t-fast: 160ms;
+  --t-med: 260ms;
+  --t-slow: 420ms;
 }

@@ -142,7 +142,7 @@
   font-weight: 700;
 }
 
-.field input{
+.field input {
   margin: 3px 0px;
 }
 
@@ -156,7 +156,9 @@
   color: #0f172a;
   background: #ffffff;
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .field textarea {
@@ -179,7 +181,9 @@
   padding: 12px 16px;
   font-weight: 800;
   cursor: pointer;
-  transition: filter 0.15s ease, transform 0.06s ease;
+  transition:
+    filter 0.15s ease,
+    transform 0.06s ease;
 }
 
 .btnSend:hover {

@@ -56,9 +56,15 @@
 }
 
 @keyframes bubble {
-  0% { transform: scale(.98); }
-  70% { transform: scale(1.01); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(0.98);
+  }
+  70% {
+    transform: scale(1.01);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .publicNav .navInner {
@@ -86,10 +92,12 @@
   height: 10px;
   border-radius: 50%;
   background: var(--c-sage);
-  box-shadow: 0 0 0 6px rgba(138, 188, 167, .25);
+  box-shadow: 0 0 0 6px rgba(138, 188, 167, 0.25);
 }
 
-.publicNav .brandName { letter-spacing: .2px; }
+.publicNav .brandName {
+  letter-spacing: 0.2px;
+}
 
 .publicNav .navLinks {
   display: flex;
@@ -97,7 +105,6 @@
   gap: 18px;
 }
 
-/* links kept explicit to beat any global anchor rules */
 .publicNav .navLink {
   color: #ebf1ff;
   text-decoration: none;
@@ -106,7 +113,9 @@
   border-radius: var(--r-1);
   position: relative;
 }
-.publicNav.isSticky .navLink { color: var(--c-white); }
+.publicNav.isSticky .navLink {
+  color: var(--c-white);
+}
 .publicNav .navLink::after {
   content: "";
   position: absolute;
@@ -118,7 +127,9 @@
   transition: all var(--t-fast) var(--ease-out);
   transform: translateX(-50%);
 }
-.publicNav .navLink:hover::after { width: 80%; }
+.publicNav .navLink:hover::after {
+  width: 80%;
+}
 
 .publicNav .serviceMenuBtn {
   appearance: none;
@@ -133,7 +144,9 @@
   cursor: pointer;
   position: relative;
 }
-.publicNav.isSticky .serviceMenuBtn { color: var(--c-white); }
+.publicNav.isSticky .serviceMenuBtn {
+  color: var(--c-white);
+}
 .publicNav .serviceMenuBtn::after {
   content: "";
   position: absolute;
@@ -145,14 +158,22 @@
   transform: translateX(-50%);
   transition: all var(--t-fast) var(--ease-out);
 }
-.publicNav .serviceMenuBtn:hover::after { width: 80%; }
+.publicNav .serviceMenuBtn:hover::after {
+  width: 80%;
+}
 .publicNav .serviceMenuBtn:focus-visible {
-  outline: 2px solid rgba(96,165,250,.9);
+  outline: 2px solid rgba(96, 165, 250, 0.9);
   outline-offset: 2px;
 }
 
-.publicNav .navLinkMenu { position: relative; }
-.publicNav .chev { margin-left: 6px; font-size: 12px; opacity: .8; }
+.publicNav .navLinkMenu {
+  position: relative;
+}
+.publicNav .chev {
+  margin-left: 6px;
+  font-size: 12px;
+  opacity: 0.8;
+}
 
 .publicNav .megaPanel {
   position: absolute;
@@ -164,11 +185,11 @@
   opacity: 0;
   pointer-events: none;
   background: #ffffff;
-  border: 1px solid rgba(17, 24, 39, .06);
+  border: 1px solid rgba(17, 24, 39, 0.06);
   border-radius: 18px;
   box-shadow:
-    0 24px 60px rgba(2, 6, 23, .18),
-    0 2px 0 rgba(2, 6, 23, .04) inset;
+    0 24px 60px rgba(2, 6, 23, 0.18),
+    0 2px 0 rgba(2, 6, 23, 0.04) inset;
   padding: 24px 22px 18px;
   color: #0f2433;
   transition:
@@ -176,7 +197,9 @@
     transform var(--t-med) var(--ease-out);
   z-index: 1200;
 }
-.publicNav.isSticky .megaPanel { background: rgba(255,255,255,.98); }
+.publicNav.isSticky .megaPanel {
+  background: rgba(255, 255, 255, 0.98);
+}
 .publicNav .megaPanel.show {
   display: block;
   opacity: 1;
@@ -201,11 +224,11 @@
   top: 12px;
   left: 14px;
   font-size: 11px;
-  letter-spacing: .12em;
+  letter-spacing: 0.12em;
   font-weight: 800;
   color: #0f2433;
-  background: #EDF2FF;
-  border: 1px solid rgba(17, 24, 39, .06);
+  background: #edf2ff;
+  border: 1px solid rgba(17, 24, 39, 0.06);
   padding: 4px 10px;
   border-radius: 999px;
 }
@@ -221,12 +244,14 @@
   margin: 6px 6px 5px;
   font-size: 12px;
   font-weight: 900;
-  letter-spacing: .08em;
+  letter-spacing: 0.08em;
   color: #1a2b3b;
   text-transform: uppercase;
 }
 
-.publicNav .megaSection { padding-top: 35px; }
+.publicNav .megaSection {
+  padding-top: 35px;
+}
 
 .publicNav .megaRow {
   display: flex;
@@ -242,9 +267,9 @@
     box-shadow var(--t-fast) var(--ease-out);
 }
 .publicNav .megaRow:hover {
-  background: #F3F8FF;
+  background: #f3f8ff;
   transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(2,6,23,.06);
+  box-shadow: 0 6px 14px rgba(2, 6, 23, 0.06);
 }
 
 .publicNav .megaIcon {
@@ -252,14 +277,26 @@
   height: 28px;
   border-radius: 10px;
   flex: 0 0 28px;
-  filter: drop-shadow(0 2px 6px rgba(2,6,23,.12));
+  filter: drop-shadow(0 2px 6px rgba(2, 6, 23, 0.12));
 }
-.publicNav .megaIcon.i-1 { background: linear-gradient(180deg, #B9E6FF, #A7F3D0); }
-.publicNav .megaIcon.i-2 { background: linear-gradient(180deg, #D8B4FE, #93C5FD); }
-.publicNav .megaIcon.i-3 { background: linear-gradient(180deg, #FBCFE8, #C7D2FE); }
-.publicNav .megaIcon.i-4 { background: linear-gradient(180deg, #FDE68A, #A7F3D0); }
-.publicNav .megaIcon.i-5 { background: linear-gradient(180deg, #93C5FD, #FDE68A); }
-.publicNav .megaIcon.i-6 { background: linear-gradient(180deg, #A7F3D0, #FBCFE8); }
+.publicNav .megaIcon.i-1 {
+  background: linear-gradient(180deg, #b9e6ff, #a7f3d0);
+}
+.publicNav .megaIcon.i-2 {
+  background: linear-gradient(180deg, #d8b4fe, #93c5fd);
+}
+.publicNav .megaIcon.i-3 {
+  background: linear-gradient(180deg, #fbcfe8, #c7d2fe);
+}
+.publicNav .megaIcon.i-4 {
+  background: linear-gradient(180deg, #fde68a, #a7f3d0);
+}
+.publicNav .megaIcon.i-5 {
+  background: linear-gradient(180deg, #93c5fd, #fde68a);
+}
+.publicNav .megaIcon.i-6 {
+  background: linear-gradient(180deg, #a7f3d0, #fbcfe8);
+}
 
 .publicNav .megaText strong {
   display: block;
@@ -282,12 +319,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px solid rgba(2,6,23,.06);
+  border-top: 1px solid rgba(2, 6, 23, 0.06);
   padding-top: 12px;
   margin-top: 6px;
 }
 .publicNav .megaCta {
-  background: linear-gradient(90deg, var(--c-brand, #6EE7B7), var(--c-brand-2, #60A5FA));
+  background: linear-gradient(
+    90deg,
+    var(--c-brand, #6ee7b7),
+    var(--c-brand-2, #60a5fa)
+  );
   color: #fff;
   padding: 10px 16px;
   border-radius: 999px;
@@ -306,7 +347,6 @@
   gap: 10px;
 }
 
-/* navbar-only button to avoid global .btn collisions */
 .publicNav .navBtn {
   height: 38px;
   padding: 0 14px;
@@ -319,14 +359,16 @@
 }
 .publicNav .navBtn.outline {
   background: transparent;
-  border-color: rgba(255,255,255,.5);
+  border-color: rgba(255, 255, 255, 0.5);
   width: 100px;
 }
 .publicNav:not(.isSticky) .navBtn.outline {
   border-color: var(--c-mist);
   color: #ebf1ff;
 }
-.publicNav.isSticky .navBtn { color: var(--c-white); }
+.publicNav.isSticky .navBtn {
+  color: var(--c-white);
+}
 
 .publicNav .navBurger {
   display: none;
@@ -342,11 +384,17 @@
   background: currentColor;
   display: block;
 }
-.publicNav.isTop .navBurger { color: #ebf1ff; }
-.publicNav.isSticky .navBurger { color: var(--c-white); }
+.publicNav.isTop .navBurger {
+  color: #ebf1ff;
+}
+.publicNav.isSticky .navBurger {
+  color: var(--c-white);
+}
 
 @media (max-width: 900px) {
-  .publicNav .navBurger { display: flex; }
+  .publicNav .navBurger {
+    display: flex;
+  }
 
   .publicNav .navLinks {
     position: absolute;
@@ -357,13 +405,19 @@
     flex-direction: column;
     padding: 10px 14px;
     gap: 10px;
-    background: rgba(255,255,255,.97);
+    background: rgba(255, 255, 255, 0.97);
     border-bottom: 1px solid var(--c-mist);
   }
-  .publicNav .navLinks.open { display: flex; }
+  .publicNav .navLinks.open {
+    display: flex;
+  }
 
-  .publicNav .navLink { color: #0f2433; }
-  .publicNav .serviceMenuBtn { color: #0f2433; }
+  .publicNav .navLink {
+    color: #0f2433;
+  }
+  .publicNav .serviceMenuBtn {
+    color: #0f2433;
+  }
 
   .publicNav .megaPanel {
     position: static;
@@ -372,13 +426,22 @@
     box-shadow: none;
     padding: 16px 14px 12px;
   }
-  .publicNav .megaHoverPad { display: none; }
-  .publicNav .megaGrid { grid-template-columns: 1fr 1fr; }
-  .publicNav .megaTag { position: static; margin-bottom: 6px; }
+  .publicNav .megaHoverPad {
+    display: none;
+  }
+  .publicNav .megaGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .publicNav .megaTag {
+    position: static;
+    margin-bottom: 6px;
+  }
 }
 
 @media (max-width: 560px) {
-  .publicNav .megaGrid { grid-template-columns: 1fr; }
+  .publicNav .megaGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .publicNav.isLeaving {
@@ -398,6 +461,12 @@
   box-shadow: var(--sh-1);
 }
 @keyframes navExit {
-  0% { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(-14px); }
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
 }

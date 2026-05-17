@@ -2,28 +2,57 @@ import React, { useEffect, useState } from "react";
 import "./UserRegister.css";
 
 const SRI_LANKA_DISTRICTS = [
-  "Ampara","Anuradhapura","Badulla","Batticaloa","Colombo","Galle","Gampaha",
-  "Hambantota","Jaffna","Kalutara","Kandy","Kegalle","Kilinochchi","Kurunegala",
-  "Mannar","Matale","Matara","Monaragala","Mullaitivu","Nuwara Eliya",
-  "Polonnaruwa","Puttalam","Ratnapura","Trincomalee","Vavuniya"
+  "Ampara",
+  "Anuradhapura",
+  "Badulla",
+  "Batticaloa",
+  "Colombo",
+  "Galle",
+  "Gampaha",
+  "Hambantota",
+  "Jaffna",
+  "Kalutara",
+  "Kandy",
+  "Kegalle",
+  "Kilinochchi",
+  "Kurunegala",
+  "Mannar",
+  "Matale",
+  "Matara",
+  "Monaragala",
+  "Mullaitivu",
+  "Nuwara Eliya",
+  "Polonnaruwa",
+  "Puttalam",
+  "Ratnapura",
+  "Trincomalee",
+  "Vavuniya",
 ];
 
 function UserRegister({ onSwitch }) {
   const [form, setForm] = useState({
-    fullName: "", email: "", password: "", confirmPassword: "",
-    phone: "", address: "", district: "",
+    fullName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    phone: "",
+    address: "",
+    district: "",
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
-  const [msg, setMsg] = useState(null);            // { type, text }
+  const [msg, setMsg] = useState(null); // { type, text }
   const [loading, setLoading] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [hint, setHint] = useState("Welcome to FixMate 🙂");
 
   const update = (name, value) => {
     setForm((s) => ({ ...s, [name]: value }));
-    if (hasSubmitted) { setMsg(null); setHint("Typing…"); }
+    if (hasSubmitted) {
+      setMsg(null);
+      setHint("Typing…");
+    }
   };
 
   const onImageChange = (e) => {
@@ -32,7 +61,10 @@ function UserRegister({ onSwitch }) {
     setImageFile(file);
     const url = URL.createObjectURL(file);
     setImagePreview(url);
-    if (hasSubmitted) { setMsg(null); setHint("Selecting image…"); }
+    if (hasSubmitted) {
+      setMsg(null);
+      setHint("Selecting image…");
+    }
   };
 
   // Optional: revoke object URL when file changes/unmounts
@@ -43,12 +75,21 @@ function UserRegister({ onSwitch }) {
   }, [imagePreview]);
 
   const validate = () => {
-    if (!form.fullName || !form.email || !form.password || !form.address || !form.district) {
+    if (
+      !form.fullName ||
+      !form.email ||
+      !form.password ||
+      !form.address ||
+      !form.district
+    ) {
       return "Please fill in all required fields 😐";
     }
-    if (!/^\S+@\S+\.\S+$/.test(form.email)) return "Please enter a valid email address 😣";
-    if (form.password.length < 6) return "Password must be at least 6 characters 😣";
-    if (form.password !== form.confirmPassword) return "Passwords do not match 😣";
+    if (!/^\S+@\S+\.\S+$/.test(form.email))
+      return "Please enter a valid email address 😣";
+    if (form.password.length < 6)
+      return "Password must be at least 6 characters 😣";
+    if (form.password !== form.confirmPassword)
+      return "Passwords do not match 😣";
     return null;
   };
 
@@ -58,7 +99,10 @@ function UserRegister({ onSwitch }) {
     setMsg(null);
 
     const v = validate();
-    if (v) { setMsg({ type: "error", text: v }); return; }
+    if (v) {
+      setMsg({ type: "error", text: v });
+      return;
+    }
 
     try {
       setLoading(true);
@@ -71,21 +115,30 @@ function UserRegister({ onSwitch }) {
       fd.append("district", form.district);
       if (imageFile) fd.append("profileImage", imageFile);
 
-      const res = await fetch("/api/customer/register", { method: "POST", body: fd });
-      let data = {}; try { data = await res.json(); } catch {}
+      const res = await fetch("/api/customer/register", {
+        method: "POST",
+        body: fd,
+      });
+      let data = {};
+      try {
+        data = await res.json();
+      } catch {}
 
       if (!res.ok) {
-        const text = res.status === 400
-          ? (data.message || "Please check your inputs 😐")
-          : (data.message || "Registration failed. Please try again 😣");
+        const text =
+          res.status === 400
+            ? data.message || "Please check your inputs 😐"
+            : data.message || "Registration failed. Please try again 😣";
         setMsg({ type: "error", text });
         return;
       }
 
-      // ✅ show success then switch
-      setMsg({ type: "success", text: "Registered successfully! You can log in now." });
+      //  show success then switch
+      setMsg({
+        type: "success",
+        text: "Registered successfully! You can log in now.",
+      });
       setTimeout(() => onSwitch?.(), 900);
-
     } catch {
       setMsg({ type: "error", text: "Network error. Is the server running?" });
     } finally {
@@ -98,18 +151,53 @@ function UserRegister({ onSwitch }) {
       <div className="userregister-form">
         <h2 className="register-text">Register</h2>
 
-        <input type="text" name="fullName" placeholder="Full Name*" value={form.fullName}
-               onChange={(e) => update("fullName", e.target.value)} required />
-        <input type="email" name="email" placeholder="Email*" value={form.email}
-               onChange={(e) => update("email", e.target.value)} required />
-        <input type="password" name="password" placeholder="Password (min 6)*" value={form.password}
-               onChange={(e) => update("password", e.target.value)} required />
-        <input type="password" name="confirmPassword" placeholder="Confirm Password*" value={form.confirmPassword}
-               onChange={(e) => update("confirmPassword", e.target.value)} required />
-        <input type="tel" name="phone" placeholder="Phone (optional)" value={form.phone}
-               onChange={(e) => update("phone", e.target.value)} />
-        <input type="text" name="address" placeholder="Address*" value={form.address}
-               onChange={(e) => update("address", e.target.value)} required />
+        <input
+          type="text"
+          name="fullName"
+          placeholder="Full Name*"
+          value={form.fullName}
+          onChange={(e) => update("fullName", e.target.value)}
+          required
+        />
+        <input
+          type="email"
+          name="email"
+          placeholder="Email*"
+          value={form.email}
+          onChange={(e) => update("email", e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          name="password"
+          placeholder="Password (min 6)*"
+          value={form.password}
+          onChange={(e) => update("password", e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          name="confirmPassword"
+          placeholder="Confirm Password*"
+          value={form.confirmPassword}
+          onChange={(e) => update("confirmPassword", e.target.value)}
+          required
+        />
+        <input
+          type="tel"
+          name="phone"
+          placeholder="Phone (optional)"
+          value={form.phone}
+          onChange={(e) => update("phone", e.target.value)}
+        />
+        <input
+          type="text"
+          name="address"
+          placeholder="Address*"
+          value={form.address}
+          onChange={(e) => update("address", e.target.value)}
+          required
+        />
 
         {/* ▼ District dropdown (same field name & value) */}
         <select
@@ -117,23 +205,36 @@ function UserRegister({ onSwitch }) {
           value={form.district}
           onChange={(e) => update("district", e.target.value)}
           required
-          aria-label="District"
-        >
-          <option value="" disabled>Select District*</option>
+          aria-label="District">
+          <option value="" disabled>
+            Select District*
+          </option>
           {SRI_LANKA_DISTRICTS.map((d) => (
-            <option key={d} value={d}>{d}</option>
+            <option key={d} value={d}>
+              {d}
+            </option>
           ))}
         </select>
 
         <input type="file" accept="image/*" onChange={onImageChange} />
-        {imagePreview && <img className="profile-preview" src={imagePreview} alt="Profile Preview" />}
+        {imagePreview && (
+          <img
+            className="profile-preview"
+            src={imagePreview}
+            alt="Profile Preview"
+          />
+        )}
 
         <button type="submit" disabled={loading}>
           {loading ? "Creating..." : "Register"}
         </button>
 
         {/* Message slot (top, like Login) */}
-        <div className="msg-slot" role="status" aria-live="polite" aria-atomic="true">
+        <div
+          className="msg-slot"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true">
           {hasSubmitted ? (
             msg?.text ? (
               <div className={`msg ${msg.type} show`}>{msg.text}</div>
@@ -147,7 +248,9 @@ function UserRegister({ onSwitch }) {
 
         <p className="userregister-link">
           Already have an account?{" "}
-          <span style={{ color: "#0070f3", cursor: "pointer", fontWeight: 500 }} onClick={onSwitch}>
+          <span
+            style={{ color: "#0070f3", cursor: "pointer", fontWeight: 500 }}
+            onClick={onSwitch}>
             Login
           </span>
         </p>
