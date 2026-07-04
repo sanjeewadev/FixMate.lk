@@ -1,57 +1,130 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
+
+import {
+  footerBrand,
+  footerLinks,
+  footerServiceBox,
+  footerSocials,
+} from "./Footer.js";
+
 import "./footer.css";
 
-import footerfb from "../../assets/footer-facebook.svg";
-import footerinsta from "../../assets/footer-instagram.svg";
-import footerx from "../../assets/footer-twitter.svg";
-import footeryt from "../../assets/footer-youtube.svg";
-
 export default function Footer({ variant = "dark" }) {
-  const cls = `siteFooter ${variant === "light" ? "isLight" : "isDark"} fontBody`;
+  const openLogin = () => {
+    window.dispatchEvent(new Event("fm:open-login"));
+  };
+
+  const renderLink = (item) => {
+    if (item.action === "login") {
+      return (
+        <button
+          key={item.label}
+          type="button"
+          className="fm-footer__link fm-footer__linkButton"
+          onClick={openLogin}>
+          {item.label}
+        </button>
+      );
+    }
+
+    if (item.to) {
+      return (
+        <NavLink key={item.label} to={item.to} className="fm-footer__link">
+          {item.label}
+        </NavLink>
+      );
+    }
+
+    return (
+      <a key={item.label} href={item.href} className="fm-footer__link">
+        {item.label}
+      </a>
+    );
+  };
 
   return (
-    <footer className={cls}>
-      <div className="footerInner">
-        <nav className="footerGrid" aria-label="Footer">
-          <section className="footerCol">
-            <h4 className="footerHead fontHeading">The Good</h4>
-            <NavLink to="/" className="footerLink">Home</NavLink>
-            <NavLink to="/AboutUs" className="footerLink">About</NavLink>
-            <NavLink to="/Services" className="footerLink">Services</NavLink>
-            <a className="footerLink" href="/#contact">Contact Us</a>
+    <footer
+      className={`fm-footer ${
+        variant === "light" ? "fm-footer--light" : "fm-footer--dark"
+      }`}>
+      <div className="fm-footer__container">
+        <div className="fm-footer__main">
+          <section
+            className="fm-footer__brandBlock"
+            aria-label="FixMate summary">
+            <Link to="/" className="fm-footer__brand">
+              <span className="fm-footer__brandDot" aria-hidden="true" />
+              <span>{footerBrand.name}</span>
+            </Link>
+
+            <p>{footerBrand.description}</p>
+
+            <div className="fm-footer__contactLine">
+              <a href={`mailto:${footerBrand.email}`}>{footerBrand.email}</a>
+              <span aria-hidden="true">•</span>
+              <a href={footerBrand.phoneHref}>{footerBrand.phone}</a>
+            </div>
           </section>
 
-          <section className="footerCol">
-            <h4 className="footerHead fontHeading">The Boring</h4>
-            <a className="footerLink" href="/terms">Terms</a>
-            <a className="footerLink" href="/privacy">Privacy</a>
-            <a className="footerLink" href="/refunds">Refunds & Policies</a>
-          </section>
+          <nav className="fm-footer__nav" aria-label="Footer navigation">
+            {footerLinks.map((group) => (
+              <section className="fm-footer__column" key={group.title}>
+                <h3>{group.title}</h3>
 
-          <section className="footerCol">
-            <h4 className="footerHead fontHeading">The Cool</h4>
-            <a className="footerLink footerSocial" href="https://x.com" target="_blank" rel="noreferrer">
-              <img src={footerx} alt="" aria-hidden />
-              <span>X</span>
-            </a>
-            <a className="footerLink footerSocial" href="https://instagram.com" target="_blank" rel="noreferrer">
-              <img src={footerinsta} alt="" aria-hidden />
-              <span>Instagram</span>
-            </a>
-            <a className="footerLink footerSocial" href="https://facebook.com" target="_blank" rel="noreferrer">
-              <img src={footerfb} alt="" aria-hidden />
-              <span>Facebook</span>
-            </a>
-            <a className="footerLink footerSocial" href="https://youtube.com" target="_blank" rel="noreferrer">
-              <img src={footeryt} alt="" aria-hidden />
-              <span>YouTube</span>
-            </a>
-          </section>
-        </nav>
+                <div className="fm-footer__links">
+                  {group.items.map(renderLink)}
+                </div>
+              </section>
+            ))}
+          </nav>
 
-        <div className="footerBar">
-          <p>© 2025 FixMate.lk. All rights reserved.</p>
+          <section className="fm-footer__serviceBox">
+            <span className="fm-footer__label">{footerServiceBox.eyebrow}</span>
+
+            <h3>{footerServiceBox.title}</h3>
+
+            <p>{footerServiceBox.text}</p>
+
+            <div className="fm-footer__actions">
+              <Link
+                to={footerServiceBox.primaryTo}
+                className="fm-footer__primary">
+                {footerServiceBox.primaryLabel}
+              </Link>
+
+              <a
+                href={footerServiceBox.secondaryHref}
+                className="fm-footer__secondary">
+                {footerServiceBox.secondaryLabel}
+              </a>
+            </div>
+          </section>
+        </div>
+
+        <div className="fm-footer__bottom">
+          <p>{footerBrand.copyright}</p>
+
+          <div className="fm-footer__socials" aria-label="FixMate social links">
+            {footerSocials.map((item) => (
+              <a
+                key={item.label}
+                href={item.href}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={item.label}>
+                <img src={item.icon} alt="" aria-hidden="true" />
+              </a>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            className="fm-footer__backTop"
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+            Back to top
+            <span aria-hidden="true">↑</span>
+          </button>
         </div>
       </div>
     </footer>

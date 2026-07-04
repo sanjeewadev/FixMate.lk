@@ -1,0 +1,310 @@
+.fm-user-shell {
+  --user-bg: #e1e1e136;
+  --user-surface: #ffffff;
+  --user-surface-2: #f8fafc;
+  --user-surface-3: #f1f5f9;
+
+  --user-text: #111827;
+  --user-text-2: #374151;
+  --user-muted: #667085;
+
+  --user-border: #e5e7eb;
+  --user-border-2: #d0d5dd;
+
+  --user-primary: #2563eb;
+  --user-primary-hover: #1d4ed8;
+  --user-primary-soft: #eff6ff;
+  --user-primary-border: #bfdbfe;
+
+  --user-green: #15803d;
+  --user-green-soft: #f0fdf4;
+
+  --user-red: #dc2626;
+  --user-red-hover: #b91c1c;
+  --user-red-soft: #fef2f2;
+
+  --user-amber: #d97706;
+  --user-amber-soft: #fffbeb;
+
+  --user-sidebar-w: 264px;
+  --user-topbar-h: 74px;
+
+  --user-radius-sm: 6px;
+  --user-radius-md: 8px;
+  --user-radius-lg: 10px;
+
+  /* Temporary compatibility for old child page CSS */
+  --bg: var(--user-bg);
+  --panel: var(--user-surface);
+  --surface: var(--user-surface);
+  --surface-2: var(--user-surface-2);
+  --content-bg: var(--user-bg);
+  --border: var(--user-border);
+  --text: var(--user-text);
+  --text-muted: var(--user-muted);
+  --muted: var(--user-muted);
+  --primary: var(--user-primary);
+  --primary-light: #3b82f6;
+  --primary-dark: var(--user-primary-hover);
+  --brand: var(--user-primary);
+  --brand-600: var(--user-primary);
+  --brand-700: var(--user-primary-hover);
+  --radius: var(--user-radius-lg);
+  --shadow: none;
+  --shadow-hover: none;
+
+  display: grid;
+  grid-template-columns: var(--user-sidebar-w) minmax(0, 1fr);
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  color: var(--user-text);
+  background: var(--user-bg);
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+.fm-user-shell,
+.fm-user-shell * {
+  box-sizing: border-box;
+}
+
+.fm-user-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.fm-user-content {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: 18px;
+  background: var(--user-bg);
+}
+
+/* Temporary compatibility for old topbar/sidebar until we replace them */
+
+.fm-user-shell .db-topbar {
+  position: static;
+  top: auto;
+  z-index: 5;
+  min-height: var(--user-topbar-h);
+  height: var(--user-topbar-h);
+  padding: 0 18px;
+  color: var(--user-text);
+  background: #ffffff;
+  border-bottom: 1px solid var(--user-border);
+}
+
+.fm-user-shell .db-sidebar {
+  min-height: 100vh;
+  position: static;
+  top: auto;
+  width: var(--user-sidebar-w);
+  background: #ffffff;
+  border-right: 1px solid var(--user-border);
+}
+
+.fm-user-shell .db-sidebar.open,
+.fm-user-shell .db-sidebar.closed {
+  width: var(--user-sidebar-w);
+}
+
+.fm-user-shell .db-sidebar__toggle {
+  display: none;
+}
+
+/* Shared compatibility styles for old user child pages */
+
+.fm-user-shell :where(.card) {
+  background: #ffffff;
+  border: 1px solid var(--user-border);
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: none;
+}
+
+.fm-user-shell :where(.btn, button.btn) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 13px;
+  border-radius: 8px;
+  border: 1px solid var(--user-border);
+  color: var(--user-text-2);
+  background: #ffffff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.fm-user-shell :where(.btn:hover, button.btn:hover) {
+  color: var(--user-primary);
+  background: var(--user-primary-soft);
+  border-color: var(--user-primary-border);
+}
+
+.fm-user-shell :where(.btn:disabled, button.btn:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.fm-user-shell :where(.btn-primary, .primary, .btn.primary) {
+  color: #ffffff;
+  background: var(--user-primary);
+  border-color: var(--user-primary);
+}
+
+.fm-user-shell :where(.btn-primary:hover, .primary:hover, .btn.primary:hover) {
+  color: #ffffff;
+  background: var(--user-primary-hover);
+  border-color: var(--user-primary-hover);
+}
+
+.fm-user-shell :where(.btn-danger, .danger, .btn.danger) {
+  color: #ffffff;
+  background: var(--user-red);
+  border-color: var(--user-red);
+}
+
+.fm-user-shell :where(input, select, textarea) {
+  font-family: inherit;
+}
+
+.fm-user-shell
+  :where(
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="password"],
+    input[type="number"],
+    select,
+    textarea
+  ) {
+  max-width: 100%;
+  border-color: var(--user-border-2);
+  border-radius: 8px;
+  color: var(--user-text);
+}
+
+.fm-user-shell :where(table) {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.fm-user-shell :where(th) {
+  color: var(--user-muted);
+  background: #f8fafc;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.fm-user-shell :where(td, th) {
+  border-color: var(--user-border);
+}
+
+/* Profile placeholder */
+
+.fm-user-placeholder {
+  display: grid;
+  gap: 8px;
+  max-width: 760px;
+  padding: 22px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid var(--user-border);
+}
+
+.fm-user-placeholder__eyebrow {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 9px;
+  border-radius: 6px;
+  color: var(--user-primary);
+  background: var(--user-primary-soft);
+  border: 1px solid var(--user-primary-border);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.fm-user-placeholder h1 {
+  margin: 0;
+  color: var(--user-text);
+  font-size: clamp(26px, 2.4vw, 36px);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+.fm-user-placeholder p {
+  margin: 0;
+  color: var(--user-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Scoped scrollbars */
+
+.fm-user-shell *::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.fm-user-shell *::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.fm-user-shell *::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Responsive */
+
+@media (max-width: 1100px) {
+  .fm-user-shell {
+    --user-sidebar-w: 78px;
+  }
+}
+
+@media (max-width: 760px) {
+  .fm-user-shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: var(--user-topbar-h) minmax(0, 1fr);
+  }
+
+  .fm-user-shell .db-sidebar {
+    display: none;
+  }
+
+  .fm-user-shell .db-topbar {
+    height: var(--user-topbar-h);
+    padding: 0 12px;
+  }
+
+  .fm-user-content {
+    padding: 14px;
+  }
+}

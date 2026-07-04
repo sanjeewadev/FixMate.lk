@@ -1,96 +1,227 @@
-// src/Pages/AdminDashboard/components/RateTechnician.jsx
-import React, { useState } from "react";
-import axios from "axios";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  CheckCircle2,
+  Clock3,
+  MessageSquareText,
+  Send,
+  Star,
+} from "lucide-react";
+
+import api from "../../../lib/api";
 import "./RateTechnician.css";
 
+function RatingStars({
+  value = 0,
+  hover = 0,
+  readOnly = false,
+  onChange,
+  onHover,
+}) {
+  const activeValue = hover || value;
+
+  return (
+    <div
+      className="fm-admin-rate__stars"
+      aria-label={`${value} out of 5 stars`}>
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          className={`fm-admin-rate__star ${
+            star <= activeValue ? "isFilled" : ""
+          } ${readOnly ? "isReadonly" : ""}`}
+          onClick={() => {
+            if (!readOnly) onChange?.(star);
+          }}
+          onMouseEnter={() => {
+            if (!readOnly) onHover?.(star);
+          }}
+          onMouseLeave={() => {
+            if (!readOnly) onHover?.(0);
+          }}
+          disabled={readOnly}
+          aria-label={`${star} star${star > 1 ? "s" : ""}`}>
+          ★
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function RateTechnician({ booking, role }) {
-  // 🛑 If booking is not yet loaded
-  if (!booking) {
-    return <p className="no-rating">Loading booking...</p>;
-  }
-
-  const [stars, setStars] = useState(booking?.rating?.stars || 0);
+  const [stars, setStars] = useState(0);
   const [hover, setHover] = useState(0);
-  const [comment, setComment] = useState(booking?.rating?.comment || "");
-  const [message, setMessage] = useState("");
-  const [submitted, setSubmitted] = useState(!!booking?.rating);
+  const [comment, setComment] = useState("");
+  const [message, setMessage] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  //  Customer can submit only if booking is completed and not yet rated
-  const canRate =
-    role === "customer" && booking.status === "completed" && !booking.rating;
+  useEffect(() => {
+    if (!booking) return;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (stars < 1) {
-      setMessage("Please select a star rating");
-      return;
-    }
-    try {
-      const res = await axios.patch(
-        `/api/bookings/${booking._id}/rate`,
-        { stars, comment },
-        { withCredentials: true },
-      );
-      setMessage(res.data.message || "Submitted!");
-      setSubmitted(true);
-    } catch (err) {
-      setMessage(err.response?.data?.message || "Error submitting rating");
-    }
-  };
+    setStars(Number(booking?.rating?.stars || 0));
+    setComment(booking?.rating?.comment || "");
+    setSubmitted(Boolean(booking?.rating));
+    setMessage(null);
+  }, [booking?._id, booking?.rating?.stars, booking?.rating?.comment]);
 
-  //  Read-only mode (already rated OR not a customer)
-  if (submitted || booking.rating || role !== "customer") {
-    const r = booking.rating || { stars, comment, createdAt: new Date() };
+  const canRate = useMemo(() => {
     return (
-      <div className="rate-technician">
-        <h4>Technician Rating</h4>
-        <div className="stars">
-          {[1, 2, 3, 4, 5].map((s) => (
-            <span key={s} className={s <= r.stars ? "star filled" : "star"}>
-              ★
-            </span>
-          ))}
-        </div>
-        <p className="comment">{r.comment || "No comment provided."}</p>
-        {r.createdAt && (
-          <p className="date">
-            Rated on {new Date(r.createdAt).toLocaleString()}
-          </p>
-        )}
-        {message && <p className="msg">{message}</p>}
+      role === "customer" &&
+      booking?.status === "completed" &&
+      !booking?.rating &&
+      !submitted
+    );
+  }, [booking?.rating, booking?.status, role, submitted]);
+
+  if (!booking) {
+    return (
+      <div className="fm-admin-rate fm-admin-rate--empty">
+        <Clock3 size={18} />
+        <span>Loading booking...</span>
       </div>
     );
   }
 
-  //  Rating form (customer only, completed, no rating yet)
-  return (
-    <div className="rate-technician">
-      <h4>Rate Your Technician</h4>
-      {message && <p className="msg">{message}</p>}
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
-      <form onSubmit={handleSubmit} className="rating-form">
-        <div className="stars">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <span
-              key={star}
-              className={star <= (hover || stars) ? "star filled" : "star"}
-              onClick={() => setStars(star)}
-              onMouseEnter={() => setHover(star)}
-              onMouseLeave={() => setHover(0)}>
-              ★
-            </span>
-          ))}
+    if (stars < 1) {
+      setMessage({
+        type: "error",
+        text: "Please select a star rating.",
+      });
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setMessage(null);
+
+      const { data } = await api.patch(`/api/bookings/${booking._id}/rate`, {
+        stars,
+        comment,
+      });
+
+      setMessage({
+        type: "success",
+        text: data?.message || "Rating submitted successfully.",
+      });
+
+      setSubmitted(true);
+    } catch (error) {
+      setMessage({
+        type: "error",
+        text:
+          error?.response?.data?.message ||
+          error?.message ||
+          "Error submitting rating.",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!canRate) {
+    const rating = booking.rating || {
+      stars,
+      comment,
+      createdAt: submitted ? new Date() : null,
+    };
+
+    return (
+      <section className="fm-admin-rate">
+        <div className="fm-admin-rate__header">
+          <div className="fm-admin-rate__icon">
+            <Star size={18} />
+          </div>
+
+          <div>
+            <h4>Technician Rating</h4>
+            <p>Customer feedback for this completed booking.</p>
+          </div>
         </div>
 
-        <textarea
-          placeholder="Leave a comment (optional)"
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}></textarea>
+        <RatingStars value={Number(rating?.stars || 0)} readOnly />
 
-        <button type="submit" className="btn">
-          Submit Rating
+        <div className="fm-admin-rate__readonlyComment">
+          <MessageSquareText size={16} />
+          <p>{rating?.comment || "No comment provided."}</p>
+        </div>
+
+        {rating?.createdAt ? (
+          <div className="fm-admin-rate__date">
+            <Clock3 size={14} />
+            <span>Rated on {new Date(rating.createdAt).toLocaleString()}</span>
+          </div>
+        ) : null}
+
+        {message?.text ? (
+          <div
+            className={`fm-admin-rate__notice fm-admin-rate__notice--${message.type}`}
+            role="status"
+            aria-live="polite">
+            {message.type === "success" ? (
+              <CheckCircle2 size={16} />
+            ) : (
+              <MessageSquareText size={16} />
+            )}
+            <span>{message.text}</span>
+          </div>
+        ) : null}
+      </section>
+    );
+  }
+
+  return (
+    <section className="fm-admin-rate">
+      <div className="fm-admin-rate__header">
+        <div className="fm-admin-rate__icon">
+          <Star size={18} />
+        </div>
+
+        <div>
+          <h4>Rate Your Technician</h4>
+          <p>Select a rating and add an optional comment.</p>
+        </div>
+      </div>
+
+      {message?.text ? (
+        <div
+          className={`fm-admin-rate__notice fm-admin-rate__notice--${message.type}`}
+          role="status"
+          aria-live="polite">
+          {message.type === "success" ? (
+            <CheckCircle2 size={16} />
+          ) : (
+            <MessageSquareText size={16} />
+          )}
+          <span>{message.text}</span>
+        </div>
+      ) : null}
+
+      <form className="fm-admin-rate__form" onSubmit={handleSubmit}>
+        <RatingStars
+          value={stars}
+          hover={hover}
+          onChange={setStars}
+          onHover={setHover}
+        />
+
+        <label className="fm-admin-rate__field">
+          <span>Comment</span>
+          <textarea
+            placeholder="Leave a comment. This is optional."
+            value={comment}
+            onChange={(event) => setComment(event.target.value)}
+          />
+        </label>
+
+        <button type="submit" className="fm-admin-rate__btn" disabled={saving}>
+          <Send size={15} />
+          {saving ? "Submitting..." : "Submit Rating"}
         </button>
       </form>
-    </div>
+    </section>
   );
 }

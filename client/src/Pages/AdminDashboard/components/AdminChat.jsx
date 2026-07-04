@@ -1,75 +1,106 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import api from "../../../lib/api";
+import {
+  AlertCircle,
+  MessageSquareText,
+  RefreshCw,
+  Send,
+  UserRound,
+} from "lucide-react";
+
 import { useAuth } from "../../../context/AuthContext.jsx";
+import api from "../../../lib/api";
 import "./AdminChat.css";
 
-function fmtTime(s) {
+function fmtTime(value) {
   try {
-    return new Date(s).toLocaleString();
-  } catch (s) {
-    return s || "";
+    return new Date(value).toLocaleString();
+  } catch {
+    return value || "";
   }
 }
+
 const RIGHT_ROLES = new Set(["admin", "super_admin", "coordinator"]);
 
-export default function AdminChat() {
-  const { role } = useAuth(); // "admin" | "super_admin" | "coordinator"
+const roleLabel = (role) => {
+  if (!role) return "User";
 
-  // Conversations
+  return String(role)
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+};
+
+export default function AdminChat({ conversationId }) {
+  const { role } = useAuth();
+
   const [convos, setConvos] = useState([]);
   const [loadingList, setLoadingList] = useState(false);
   const [errList, setErrList] = useState("");
 
-  // Active conversation + messages
-  const [activeId, setActiveId] = useState("");
+  const [activeId, setActiveId] = useState(conversationId || "");
   const [msgs, setMsgs] = useState([]);
   const [errMsgs, setErrMsgs] = useState("");
-  const [showSpinner, setShowSpinner] = useState(false); // spinner only for first load
+  const [showSpinner, setShowSpinner] = useState(false);
 
-  // Composer
   const [text, setText] = useState("");
 
-  // Refs
   const listRef = useRef(null);
   const pollRef = useRef(null);
   const initialLoadDoneRef = useRef(false);
 
-  // ---------- Load my conversations ----------
   async function loadConversations() {
     try {
       setLoadingList(true);
       setErrList("");
+
       const { data } = await api.get("/api/chat/conversations");
       const arr = Array.isArray(data) ? data : [];
+
       setConvos(arr);
-      if (!activeId && arr.length) setActiveId(arr[0]._id);
-    } catch (e) {
-      setErrList(e?.response?.data?.message || "Failed to load conversations");
+
+      if (!activeId && arr.length) {
+        setActiveId(conversationId || arr[0]._id);
+      }
+    } catch (error) {
+      setErrList(
+        error?.response?.data?.message || "Failed to load conversations.",
+      );
     } finally {
       setLoadingList(false);
     }
   }
 
-  // ---------- Load messages for active ----------
   async function loadMessages(id = activeId, isInitial = false) {
     if (!id) return;
+
     try {
-      if (isInitial && !initialLoadDoneRef.current) setShowSpinner(true);
+      if (isInitial && !initialLoadDoneRef.current) {
+        setShowSpinner(true);
+      }
+
       setErrMsgs("");
+
       const { data } = await api.get("/api/chat/messages", {
-        params: { conversationId: id },
+        params: {
+          conversationId: id,
+        },
       });
+
       setMsgs(Array.isArray(data) ? data : []);
-      // autoscroll to bottom
+
       requestAnimationFrame(() => {
-        if (listRef.current)
+        if (listRef.current) {
           listRef.current.scrollTop = listRef.current.scrollHeight;
+        }
       });
-    } catch (e) {
-      const msg = e?.response?.data?.message || "Failed to load messages";
-      setErrMsgs(msg);
+    } catch (error) {
+      const message =
+        error?.response?.data?.message || "Failed to load messages.";
+
+      setErrMsgs(message);
       setMsgs([]);
-      if (msg === "Forbidden" && pollRef.current) {
+
+      if (message === "Forbidden" && pollRef.current) {
         clearInterval(pollRef.current);
         pollRef.current = null;
       }
@@ -81,185 +112,303 @@ export default function AdminChat() {
     }
   }
 
-  // initial conversations
   useEffect(() => {
     loadConversations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // when active changes, do a "first" load with spinner once
+  useEffect(() => {
+    if (conversationId) {
+      setActiveId(conversationId);
+    }
+  }, [conversationId]);
+
   useEffect(() => {
     if (!activeId) return;
+
     initialLoadDoneRef.current = false;
     loadMessages(activeId, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId]);
 
-  // polling (silent—no spinner)
   useEffect(() => {
-    if (!activeId) return;
+    if (!activeId) return undefined;
+
     pollRef.current = setInterval(() => loadMessages(activeId, false), 3500);
+
     return () => clearInterval(pollRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId]);
 
-  // Active conversation (for quick lookup)
   const activeConvo = useMemo(
-    () => (convos || []).find((c) => c._id === activeId),
-    [convos, activeId],
+    () => (convos || []).find((conversation) => conversation._id === activeId),
+    [activeId, convos],
   );
 
-  // Map (role:userId) -> display name from participants snapshot
   const nameMap = useMemo(() => {
     const map = {};
-    (activeConvo?.participants || []).forEach((p) => {
-      map[`${p.role}:${String(p.userId)}`] = p.name || p.role;
+
+    (activeConvo?.participants || []).forEach((participant) => {
+      map[`${participant.role}:${String(participant.userId)}`] =
+        participant.name || roleLabel(participant.role);
     });
+
     return map;
   }, [activeConvo]);
 
-  // Build sidebar list with proper names
   const sidebar = useMemo(() => {
-    return (convos || []).map((c) => {
-      const other = (c.participants || []).find(
-        (p) => !RIGHT_ROLES.has(p.role),
+    return (convos || []).map((conversation) => {
+      const other = (conversation.participants || []).find(
+        (participant) => !RIGHT_ROLES.has(participant.role),
       );
+
       const labelName =
-        other?.name || //  use snapshot
-        other?.userId?.full_name || // (if you ever populate)
+        other?.name ||
+        other?.userId?.full_name ||
         other?.full_name ||
-        (other?.role
-          ? other.role.charAt(0).toUpperCase() + other.role.slice(1)
-          : "Conversation");
+        roleLabel(other?.role) ||
+        "Conversation";
 
       const subtitle =
-        c.booking?.problemTitle || c.topic || c.booking?._id || "";
+        conversation.booking?.problemTitle ||
+        conversation.topic ||
+        conversation.booking?._id ||
+        "";
 
       return {
-        id: c._id,
+        id: conversation._id,
         label: labelName,
         role: other?.role || "",
         sub: subtitle,
-        ts: c.updatedAt,
+        ts: conversation.updatedAt,
       };
     });
   }, [convos]);
 
-  // Send message
-  async function sendMessage(e) {
-    e.preventDefault();
-    if (!text.trim() || !activeId) return;
-    const body = { conversationId: activeId, text: text.trim() };
+  async function sendMessage(event) {
+    event.preventDefault();
 
-    // optimistic
+    if (!text.trim() || !activeId) return;
+
+    const body = {
+      conversationId: activeId,
+      text: text.trim(),
+    };
+
     const temp = {
       _id: `temp-${Date.now()}`,
       conversation: activeId,
       senderRole: role,
-      senderId: "me", // local-only marker
+      senderId: "me",
       text: text.trim(),
       createdAt: new Date().toISOString(),
     };
-    setMsgs((prev) => [...prev, temp]);
+
+    setMsgs((current) => [...current, temp]);
     setText("");
+
     requestAnimationFrame(() => {
-      if (listRef.current)
+      if (listRef.current) {
         listRef.current.scrollTop = listRef.current.scrollHeight;
+      }
     });
 
     try {
       await api.post("/api/chat/messages", body);
-      // polling will sync the real message (with ObjectId senderId)
-    } catch (e) {
-      setMsgs((prev) => prev.filter((m) => m._id !== temp._id));
-      alert(e?.response?.data?.message || "Failed to send");
+    } catch (error) {
+      setMsgs((current) =>
+        current.filter((message) => message._id !== temp._id),
+      );
+      alert(error?.response?.data?.message || "Failed to send message.");
     }
   }
 
   return (
-    <div className="admin-chat">
-      {/* Sidebar */}
-      <aside className="ac-sidebar">
-        <div className="ac-head">Conversations</div>
-        <div className="ac-list">
-          {loadingList && <div className="muted small pad">Loading…</div>}
-          {errList && <div className="err pad">{errList}</div>}
-          {!loadingList && !errList && sidebar.length === 0 && (
-            <div className="muted small pad">No conversations yet.</div>
-          )}
+    <section className="fm-admin-chat">
+      <aside className="fm-admin-chat__sidebar">
+        <div className="fm-admin-chat__sidebarHeader">
+          <div>
+            <span>Inbox</span>
+            <h2>Conversations</h2>
+          </div>
+
+          <button
+            type="button"
+            className="fm-admin-chat__iconButton"
+            onClick={loadConversations}
+            disabled={loadingList}
+            aria-label="Refresh conversations">
+            <RefreshCw size={16} />
+          </button>
+        </div>
+
+        <div className="fm-admin-chat__conversationList">
+          {loadingList ? (
+            <div className="fm-admin-chat__state">
+              <RefreshCw size={18} />
+              <span>Loading conversations...</span>
+            </div>
+          ) : null}
+
+          {errList ? (
+            <div className="fm-admin-chat__error">
+              <AlertCircle size={16} />
+              <span>{errList}</span>
+            </div>
+          ) : null}
+
+          {!loadingList && !errList && sidebar.length === 0 ? (
+            <div className="fm-admin-chat__state">
+              <MessageSquareText size={18} />
+              <span>No conversations yet.</span>
+            </div>
+          ) : null}
 
           {sidebar.map((item) => (
             <button
               key={item.id}
-              className={`ac-item ${activeId === item.id ? "active" : ""}`}
+              type="button"
+              className={`fm-admin-chat__conversation ${
+                activeId === item.id ? "isActive" : ""
+              }`}
               onClick={() => setActiveId(item.id)}
               title={item.sub}>
-              <div className="ac-row">
-                <div className="ac-title">
-                  {item.label}
-                  {item.role ? (
-                    <span className="ac-role"> · {item.role}</span>
-                  ) : null}
-                </div>
-                <div className="ac-time tiny muted">{fmtTime(item.ts)}</div>
-              </div>
-              {item.sub ? <div className="ac-sub">{item.sub}</div> : null}
+              <span className="fm-admin-chat__avatar">
+                <UserRound size={16} />
+              </span>
+
+              <span className="fm-admin-chat__conversationBody">
+                <span className="fm-admin-chat__conversationTop">
+                  <strong>
+                    {item.label}
+                    {item.role ? (
+                      <small> · {roleLabel(item.role)}</small>
+                    ) : null}
+                  </strong>
+
+                  <em>{fmtTime(item.ts)}</em>
+                </span>
+
+                {item.sub ? (
+                  <span className="fm-admin-chat__conversationSub">
+                    {item.sub}
+                  </span>
+                ) : null}
+              </span>
             </button>
           ))}
         </div>
       </aside>
 
-      {/* Chat body */}
-      <section className="ac-body">
+      <section className="fm-admin-chat__body">
         {!activeId ? (
-          <div className="ac-empty">Select a conversation</div>
+          <div className="fm-admin-chat__empty">
+            <MessageSquareText size={26} />
+            <strong>Select a conversation</strong>
+            <span>
+              Choose a conversation from the left side to view messages.
+            </span>
+          </div>
         ) : (
           <>
-            <div className="ac-messages" ref={listRef}>
-              {showSpinner && <div className="muted small pad">Loading…</div>}
-              {!showSpinner && errMsgs && (
-                <div className="err pad">{errMsgs}</div>
-              )}
-              {!showSpinner && !errMsgs && msgs.length === 0 && (
-                <div className="muted small pad">No messages yet.</div>
-              )}
+            <div className="fm-admin-chat__bodyHeader">
+              <div>
+                <span>Active conversation</span>
+                <h2>
+                  {sidebar.find((item) => item.id === activeId)?.label ||
+                    "Conversation"}
+                </h2>
+              </div>
 
-              {msgs.map((m) => {
-                const mine = RIGHT_ROLES.has(m.senderRole);
-                const key = `${m.senderRole}:${String(m.senderId)}`;
+              <button
+                type="button"
+                className="fm-admin-chat__iconButton"
+                onClick={() => loadMessages(activeId, true)}
+                aria-label="Refresh messages">
+                <RefreshCw size={16} />
+              </button>
+            </div>
+
+            <div className="fm-admin-chat__messages" ref={listRef}>
+              {showSpinner ? (
+                <div className="fm-admin-chat__state">
+                  <RefreshCw size={18} />
+                  <span>Loading messages...</span>
+                </div>
+              ) : null}
+
+              {!showSpinner && errMsgs ? (
+                <div className="fm-admin-chat__error">
+                  <AlertCircle size={16} />
+                  <span>{errMsgs}</span>
+                </div>
+              ) : null}
+
+              {!showSpinner && !errMsgs && msgs.length === 0 ? (
+                <div className="fm-admin-chat__state">
+                  <MessageSquareText size={18} />
+                  <span>No messages yet.</span>
+                </div>
+              ) : null}
+
+              {msgs.map((message) => {
+                const mine = RIGHT_ROLES.has(message.senderRole);
+                const key = `${message.senderRole}:${String(message.senderId)}`;
+
                 const senderName =
-                  m.senderId === "me"
+                  message.senderId === "me"
                     ? "You"
-                    : nameMap[key] || (mine ? "You" : m.senderRole);
+                    : nameMap[key] ||
+                      (mine ? "You" : roleLabel(message.senderRole));
 
                 return (
                   <div
-                    key={m._id}
-                    className={`bubble-row ${mine ? "right" : "left"}`}>
-                    {!mine && <div className="role-tag">{senderName}</div>}
-                    <div className={`bubble ${mine ? "mine" : ""}`}>
-                      <div className="text">{m.text}</div>
-                      <div className="meta tiny muted">
-                        {senderName} • {fmtTime(m.createdAt)}
-                      </div>
+                    key={message._id}
+                    className={`fm-admin-chat__messageRow ${
+                      mine ? "isRight" : "isLeft"
+                    }`}>
+                    {!mine ? (
+                      <div className="fm-admin-chat__sender">{senderName}</div>
+                    ) : null}
+
+                    <div
+                      className={`fm-admin-chat__bubble ${
+                        mine ? "isMine" : ""
+                      }`}>
+                      <p>{message.text}</p>
+
+                      <span>
+                        {senderName} · {fmtTime(message.createdAt)}
+                      </span>
                     </div>
-                    {mine && <div className="role-tag">{senderName}</div>}
+
+                    {mine ? (
+                      <div className="fm-admin-chat__sender">{senderName}</div>
+                    ) : null}
                   </div>
                 );
               })}
             </div>
 
-            <form className="ac-input" onSubmit={sendMessage}>
+            <form className="fm-admin-chat__input" onSubmit={sendMessage}>
               <input
                 type="text"
-                placeholder="Type your message…"
+                placeholder="Type your message"
                 value={text}
-                onChange={(e) => setText(e.target.value)}
+                onChange={(event) => setText(event.target.value)}
               />
-              <button className="btn send" disabled={!text.trim()}>
+
+              <button
+                type="submit"
+                className="fm-admin-chat__sendButton"
+                disabled={!text.trim()}>
+                <Send size={16} />
                 Send
               </button>
             </form>
           </>
         )}
       </section>
-    </div>
+    </section>
   );
 }

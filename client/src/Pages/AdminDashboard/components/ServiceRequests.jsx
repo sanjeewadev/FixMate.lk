@@ -1,15 +1,33 @@
 import React, { useEffect, useMemo, useState } from "react";
-import api from "../../../lib/api.js";
-import "./ServiceRequests.css";
-import DistrictTechSelect from "./DistrictTechSelect.jsx";
+import {
+  AlertCircle,
+  Check,
+  ClipboardList,
+  Clock3,
+  MapPin,
+  RefreshCw,
+  Search,
+  UserCheck,
+  UsersRound,
+  X,
+} from "lucide-react";
 
-function formatDate(s) {
+import api from "../../../lib/api.js";
+import DistrictTechSelect from "./DistrictTechSelect.jsx";
+import "./ServiceRequests.css";
+
+function formatDate(value) {
+  if (!value) return "—";
+
   try {
-    return new Date(s).toLocaleString();
+    return new Date(value).toLocaleString();
   } catch {
-    return s || "";
+    return value || "—";
   }
 }
+
+const getTechId = (tech) =>
+  tech?.id || tech?._id || tech?.technicianId || tech?.technician_id || "";
 
 export default function ServiceRequests() {
   const [unclaimed, setUnclaimed] = useState([]);
@@ -17,6 +35,7 @@ export default function ServiceRequests() {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState({ type: "", text: "" });
 
+  const [query, setQuery] = useState("");
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [selectedTech, setSelectedTech] = useState("");
 
@@ -25,17 +44,67 @@ export default function ServiceRequests() {
     [unclaimed, awaiting],
   );
 
+  const stats = useMemo(() => {
+    const accepted = [...unclaimed, ...awaiting].reduce(
+      (total, booking) => total + Number(booking.acceptedCount || 0),
+      0,
+    );
+
+    return {
+      unclaimed: unclaimed.length,
+      awaiting: awaiting.length,
+      accepted,
+      total: unclaimed.length + awaiting.length,
+    };
+  }, [awaiting, unclaimed]);
+
+  const filteredUnclaimed = useMemo(() => {
+    const text = query.trim().toLowerCase();
+
+    if (!text) return unclaimed;
+
+    return unclaimed.filter((booking) =>
+      [
+        booking.problemTitle,
+        booking.service?.name,
+        booking.customerSnapshot?.district,
+        booking.customerSnapshot?.full_name,
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(text)),
+    );
+  }, [query, unclaimed]);
+
+  const filteredAwaiting = useMemo(() => {
+    const text = query.trim().toLowerCase();
+
+    if (!text) return awaiting;
+
+    return awaiting.filter((booking) =>
+      [
+        booking.problemTitle,
+        booking.service?.name,
+        booking.customerSnapshot?.district,
+        booking.customerSnapshot?.full_name,
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(text)),
+    );
+  }, [awaiting, query]);
+
   const fetchRequests = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/api/coordinator/bookings/dashboard");
-      setUnclaimed(res.data?.unclaimed || []);
-      setAwaiting(res.data?.awaitingCoordinator || []);
+
+      const { data } = await api.get("/api/coordinator/bookings/dashboard");
+
+      setUnclaimed(data?.unclaimed || []);
+      setAwaiting(data?.awaitingCoordinator || []);
       setMsg({ type: "", text: "" });
-    } catch (err) {
+    } catch (error) {
       setMsg({
         type: "error",
-        text: err?.response?.data?.message || "Failed to load requests",
+        text: error?.response?.data?.message || "Failed to load requests.",
       });
     } finally {
       setLoading(false);
@@ -43,291 +112,446 @@ export default function ServiceRequests() {
   };
 
   useEffect(() => {
-    fetchRequests(); // initial
-    const id = setInterval(fetchRequests, 15000); // refresh every 15s
+    fetchRequests();
+
+    const id = setInterval(fetchRequests, 15000);
+
     return () => clearInterval(id);
   }, []);
 
-  // close modal with ESC
   useEffect(() => {
-    if (!selectedBooking) return;
-    const onKey = (e) => {
-      if (e.key === "Escape") setSelectedBooking(null);
+    if (!selectedBooking) return undefined;
+
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setSelectedBooking(null);
+      }
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
   }, [selectedBooking]);
 
-  const openPicker = (b) => {
-    setSelectedBooking(b);
+  const openPicker = (booking) => {
+    setSelectedBooking(booking);
 
-    // Preselect FIFO #1 if available
     const first =
-      Array.isArray(b?.acceptedTechs) && b.acceptedTechs.length > 0
-        ? b.acceptedTechs[0].id
+      Array.isArray(booking?.acceptedTechs) && booking.acceptedTechs.length > 0
+        ? getTechId(booking.acceptedTechs[0])
         : "";
 
     setSelectedTech(first || "");
   };
 
   const assignTech = async (bookingId, technicianId) => {
-    if (!technicianId) return alert("Please select a technician");
+    if (!technicianId) {
+      setMsg({
+        type: "error",
+        text: "Please select a technician.",
+      });
+      return;
+    }
+
     try {
       await api.post(`/api/coordinator/bookings/${bookingId}/assign`, {
         technicianId,
       });
-      setMsg({ type: "info", text: "Technician assigned " });
+
+      setMsg({
+        type: "success",
+        text: "Technician assigned successfully.",
+      });
+
       setSelectedBooking(null);
       setSelectedTech("");
       fetchRequests();
-    } catch (err) {
-      alert(err?.response?.data?.message || "Error assigning technician");
+    } catch (error) {
+      setMsg({
+        type: "error",
+        text: error?.response?.data?.message || "Error assigning technician.",
+      });
     }
   };
 
   const reassignTech = async (bookingId, technicianId) => {
-    if (!technicianId) return alert("Please select a technician");
+    if (!technicianId) {
+      setMsg({
+        type: "error",
+        text: "Please select a technician.",
+      });
+      return;
+    }
+
     try {
       await api.post(`/api/coordinator/bookings/${bookingId}/reassign`, {
         technicianId,
       });
-      setMsg({ type: "info", text: "Technician changed 🔄" });
+
+      setMsg({
+        type: "success",
+        text: "Technician changed successfully.",
+      });
+
       setSelectedBooking(null);
       setSelectedTech("");
       fetchRequests();
-    } catch (err) {
-      alert(err?.response?.data?.message || "Error changing technician");
+    } catch (error) {
+      setMsg({
+        type: "error",
+        text: error?.response?.data?.message || "Error changing technician.",
+      });
     }
   };
 
-  return (
-    <div className="sr">
-      <div className="sr-header">
-        <div className="sr-title">
-          <h2>Service Requests</h2>
-          <div className="sr-sub">
-            Assign new requests or approve accepted ones.
+  const renderRequestTable = (items, type) => {
+    const isAwaiting = type === "awaiting";
+
+    return (
+      <section className="fm-admin-requests__card">
+        <div className="fm-admin-requests__listHeader">
+          <div>
+            <span>{isAwaiting ? "Coordinator approval" : "New requests"}</span>
+            <h2>{isAwaiting ? "Awaiting Approval" : "Unclaimed Requests"}</h2>
           </div>
-        </div>
-      </div>
 
-      {msg.text && (
-        <div
-          className={`sr-alert ${msg.type === "error" ? "sr-alert--error" : "sr-alert--info"}`}>
-          {msg.text}
-        </div>
-      )}
-
-      {!loading && !hasData && (
-        <div className="sr-card sr-empty">
-          <div className="sr-empty-emoji">🗂️</div>
-          <div className="sr-empty-text">No pending requests right now.</div>
-          <button className="sr-btn sr-btn--outline" onClick={fetchRequests}>
-            Refresh
+          <button
+            type="button"
+            className="fm-admin-requests__btn fm-admin-requests__btn--outline"
+            onClick={fetchRequests}
+            disabled={loading}>
+            <RefreshCw size={16} />
+            {loading ? "Refreshing" : "Refresh"}
           </button>
         </div>
-      )}
 
-      {unclaimed.length > 0 && (
-        <section className="sr-card">
-          <div className="sr-list-head">
-            <h3>🟡 Unclaimed (New)</h3>
-            <button
-              className="sr-btn sr-btn--outline"
-              onClick={fetchRequests}
-              disabled={loading}>
-              {loading ? "Refreshing…" : "Refresh"}
-            </button>
-          </div>
+        <div className="fm-admin-requests__tableWrap">
+          <table className="fm-admin-requests__table">
+            <thead>
+              <tr>
+                <th>Request</th>
+                <th>Service</th>
+                {!isAwaiting ? <th>District</th> : null}
+                <th>Accepted Techs</th>
+                <th>Created</th>
+                <th className="fm-admin-requests__actionsCol">Action</th>
+              </tr>
+            </thead>
 
-          <div className="sr-table-wrap">
-            <table className="sr-table">
-              <thead>
-                <tr>
-                  <th>Title</th>
-                  <th>Service</th>
-                  <th>District</th>
-                  <th>Accepted Techs</th>
-                  <th>Created</th>
-                  <th style={{ width: 120 }}></th>
-                </tr>
-              </thead>
-              <tbody>
-                {unclaimed.map((b) => (
-                  <tr key={b._id}>
-                    <td className="sr-clip">{b.problemTitle}</td>
-                    <td className="sr-clip">{b.service?.name || "—"}</td>
-                    <td>{b.customerSnapshot?.district || "—"}</td>
-                    <td>{b.acceptedCount ?? 0}</td>
-                    <td>{formatDate(b.createdAt)}</td>
-                    <td className="sr-row-actions">
-                      <button
-                        onClick={() => openPicker(b)}
-                        className="sr-btn sr-btn--small sr-btn--primary">
-                        Assign
-                      </button>
+            <tbody>
+              {items.map((booking) => (
+                <tr key={booking._id}>
+                  <td>
+                    <div className="fm-admin-requests__requestTitle">
+                      <strong>
+                        {booking.problemTitle || "Untitled request"}
+                      </strong>
+                      <small>{booking._id}</small>
+                    </div>
+                  </td>
+
+                  <td>{booking.service?.name || "—"}</td>
+
+                  {!isAwaiting ? (
+                    <td>
+                      <div className="fm-admin-requests__cellIcon">
+                        <MapPin size={14} />
+                        <span>{booking.customerSnapshot?.district || "—"}</span>
+                      </div>
                     </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
+                  ) : null}
 
-      {awaiting.length > 0 && (
-        <section className="sr-card">
-          <div className="sr-list-head">
-            <h3>🟢 Awaiting Coordinator Approval</h3>
-            <button
-              className="sr-btn sr-btn--outline"
-              onClick={fetchRequests}
-              disabled={loading}>
-              {loading ? "Refreshing…" : "Refresh"}
-            </button>
-          </div>
+                  <td>
+                    <span className="fm-admin-requests__countBadge">
+                      {booking.acceptedCount ?? 0}
+                    </span>
+                  </td>
 
-          <div className="sr-table-wrap">
-            <table className="sr-table">
-              <thead>
-                <tr>
-                  <th>Title</th>
-                  <th>Service</th>
-                  <th>Accepted Techs</th>
-                  <th>Created</th>
-                  <th style={{ width: 180 }}></th>
+                  <td>{formatDate(booking.createdAt)}</td>
+
+                  <td>
+                    <button
+                      type="button"
+                      onClick={() => openPicker(booking)}
+                      className="fm-admin-requests__btn fm-admin-requests__btn--primary fm-admin-requests__btn--small">
+                      <UserCheck size={14} />
+                      {isAwaiting ? "Approve & Assign" : "Assign"}
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {awaiting.map((b) => (
-                  <tr key={b._id}>
-                    <td className="sr-clip">{b.problemTitle}</td>
-                    <td className="sr-clip">{b.service?.name || "—"}</td>
-                    <td>{b.acceptedCount ?? 0}</td>
-                    <td>{formatDate(b.createdAt)}</td>
-                    <td className="sr-row-actions">
-                      <button
-                        onClick={() => openPicker(b)}
-                        className="sr-btn sr-btn--small sr-btn--primary">
-                        Approve & Assign
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
+              ))}
 
-      {selectedBooking && (
+              {!items.length ? (
+                <tr>
+                  <td colSpan={isAwaiting ? 5 : 6}>
+                    <div className="fm-admin-requests__empty">
+                      <ClipboardList size={24} />
+                      <strong>No records found</strong>
+                      <span>
+                        {query
+                          ? "Try a different search keyword."
+                          : "There are no matching requests in this section."}
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    );
+  };
+
+  return (
+    <section className="fm-admin-requests">
+      <div className="fm-admin-requests__header">
+        <div>
+          <span className="fm-admin-requests__eyebrow">Request Operations</span>
+
+          <h1>Service Requests</h1>
+
+          <p>
+            Assign new service requests, approve technician responses, and
+            manage technician allocation from one operational view.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          className="fm-admin-requests__btn fm-admin-requests__btn--outline"
+          onClick={fetchRequests}
+          disabled={loading}>
+          <RefreshCw size={16} />
+          {loading ? "Refreshing" : "Refresh"}
+        </button>
+      </div>
+
+      <div className="fm-admin-requests__summaryGrid">
+        <article className="fm-admin-requests__summaryCard">
+          <span>
+            <ClipboardList size={17} />
+          </span>
+          <div>
+            <strong>{stats.total}</strong>
+            <p>Total pending</p>
+          </div>
+        </article>
+
+        <article className="fm-admin-requests__summaryCard">
+          <span>
+            <AlertCircle size={17} />
+          </span>
+          <div>
+            <strong>{stats.unclaimed}</strong>
+            <p>Unclaimed</p>
+          </div>
+        </article>
+
+        <article className="fm-admin-requests__summaryCard">
+          <span>
+            <Clock3 size={17} />
+          </span>
+          <div>
+            <strong>{stats.awaiting}</strong>
+            <p>Awaiting approval</p>
+          </div>
+        </article>
+
+        <article className="fm-admin-requests__summaryCard">
+          <span>
+            <UsersRound size={17} />
+          </span>
+          <div>
+            <strong>{stats.accepted}</strong>
+            <p>Accepted techs</p>
+          </div>
+        </article>
+      </div>
+
+      {msg.text ? (
         <div
-          className="sr-modal-overlay"
+          className={`fm-admin-requests__notice fm-admin-requests__notice--${msg.type}`}
+          role="status"
+          aria-live="polite">
+          {msg.type === "success" ? <Check size={16} /> : <X size={16} />}
+          <span>{msg.text}</span>
+        </div>
+      ) : null}
+
+      <section className="fm-admin-requests__card">
+        <div className="fm-admin-requests__toolbar">
+          <div>
+            <span>Live request queue</span>
+            <h2>Pending Work</h2>
+          </div>
+
+          <label className="fm-admin-requests__search">
+            <Search size={16} />
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search request, service, district"
+            />
+          </label>
+        </div>
+      </section>
+
+      {!loading && !hasData ? (
+        <div className="fm-admin-requests__card">
+          <div className="fm-admin-requests__empty">
+            <ClipboardList size={24} />
+            <strong>No pending requests</strong>
+            <span>No pending requests are available right now.</span>
+            <button
+              type="button"
+              className="fm-admin-requests__btn fm-admin-requests__btn--outline"
+              onClick={fetchRequests}>
+              Refresh
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {hasData ? (
+        <>
+          {renderRequestTable(filteredUnclaimed, "unclaimed")}
+          {renderRequestTable(filteredAwaiting, "awaiting")}
+        </>
+      ) : null}
+
+      {selectedBooking ? (
+        <div
+          className="fm-admin-requests-modal"
           onClick={() => setSelectedBooking(null)}
           role="dialog"
-          aria-modal="true">
-          <div className="sr-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="sr-modal-head">
-              <h3>Choose Technician</h3>
+          aria-modal="true"
+          aria-label="Choose technician">
+          <div
+            className="fm-admin-requests-modal__card"
+            onClick={(event) => event.stopPropagation()}>
+            <div className="fm-admin-requests-modal__header">
+              <div>
+                <span>Technician assignment</span>
+                <h2>Choose Technician</h2>
+              </div>
+
               <button
-                className="sr-btn sr-btn--danger sr-btn--small"
-                onClick={() => setSelectedBooking(null)}>
-                Close
+                type="button"
+                className="fm-admin-requests__iconAction"
+                onClick={() => setSelectedBooking(null)}
+                aria-label="Close">
+                <X size={16} />
               </button>
             </div>
 
-            <div className="sr-modal-context tiny muted">
-              {selectedBooking.service?.name || "Service"} •{" "}
-              {selectedBooking.customerSnapshot?.district || "—"}
+            <div className="fm-admin-requests-modal__context">
+              <strong>{selectedBooking.service?.name || "Service"}</strong>
+              <span>{selectedBooking.customerSnapshot?.district || "—"}</span>
             </div>
 
-            {/* Show FIFO list if this booking is in 'awaiting_coordinator' and has accepted techs */}
             {selectedBooking?.status === "awaiting_coordinator" &&
-              Array.isArray(selectedBooking?.acceptedTechs) &&
-              selectedBooking.acceptedTechs.length > 0 && (
-                <div className="sr-fifo">
-                  <div className="sr-fifo-head">
-                    <strong>Accepted (First‑Come‑First‑Serve)</strong>
-                    <span className="tiny muted">
-                      Earliest responders first
-                    </span>
+            Array.isArray(selectedBooking?.acceptedTechs) &&
+            selectedBooking.acceptedTechs.length > 0 ? (
+              <div className="fm-admin-requests__fifo">
+                <div className="fm-admin-requests__fifoHeader">
+                  <div>
+                    <strong>Accepted technicians</strong>
+                    <span>First responders are listed first.</span>
                   </div>
-                  <ol className="sr-fifo-list">
-                    {selectedBooking.acceptedTechs.map((t, i) => (
+                </div>
+
+                <ol className="fm-admin-requests__fifoList">
+                  {selectedBooking.acceptedTechs.map((tech, index) => {
+                    const techId = getTechId(tech);
+
+                    return (
                       <li
-                        key={t.id}
-                        className={`sr-fifo-item ${selectedTech === t.id ? "is-selected" : ""}`}>
-                        <div className="sr-fifo-main">
-                          <span className="sr-fifo-rank">#{i + 1}</span>
-                          <span className="sr-fifo-name">{t.full_name}</span>
-                          {t.district && <span className="sr-fifo-dot">·</span>}
-                          {t.district && (
-                            <span className="sr-fifo-district">
-                              {t.district}
-                            </span>
-                          )}
-                          {t.respondedAt && (
-                            <>
-                              <span className="sr-fifo-dot">·</span>
-                              <span className="sr-fifo-time tiny">
-                                {new Date(t.respondedAt).toLocaleString()}
-                              </span>
-                            </>
-                          )}
+                        key={techId || index}
+                        className={`fm-admin-requests__fifoItem ${
+                          selectedTech === techId ? "isSelected" : ""
+                        }`}>
+                        <div className="fm-admin-requests__fifoMain">
+                          <span className="fm-admin-requests__fifoRank">
+                            #{index + 1}
+                          </span>
+
+                          <div>
+                            <strong>{tech.full_name || "Technician"}</strong>
+
+                            <small>
+                              {tech.district || "No district"}
+                              {tech.respondedAt
+                                ? ` • ${formatDate(tech.respondedAt)}`
+                                : ""}
+                            </small>
+                          </div>
                         </div>
-                        <div className="sr-fifo-actions">
+
+                        <div className="fm-admin-requests__fifoActions">
                           <button
                             type="button"
-                            className="sr-btn sr-btn--sm"
-                            onClick={() => setSelectedTech(t.id)}>
+                            className="fm-admin-requests__btn fm-admin-requests__btn--outline fm-admin-requests__btn--small"
+                            onClick={() => setSelectedTech(techId)}>
                             Select
                           </button>
+
                           <button
                             type="button"
-                            className="sr-btn sr-btn--sm sr-btn--primary"
+                            className="fm-admin-requests__btn fm-admin-requests__btn--primary fm-admin-requests__btn--small"
                             onClick={() =>
-                              assignTech(selectedBooking._id, t.id)
+                              assignTech(selectedBooking._id, techId)
                             }>
-                            Assign #{i + 1}
+                            Assign #{index + 1}
                           </button>
                         </div>
                       </li>
-                    ))}
-                  </ol>
-                </div>
-              )}
+                    );
+                  })}
+                </ol>
+              </div>
+            ) : null}
 
-            <DistrictTechSelect
-              booking={selectedBooking}
-              value={selectedTech}
-              onChange={setSelectedTech}
-            />
+            <div className="fm-admin-requests__selectBlock">
+              <DistrictTechSelect
+                booking={selectedBooking}
+                value={selectedTech}
+                onChange={setSelectedTech}
+              />
+            </div>
 
-            <div className="sr-modal-actions">
+            <div className="fm-admin-requests-modal__actions">
               {!selectedBooking.assignedTechnician ? (
                 <button
-                  className="sr-btn sr-btn--primary"
+                  type="button"
+                  className="fm-admin-requests__btn fm-admin-requests__btn--primary"
                   onClick={() => assignTech(selectedBooking._id, selectedTech)}>
-                  Assign
+                  Assign Technician
                 </button>
               ) : (
                 <button
-                  className="sr-btn sr-btn--primary"
+                  type="button"
+                  className="fm-admin-requests__btn fm-admin-requests__btn--primary"
                   onClick={() =>
                     reassignTech(selectedBooking._id, selectedTech)
                   }>
                   Change Technician
                 </button>
               )}
+
               <button
-                className="sr-btn sr-btn--outline"
+                type="button"
+                className="fm-admin-requests__btn fm-admin-requests__btn--outline"
                 onClick={() => setSelectedBooking(null)}>
                 Cancel
               </button>
             </div>
           </div>
         </div>
-      )}
-    </div>
+      ) : null}
+    </section>
   );
 }

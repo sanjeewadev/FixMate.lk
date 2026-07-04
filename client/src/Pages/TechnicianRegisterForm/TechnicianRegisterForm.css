@@ -1,5 +1,205 @@
-.bt-body{
-  background-color: #0b1220;
-  padding-top: 30px;
-  padding-bottom: 30px;
+.fm-tech-page {
+  --fm-tech-page-bg: var(--fm-bg, #f5f7fb);
+  --fm-tech-page-card: var(--fm-surface, #ffffff);
+  --fm-tech-page-dark: var(--fm-dark, #0b1220);
+  --fm-tech-page-dark-2: var(--fm-dark-2, #111c31);
+  --fm-tech-page-text: var(--fm-text, #101828);
+  --fm-tech-page-muted: var(--fm-muted, #667085);
+  --fm-tech-page-border: var(--fm-border, #e5e7eb);
+  --fm-tech-page-blue: var(--fm-blue, #247c9c);
+  --fm-tech-page-lime: var(--fm-lime, #c7ff2e);
+
+  width: 100%;
+  max-width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+  color: var(--fm-tech-page-text);
+  background: var(--fm-tech-page-bg);
+  font-family: var(--font-body);
+}
+
+.fm-tech-page,
+.fm-tech-page * {
+  box-sizing: border-box;
+}
+
+.fm-tech-page__main {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 8% 8%, rgba(36, 124, 156, 0.08), transparent 28%),
+    radial-gradient(
+      circle at 92% 42%,
+      rgba(199, 255, 46, 0.12),
+      transparent 26%
+    ),
+    var(--fm-tech-page-bg);
+}
+
+.fm-tech-page__container {
+  width: min(var(--container, 1280px), 100%);
+  max-width: 100%;
+  min-width: 0;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(300px, 0.85fr) minmax(0, 1.15fr);
+  gap: clamp(24px, 4vw, 46px);
+  align-items: start;
+  padding: clamp(72px, 8vw, 104px) 24px;
+}
+
+.fm-tech-page__infoPanel {
+  position: sticky;
+  top: 100px;
+  overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
+  padding: clamp(24px, 4vw, 38px);
+  border-radius: 30px;
+  color: #ffffff;
+  background:
+    radial-gradient(
+      circle at 16% 12%,
+      rgba(199, 255, 46, 0.16),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 88% 82%,
+      rgba(36, 124, 156, 0.35),
+      transparent 36%
+    ),
+    linear-gradient(
+      145deg,
+      var(--fm-tech-page-dark),
+      var(--fm-tech-page-dark-2)
+    );
+  box-shadow: 0 22px 58px rgba(16, 24, 40, 0.14);
+}
+
+.fm-tech-page__infoPanel::before {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 22px;
+  pointer-events: none;
+}
+
+.fm-tech-page__eyebrow {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  margin-bottom: 16px;
+  color: var(--fm-tech-page-lime);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.fm-tech-page__infoPanel h2 {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-size: clamp(32px, 3.4vw, 48px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.fm-tech-page__infoPanel p {
+  position: relative;
+  z-index: 1;
+  margin: 18px 0 0;
+  color: #cbd7ec;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.fm-tech-page__infoGrid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.fm-tech-page__infoCard {
+  min-width: 0;
+  padding: 15px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.075);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.fm-tech-page__infoCard strong {
+  display: block;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.fm-tech-page__infoCard span {
+  display: block;
+  margin-top: 6px;
+  color: #cbd7ec;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.fm-tech-page__reviewBox {
+  position: relative;
+  z-index: 1;
+  margin-top: 24px;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(199, 255, 46, 0.1);
+  border: 1px solid rgba(199, 255, 46, 0.2);
+}
+
+.fm-tech-page__reviewBox strong {
+  display: block;
+  color: var(--fm-tech-page-lime);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.fm-tech-page__reviewBox ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: #dbe7ff;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.fm-tech-page__formPanel {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 980px) {
+  .fm-tech-page__container {
+    grid-template-columns: 1fr;
+  }
+
+  .fm-tech-page__infoPanel {
+    position: relative;
+    top: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .fm-tech-page__container {
+    padding: 58px 16px;
+  }
+
+  .fm-tech-page__infoPanel {
+    border-radius: 24px;
+  }
 }

@@ -1,21 +1,56 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
+import {
+  Check,
+  ClipboardList,
+  Eye,
+  FileText,
+  MessageSquare,
+  RefreshCw,
+  ReceiptText,
+  Route,
+  Save,
+  Wrench,
+  X,
+} from "lucide-react";
+
 import api from "../../../lib/api";
 import "./ApprovedTab.css";
+
+const fmt = (value) => {
+  if (!value) return "—";
+
+  try {
+    return format(new Date(value), "PPpp");
+  } catch {
+    return "—";
+  }
+};
+
+const money = (value) => {
+  return `LKR ${Number(value || 0).toLocaleString()}`;
+};
 
 export default function ApprovedTab() {
   const [approved, setApproved] = useState([]);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
-  // live status
-  const [statusState, setStatusState] = useState({ onTheWay: false, arrived: false, started: false });
+  const [statusState, setStatusState] = useState({
+    onTheWay: false,
+    arrived: false,
+    started: false,
+  });
+
   const [statusBusy, setStatusBusy] = useState(false);
 
-  // expenses + notes + complete
   const [expenses, setExpenses] = useState([]);
-  const [expForm, setExpForm] = useState({ label: "", amount: "" });
+  const [expForm, setExpForm] = useState({
+    label: "",
+    amount: "",
+  });
+
   const [expenseFiles, setExpenseFiles] = useState([]);
   const [expenseBusy, setExpenseBusy] = useState(false);
 
@@ -26,297 +61,689 @@ export default function ApprovedTab() {
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [completeBusy, setCompleteBusy] = useState(false);
 
-  // toast
-  const [toast, setToast] = useState({ type: "", text: "" });
-  const showToast = (type, text) => { setToast({ type, text }); setTimeout(()=>setToast({ type:"", text:"" }), 2500); };
+  const [toast, setToast] = useState({
+    type: "",
+    text: "",
+  });
 
   const navigate = useNavigate();
-  const fmt = (d) => (d ? format(new Date(d), "PPpp") : "—");
 
-  async function loadApproved() {
+  const showToast = (type, text) => {
+    setToast({
+      type,
+      text,
+    });
+
+    window.setTimeout(() => {
+      setToast({
+        type: "",
+        text: "",
+      });
+    }, 2500);
+  };
+
+  const loadApproved = useCallback(async () => {
     try {
-      const { data } = await api.get("/api/technician/bookings/mine", { params: { status: "coordinator_approved" } });
+      const { data } = await api.get("/api/technician/bookings/mine", {
+        params: {
+          status: "coordinator_approved",
+        },
+      });
+
       setApproved(Array.isArray(data) ? data : []);
-    } catch { setApproved([]); }
-  }
-  useEffect(() => { loadApproved(); }, []);
+    } catch (error) {
+      setApproved([]);
+      showToast(
+        "error",
+        error?.response?.data?.message || "Failed to load approved requests.",
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    loadApproved();
+  }, [loadApproved]);
+
+  useEffect(() => {
+    if (!selectedBooking) return undefined;
+
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setSelectedBooking(null);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [selectedBooking]);
 
   async function viewBooking(id) {
     setDetailLoading(true);
-    try {
-      const { data: bTech } = await api.get(`/api/technician/bookings/${id}`);
-      let bFull = null;
-      try { const { data } = await api.get(`/api/bookings/${id}`); bFull = data; } catch {}
 
-      setSelectedBooking(bTech || null);
+    try {
+      const { data: technicianBooking } = await api.get(
+        `/api/technician/bookings/${id}`,
+      );
+
+      let fullBooking = null;
+
+      try {
+        const { data } = await api.get(`/api/bookings/${id}`);
+        fullBooking = data;
+      } catch {
+        fullBooking = null;
+      }
+
+      setSelectedBooking(technicianBooking || null);
+
       setStatusState({
-        onTheWay: !!bTech?.techOnTheWayAt,
-        arrived:  !!bTech?.techArrivedAt,
-        started:  !!bTech?.workStartedAt,
+        onTheWay: Boolean(technicianBooking?.techOnTheWayAt),
+        arrived: Boolean(technicianBooking?.techArrivedAt),
+        started: Boolean(technicianBooking?.workStartedAt),
       });
-      setNotes(bFull?.notes || bTech?.notes || "");
-      setExpenses(Array.isArray(bFull?.expenses) ? bFull.expenses : []);
-      setExpForm({ label: "", amount: "" });
+
+      setNotes(fullBooking?.notes || technicianBooking?.notes || "");
+      setExpenses(
+        Array.isArray(fullBooking?.expenses) ? fullBooking.expenses : [],
+      );
+      setExpForm({
+        label: "",
+        amount: "",
+      });
       setExpenseFiles([]);
       setServiceCharge("");
       setPaymentMethod("cash");
-    } catch (e) {
-      showToast("error", e?.response?.data?.message || "Failed to load booking");
-    } finally { setDetailLoading(false); }
+    } catch (error) {
+      showToast(
+        "error",
+        error?.response?.data?.message || "Failed to load booking.",
+      );
+    } finally {
+      setDetailLoading(false);
+    }
   }
 
   async function updateLiveStatus(id, which) {
     setStatusBusy(true);
+
     try {
-      const body = { onTheWay: which === "on_the_way", arrived: which === "arrived", started: which === "started" };
+      const body = {
+        onTheWay: which === "on_the_way",
+        arrived: which === "arrived",
+        started: which === "started",
+      };
+
       await api.patch(`/api/technician/bookings/${id}/status`, body);
-      if (which === "on_the_way") setStatusState({ onTheWay: true, arrived: false, started: false });
-      if (which === "arrived")   setStatusState({ onTheWay: true, arrived: true,  started: false });
-      if (which === "started")   setStatusState({ onTheWay: true, arrived: true,  started: true  });
-      showToast("success", "Status updated");
-    } catch (e) {
-      showToast("error", e?.response?.data?.message || "Failed to update status");
-    } finally { setStatusBusy(false); }
+
+      if (which === "on_the_way") {
+        setStatusState({
+          onTheWay: true,
+          arrived: false,
+          started: false,
+        });
+      }
+
+      if (which === "arrived") {
+        setStatusState({
+          onTheWay: true,
+          arrived: true,
+          started: false,
+        });
+      }
+
+      if (which === "started") {
+        setStatusState({
+          onTheWay: true,
+          arrived: true,
+          started: true,
+        });
+      }
+
+      showToast("success", "Status updated.");
+    } catch (error) {
+      showToast(
+        "error",
+        error?.response?.data?.message || "Failed to update status.",
+      );
+    } finally {
+      setStatusBusy(false);
+    }
   }
 
   async function addExpense(id) {
     if (!expForm.label || expForm.amount === "") {
-      showToast("error", "Please enter label and amount");
+      showToast("error", "Please enter label and amount.");
       return;
     }
+
     setExpenseBusy(true);
+
     try {
       const form = new FormData();
+
       form.append("label", expForm.label);
       form.append("amount", expForm.amount);
-      for (const f of expenseFiles) form.append("attachments", f);
-      const { data } = await api.post(`/api/technician/bookings/${id}/expenses`, form, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+
+      for (const file of expenseFiles) {
+        form.append("attachments", file);
+      }
+
+      const { data } = await api.post(
+        `/api/technician/bookings/${id}/expenses`,
+        form,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
+
       setExpenses(data?.expenses || []);
-      setExpForm({ label: "", amount: "" });
+      setExpForm({
+        label: "",
+        amount: "",
+      });
       setExpenseFiles([]);
-      showToast("success", "Expense added");
-    } catch (e) {
-      showToast("error", e?.response?.data?.message || "Failed to add expense");
-    } finally { setExpenseBusy(false); }
+
+      showToast("success", "Expense added.");
+    } catch (error) {
+      showToast(
+        "error",
+        error?.response?.data?.message || "Failed to add expense.",
+      );
+    } finally {
+      setExpenseBusy(false);
+    }
   }
 
   async function saveNotes(id) {
     setNotesBusy(true);
-    try { await api.patch(`/api/technician/bookings/${id}/notes`, { notes }); showToast("success", "Notes saved"); }
-    catch (e) { showToast("error", e?.response?.data?.message || "Failed to save notes"); }
-    finally { setNotesBusy(false); }
+
+    try {
+      await api.patch(`/api/technician/bookings/${id}/notes`, {
+        notes,
+      });
+
+      showToast("success", "Notes saved.");
+    } catch (error) {
+      showToast(
+        "error",
+        error?.response?.data?.message || "Failed to save notes.",
+      );
+    } finally {
+      setNotesBusy(false);
+    }
   }
 
   async function completeJob(id) {
     setCompleteBusy(true);
+
     try {
-      const body = { serviceCharge: Number(serviceCharge || 0), paymentMethod };
-      const { data } = await api.post(`/api/technician/bookings/${id}/complete`, body);
-      showToast("success", `Completed. Amount due LKR ${Number(data?.payment?.grandTotal || 0).toLocaleString()}`);
+      const body = {
+        serviceCharge: Number(serviceCharge || 0),
+        paymentMethod,
+      };
+
+      const { data } = await api.post(
+        `/api/technician/bookings/${id}/complete`,
+        body,
+      );
+
+      showToast(
+        "success",
+        `Completed. Amount due ${money(data?.payment?.grandTotal || 0)}.`,
+      );
+
       setSelectedBooking(null);
       loadApproved();
-    } catch (e) {
-      showToast("error", e?.response?.data?.message || "Failed to complete job");
-    } finally { setCompleteBusy(false); }
-  }
-
-  // Redirect to chat tab (ensure convo if possible)
-  async function goToChat(b) {
-    try {
-      // fetch full booking to get customer id
-      const { data: det } = await api.get(`/api/bookings/${b._id}`);
-      const customerId = det?.customer;
-      if (customerId) {
-        const { data: convo } = await api.post("/api/chat/conversations", {
-          bookingId: b._id,
-          withRole: "customer",
-          withUserId: customerId,
-        });
-        return navigate(`/TechnicianDashboard/chat?convoId=${convo._id}`);
-      }
-      return navigate(`/TechnicianDashboard/chat?bookingId=${b._id}`);
-    } catch {
-      return navigate(`/TechnicianDashboard/chat?bookingId=${b._id}`);
+    } catch (error) {
+      showToast(
+        "error",
+        error?.response?.data?.message || "Failed to complete job.",
+      );
+    } finally {
+      setCompleteBusy(false);
     }
   }
 
-  const expensesTotal = (expenses || []).reduce((s, e) => s + (Number(e.amount) || 0), 0);
+  async function goToChat(booking) {
+    try {
+      const { data: details } = await api.get(`/api/bookings/${booking._id}`);
+      const customerId = details?.customer;
+
+      if (customerId) {
+        const { data: conversation } = await api.post(
+          "/api/chat/conversations",
+          {
+            bookingId: booking._id,
+            withRole: "customer",
+            withUserId: customerId,
+          },
+        );
+
+        return navigate(
+          `/TechnicianDashboard/chat?convoId=${conversation._id}`,
+        );
+      }
+
+      return navigate(`/TechnicianDashboard/chat?bookingId=${booking._id}`);
+    } catch {
+      return navigate(`/TechnicianDashboard/chat?bookingId=${booking._id}`);
+    }
+  }
+
+  const expensesTotal = useMemo(() => {
+    return (expenses || []).reduce(
+      (sum, expense) => sum + (Number(expense.amount) || 0),
+      0,
+    );
+  }, [expenses]);
+
   const grandTotal = Number(serviceCharge || 0) + expensesTotal;
 
-  const renderTable = (items) => (
-    <table className="approved-table">
-      <thead>
-        <tr>
-          <th>Service</th>
-          <th>Problem</th>
-          <th>Date</th>
-          <th style={{width:220}}>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {items.length === 0 ? (
-          <tr><td colSpan={4} className="muted">No data available</td></tr>
-        ) : items.map((b) => (
-          <tr key={b._id}>
-            <td>{b.service?.name || "—"}</td>
-            <td className="truncate">{b.problemTitle || "—"}</td>
-            <td>{fmt(b.preferredAt)}</td>
-            <td className="row-actions">
-              <button className="btn primary" onClick={() => viewBooking(b._id)}>Open</button>
-              <button className="btn ghost" onClick={() => goToChat(b)}>Open Chat</button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-
   return (
-    <div className="approved-tab">
-      <div className="tab-head">
-        <h3>Approved Requests</h3>
-        <div className="actions">
-          <button className="btn ghost" onClick={loadApproved}>Refresh</button>
+    <section className="fm-tech-tabs approved-tab">
+      <div className="fm-tech-tabs__header">
+        <div>
+          <span className="fm-tech-tabs__eyebrow">Approved Work</span>
+          <h1>Approved Requests</h1>
+          <p>
+            Manage live job status, record expenses, save notes, open customer
+            chat, and complete confirmed jobs.
+          </p>
         </div>
+
+        <button
+          type="button"
+          className="fm-tech-tabs__btn fm-tech-tabs__btn--outline"
+          onClick={loadApproved}>
+          <RefreshCw size={16} />
+          Refresh
+        </button>
       </div>
 
-      {toast.text && <div className={`toast ${toast.type || "info"}`}>{toast.text}</div>}
+      {toast.text ? (
+        <div
+          className={`fm-tech-tabs__notice fm-tech-tabs__notice--${toast.type}`}>
+          {toast.type === "success" ? <Check size={16} /> : <X size={16} />}
+          <span>{toast.text}</span>
+        </div>
+      ) : null}
 
-      {renderTable(approved)}
+      <section className="fm-tech-tabs__card">
+        <div className="fm-tech-tabs__cardHeader">
+          <div>
+            <span>Approved job queue</span>
+            <h2>Ready for Action</h2>
+          </div>
+        </div>
 
-      {/* Details modal (unchanged aside from no chat section) */}
-      {selectedBooking && (
-        <div className="modal" onClick={() => setSelectedBooking(null)} role="dialog" aria-modal="true">
-          <div className="modal-card wide" onClick={(e)=>e.stopPropagation()}>
-            <div className="modal-head">
-              <div className="mh-left">
-                <div className="eyebrow">Booking</div>
-                <h3>{selectedBooking.problemTitle || "Request"}</h3>
-                <div className="small muted">
-                  {selectedBooking?.service?.name || "Service"} · {fmt(selectedBooking?.preferredAt)}
-                </div>
+        <div className="fm-tech-tabs__tableWrap">
+          <table className="fm-tech-tabs__table">
+            <thead>
+              <tr>
+                <th>Service</th>
+                <th>Problem</th>
+                <th>Preferred Date</th>
+                <th className="fm-tech-tabs__actionsCol">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {approved.length === 0 ? (
+                <tr>
+                  <td colSpan={4}>
+                    <div className="fm-tech-tabs__empty">
+                      <ClipboardList size={24} />
+                      <strong>No approved requests</strong>
+                      <span>No approved jobs are available right now.</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                approved.map((booking) => (
+                  <tr key={booking._id}>
+                    <td>{booking.service?.name || "—"}</td>
+
+                    <td>
+                      <div className="fm-tech-tabs__titleCell">
+                        <strong>{booking.problemTitle || "—"}</strong>
+                        <small>{booking._id}</small>
+                      </div>
+                    </td>
+
+                    <td>{fmt(booking.preferredAt)}</td>
+
+                    <td>
+                      <div className="fm-tech-tabs__rowActions">
+                        <button
+                          type="button"
+                          className="fm-tech-tabs__btn fm-tech-tabs__btn--primary fm-tech-tabs__btn--small"
+                          onClick={() => viewBooking(booking._id)}>
+                          <Eye size={14} />
+                          Open
+                        </button>
+
+                        <button
+                          type="button"
+                          className="fm-tech-tabs__btn fm-tech-tabs__btn--outline fm-tech-tabs__btn--small"
+                          onClick={() => goToChat(booking)}>
+                          <MessageSquare size={14} />
+                          Chat
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {selectedBooking ? (
+        <div
+          className="fm-tech-tabs-modal"
+          onClick={() => setSelectedBooking(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Approved booking details">
+          <div
+            className="fm-tech-tabs-modal__card isWide"
+            onClick={(event) => event.stopPropagation()}>
+            <div className="fm-tech-tabs-modal__header">
+              <div>
+                <span>Booking</span>
+                <h2>{selectedBooking.problemTitle || "Request"}</h2>
+                <p>
+                  {selectedBooking?.service?.name || "Service"} ·{" "}
+                  {fmt(selectedBooking?.preferredAt)}
+                </p>
               </div>
-              <div className="mh-right">
-                <button className="btn gray" onClick={() => setSelectedBooking(null)}>Close</button>
-              </div>
+
+              <button
+                type="button"
+                className="fm-tech-tabs__iconAction"
+                onClick={() => setSelectedBooking(null)}
+                aria-label="Close">
+                <X size={16} />
+              </button>
             </div>
 
             {detailLoading ? (
-              <div className="pad">Loading details…</div>
+              <div className="fm-tech-tabs__empty">
+                <RefreshCw size={24} />
+                <strong>Loading booking</strong>
+                <span>Please wait while booking details are loaded.</span>
+              </div>
             ) : (
-              <div className="modal-grid">
-                {/* LEFT */}
-                <div className="col">
-                  <div className="card">
-                    <div className="card-title">Live Status</div>
-                    <div className="btn-row">
-                      <button className="btn info" disabled={statusState.onTheWay || statusBusy}
-                              onClick={()=>updateLiveStatus(selectedBooking._id,"on_the_way")}>On the way</button>
-                      <button className="btn info" disabled={statusState.arrived || statusBusy}
-                              onClick={()=>updateLiveStatus(selectedBooking._id,"arrived")}>Arrived</button>
-                      <button className="btn info" disabled={statusState.started || statusBusy}
-                              onClick={()=>updateLiveStatus(selectedBooking._id,"started")}>Started</button>
+              <div className="fm-tech-tabs-modal__grid">
+                <div className="fm-tech-tabs-modal__column">
+                  <section className="fm-tech-tabs__innerCard">
+                    <div className="fm-tech-tabs__innerTitle">
+                      <Route size={16} />
+                      <span>Live Status</span>
                     </div>
-                    <div className="hint muted small">Buttons become disabled once marked.</div>
-                  </div>
 
-                  {/* Expenses cart */}
-                  <div className="card">
-                    <div className="card-title">Expenses Cart</div>
-                    <div className="exp-form">
-                      <input type="text" placeholder="Label (e.g., Transport)"
-                             value={expForm.label} onChange={(e)=>setExpForm({...expForm, label:e.target.value})}/>
-                      <input type="number" placeholder="Amount"
-                             value={expForm.amount} onChange={(e)=>setExpForm({...expForm, amount:e.target.value})}/>
-                      <label className="file">Attach receipt (optional)
-                        <input type="file" multiple onChange={(e)=>setExpenseFiles(Array.from(e.target.files||[]))}/>
+                    <div className="fm-tech-tabs__buttonRow">
+                      <button
+                        type="button"
+                        className="fm-tech-tabs__btn fm-tech-tabs__btn--primary"
+                        disabled={statusState.onTheWay || statusBusy}
+                        onClick={() =>
+                          updateLiveStatus(selectedBooking._id, "on_the_way")
+                        }>
+                        On the way
+                      </button>
+
+                      <button
+                        type="button"
+                        className="fm-tech-tabs__btn fm-tech-tabs__btn--primary"
+                        disabled={statusState.arrived || statusBusy}
+                        onClick={() =>
+                          updateLiveStatus(selectedBooking._id, "arrived")
+                        }>
+                        Arrived
+                      </button>
+
+                      <button
+                        type="button"
+                        className="fm-tech-tabs__btn fm-tech-tabs__btn--primary"
+                        disabled={statusState.started || statusBusy}
+                        onClick={() =>
+                          updateLiveStatus(selectedBooking._id, "started")
+                        }>
+                        Started
+                      </button>
+                    </div>
+
+                    <p className="fm-tech-tabs__hint">
+                      Buttons become disabled once each status is marked.
+                    </p>
+                  </section>
+
+                  <section className="fm-tech-tabs__innerCard">
+                    <div className="fm-tech-tabs__innerTitle">
+                      <ReceiptText size={16} />
+                      <span>Expenses Cart</span>
+                    </div>
+
+                    <div className="fm-tech-tabs__expenseForm">
+                      <input
+                        type="text"
+                        placeholder="Label, e.g. Transport"
+                        value={expForm.label}
+                        onChange={(event) =>
+                          setExpForm((current) => ({
+                            ...current,
+                            label: event.target.value,
+                          }))
+                        }
+                      />
+
+                      <input
+                        type="number"
+                        placeholder="Amount"
+                        value={expForm.amount}
+                        onChange={(event) =>
+                          setExpForm((current) => ({
+                            ...current,
+                            amount: event.target.value,
+                          }))
+                        }
+                      />
+
+                      <label>
+                        Attach receipt
+                        <input
+                          type="file"
+                          multiple
+                          onChange={(event) =>
+                            setExpenseFiles(
+                              Array.from(event.target.files || []),
+                            )
+                          }
+                        />
                       </label>
-                      <button className="btn success" disabled={expenseBusy}
-                              onClick={()=>addExpense(selectedBooking._id)}>
-                        {expenseBusy ? "Adding…" : "Add Expense"}
+
+                      <button
+                        type="button"
+                        className="fm-tech-tabs__btn fm-tech-tabs__btn--success"
+                        disabled={expenseBusy}
+                        onClick={() => addExpense(selectedBooking._id)}>
+                        {expenseBusy ? "Adding..." : "Add Expense"}
                       </button>
                     </div>
 
-                    <div className="cart-list">
+                    <div className="fm-tech-tabs__cartList">
                       {expenses.length === 0 ? (
-                        <div className="muted small">No expenses yet.</div>
-                      ) : expenses.map((e,i)=>(
-                        <div className="cart-row" key={i}>
-                          <div className="cr-left">
-                            <div className="cr-label">{e.label}</div>
-                            {(e.attachments||[]).length>0 && (
-                              <div className="tiny muted">{(e.attachments||[]).length} receipt(s)</div>
-                            )}
-                          </div>
-                          <div className="cr-right">LKR {Number(e.amount||0).toLocaleString()}</div>
+                        <div className="fm-tech-tabs__muted">
+                          No expenses yet.
                         </div>
-                      ))}
+                      ) : (
+                        expenses.map((expense, index) => (
+                          <div
+                            className="fm-tech-tabs__cartRow"
+                            key={`${expense.label}-${index}`}>
+                            <div>
+                              <strong>{expense.label}</strong>
+                              {(expense.attachments || []).length > 0 ? (
+                                <span>
+                                  {(expense.attachments || []).length}{" "}
+                                  receipt(s)
+                                </span>
+                              ) : null}
+                            </div>
+
+                            <b>{money(expense.amount)}</b>
+                          </div>
+                        ))
+                      )}
                     </div>
 
-                    <div className="totals">
-                      <div><span>Expenses Total </span><b> LKR {expensesTotal.toLocaleString()}</b></div>
+                    <div className="fm-tech-tabs__totalLine">
+                      <span>Expenses Total</span>
+                      <strong>{money(expensesTotal)}</strong>
                     </div>
-                  </div>
+                  </section>
 
-                  {/* Notes */}
-                  <div className="card">
-                    <div className="card-title">Job Notes</div>
-                    <textarea placeholder="Notes for this job…"
-                              value={notes} onChange={(e)=>setNotes(e.target.value)} />
-                    <div className="btn-row">
-                      <button className="btn" disabled={notesBusy} onClick={()=>saveNotes(selectedBooking._id)}>
-                        {notesBusy ? "Saving…" : "Save Notes"}
+                  <section className="fm-tech-tabs__innerCard">
+                    <div className="fm-tech-tabs__innerTitle">
+                      <FileText size={16} />
+                      <span>Job Notes</span>
+                    </div>
+
+                    <textarea
+                      placeholder="Notes for this job"
+                      value={notes}
+                      onChange={(event) => setNotes(event.target.value)}
+                    />
+
+                    <div className="fm-tech-tabs__buttonRow">
+                      <button
+                        type="button"
+                        className="fm-tech-tabs__btn fm-tech-tabs__btn--outline"
+                        disabled={notesBusy}
+                        onClick={() => saveNotes(selectedBooking._id)}>
+                        <Save size={15} />
+                        {notesBusy ? "Saving..." : "Save Notes"}
                       </button>
                     </div>
-                  </div>
+                  </section>
 
-                  {/* Complete */}
-                  <div className="card">
-                    <div className="card-title">Complete & Confirm Payment</div>
-                    <div className="complete-grid">
-                      <input type="number" placeholder="Service charge (LKR)"
-                             value={serviceCharge} onChange={(e)=>setServiceCharge(e.target.value)} />
-                      <select value={paymentMethod} onChange={(e)=>setPaymentMethod(e.target.value)}>
+                  <section className="fm-tech-tabs__innerCard">
+                    <div className="fm-tech-tabs__innerTitle">
+                      <Check size={16} />
+                      <span>Complete & Confirm Payment</span>
+                    </div>
+
+                    <div className="fm-tech-tabs__completeGrid">
+                      <input
+                        type="number"
+                        placeholder="Service charge"
+                        value={serviceCharge}
+                        onChange={(event) =>
+                          setServiceCharge(event.target.value)
+                        }
+                      />
+
+                      <select
+                        value={paymentMethod}
+                        onChange={(event) =>
+                          setPaymentMethod(event.target.value)
+                        }>
                         <option value="cash">Cash</option>
                         <option value="card">Card</option>
                       </select>
-                      <div className="amount-due">
-                        <div className="row"><span>Expenses</span><b>LKR {expensesTotal.toLocaleString()}</b></div>
-                        <div className="row"><span>Service Charge</span><b>LKR {Number(serviceCharge||0).toLocaleString()}</b></div>
-                        <div className="row grand"><span>Amount Due</span><b>LKR {grandTotal.toLocaleString()}</b></div>
+
+                      <div className="fm-tech-tabs__amountBox">
+                        <div>
+                          <span>Expenses</span>
+                          <b>{money(expensesTotal)}</b>
+                        </div>
+
+                        <div>
+                          <span>Service Charge</span>
+                          <b>{money(serviceCharge)}</b>
+                        </div>
+
+                        <div className="isGrand">
+                          <span>Amount Due</span>
+                          <b>{money(grandTotal)}</b>
+                        </div>
                       </div>
                     </div>
-                    <div className="btn-row">
-                      <button className="btn success" disabled={completeBusy}
-                              onClick={()=>completeJob(selectedBooking._id)}>
-                        {completeBusy ? "Completing…" : "Complete & Confirm"}
+
+                    <div className="fm-tech-tabs__buttonRow">
+                      <button
+                        type="button"
+                        className="fm-tech-tabs__btn fm-tech-tabs__btn--success"
+                        disabled={completeBusy}
+                        onClick={() => completeJob(selectedBooking._id)}>
+                        {completeBusy ? "Completing..." : "Complete & Confirm"}
                       </button>
                     </div>
-                  </div>
+                  </section>
                 </div>
 
-                {/* RIGHT */}
-                <div className="col">
-                  <div className="card">
-                    <div className="card-title">Details</div>
-                    <div className="kv">
-                      <div><span>Service</span><b>{selectedBooking?.service?.name || "—"}</b></div>
-                      <div><span>Problem</span><b>{selectedBooking?.problemTitle || "—"}</b></div>
-                      <div><span>Preferred</span><b>{fmt(selectedBooking?.preferredAt)}{selectedBooking?.timeSlot ? ` (${selectedBooking.timeSlot})` : ""}</b></div>
-                      <div><span>Address</span><b>{selectedBooking?.serviceAddress || "—"}</b></div>
-                      <div><span>District</span><b>{selectedBooking?.customerSnapshot?.district || "—"}</b></div>
-                      <div><span>Phone</span><b>{selectedBooking?.customerSnapshot?.phone_number || "—"}</b></div>
+                <div className="fm-tech-tabs-modal__column">
+                  <section className="fm-tech-tabs__innerCard">
+                    <div className="fm-tech-tabs__innerTitle">
+                      <Wrench size={16} />
+                      <span>Details</span>
                     </div>
-                  </div>
-                  {/* (Proof photos intentionally removed) */}
+
+                    <div className="fm-tech-tabs__detailGrid isSingle">
+                      <div>
+                        <span>Service</span>
+                        <strong>{selectedBooking?.service?.name || "—"}</strong>
+                      </div>
+
+                      <div>
+                        <span>Problem</span>
+                        <strong>{selectedBooking?.problemTitle || "—"}</strong>
+                      </div>
+
+                      <div>
+                        <span>Preferred</span>
+                        <strong>
+                          {fmt(selectedBooking?.preferredAt)}
+                          {selectedBooking?.timeSlot
+                            ? ` (${selectedBooking.timeSlot})`
+                            : ""}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>Address</span>
+                        <strong>
+                          {selectedBooking?.serviceAddress || "—"}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>District</span>
+                        <strong>
+                          {selectedBooking?.customerSnapshot?.district || "—"}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>Phone</span>
+                        <strong>
+                          {selectedBooking?.customerSnapshot?.phone_number ||
+                            "—"}
+                        </strong>
+                      </div>
+                    </div>
+                  </section>
                 </div>
               </div>
             )}
           </div>
         </div>
-      )}
-    </div>
+      ) : null}
+    </section>
   );
 }

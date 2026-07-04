@@ -1,8 +1,9 @@
-// src/Pages/Login/Login.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import api from "../../lib/api";
 import { useAuth } from "../../context/AuthContext.jsx";
+
 import "./Login.css";
 
 function normalizeToken(raw) {
@@ -10,12 +11,13 @@ function normalizeToken(raw) {
   return raw.startsWith("Bearer ") ? raw.slice(7) : raw;
 }
 
-export default function Login({ onSwitch }) {
+export default function Login({ onSwitch, onSuccess }) {
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const [msg, setMsg] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -27,66 +29,190 @@ export default function Login({ onSwitch }) {
   ];
 
   async function tryLoginSequence(credentials) {
-    for (const ep of endpointsInOrder) {
+    for (const endpoint of endpointsInOrder) {
       try {
-        const { data } = await api.post(ep.path, credentials);
+        const { data } = await api.post(endpoint.path, credentials);
+
         const token = normalizeToken(data?.token);
-        const role = (data?.role || data?.user?.role || ep.role || "").toLowerCase();
+        const role = (
+          data?.role ||
+          data?.user?.role ||
+          endpoint.role ||
+          ""
+        ).toLowerCase();
+
         if (!token || !role) continue;
-        login(token, { role, ...(data?.user || {}) });
+
+        login(token, {
+          role,
+          ...(data?.user || {}),
+        });
+
         return { ok: true, role };
-      } catch (err) {
-        const s = err?.response?.status;
-        if (s !== 401 && s !== 404) throw err;
+      } catch (error) {
+        const status = error?.response?.status;
+
+        if (status !== 401 && status !== 404) {
+          throw error;
+        }
       }
     }
+
     return { ok: false };
   }
+
+  const getRedirectPath = (role) => {
+    if (role === "admin" || role === "super_admin") {
+      return "/AdminDashboard";
+    }
+
+    if (role === "coordinator") {
+      return "/StaffDashboard";
+    }
+
+    if (role === "technician") {
+      return "/TechnicianDashboard";
+    }
+
+    return "/UserDashboard/overview";
+  };
+
+  const validate = () => {
+    if (!email.trim()) return "Please enter your email address.";
+    if (!password.trim()) return "Please enter your password.";
+
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) {
+      return "Please enter a valid email address.";
+    }
+
+    return null;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMsg(null);
-    if (!email || !password) { setMsg({ type: "error", text: "Enter email and password" }); return; }
-    if (!/^\S+@\S+\.\S+$/.test(email)) { setMsg({ type: "error", text: "Invalid email" }); return; }
 
-    setLoading(true);
+    const validationMessage = validate();
+
+    if (validationMessage) {
+      setMsg({
+        type: "error",
+        text: validationMessage,
+      });
+      return;
+    }
+
     try {
-      const res = await tryLoginSequence({ email, password });
-      if (!res.ok) { setMsg({ type: "error", text: "Invalid credentials or endpoints missing." }); return; }
-      setMsg({ type: "success", text: `Logged in as ${res.role}` });
+      setLoading(true);
 
-      if (res.role === "admin" || res.role === "super_admin" ) {
-        navigate("/AdminDashboard", { replace: true });
-       } else if (res.role === "coordinator"){
-        navigate("/StaffDashboard", { replace: true });
-      } else if (res.role === "technician") {
-        navigate("/TechnicianDashboard", { replace: true });
-      } else {
-        navigate("/UserDashboard/overview", { replace: true });
+      const result = await tryLoginSequence({
+        email: email.trim(),
+        password,
+      });
+
+      if (!result.ok) {
+        setMsg({
+          type: "error",
+          text: "Invalid email or password.",
+        });
+        return;
       }
-    } catch (err) {
-      setMsg({ type: "error", text: err?.response?.data?.message || "Login failed" });
+
+      const redirectPath = getRedirectPath(result.role);
+
+      onSuccess?.();
+      navigate(redirectPath, { replace: true });
+    } catch (error) {
+      setMsg({
+        type: "error",
+        text:
+          error?.response?.data?.message || "Login failed. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-wrap">
-      <form className="login-form" onSubmit={handleSubmit}>
-        <h3>Login</h3>
-        {msg && <div className={`alert ${msg.type}`}>{msg.text}</div>}
-        <input type="email" placeholder="Email" autoComplete="username"
-               value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input type="password" placeholder="Password" autoComplete="current-password"
-               value={password} onChange={(e) => setPassword(e.target.value)} />
-        <button type="submit" disabled={loading}>{loading ? "Logging in..." : "Login"}</button>
-        {onSwitch && (
-          <p className="muted">
+    <div className="fm-login">
+      <aside className="fm-login__sidePanel">
+        <span className="fm-login__brandLabel">FixMate.lk</span>
+
+        <h2>Welcome back.</h2>
+
+        <p>
+          Sign in to manage bookings, technician jobs, customer requests and
+          platform operations.
+        </p>
+
+        <div className="fm-login__benefits">
+          <span>Customer dashboard</span>
+          <span>Technician job access</span>
+          <span>Admin and coordinator tools</span>
+        </div>
+      </aside>
+
+      <form className="fm-login__form" onSubmit={handleSubmit} noValidate>
+        <div className="fm-login__header">
+          <span className="fm-login__eyebrow">Secure access</span>
+
+          <h3>Login to your account</h3>
+
+          <p>Use your registered email and password to continue.</p>
+        </div>
+
+        {msg?.text ? (
+          <div
+            className={`fm-login__notice fm-login__notice--${msg.type}`}
+            aria-live="polite">
+            {msg.text}
+          </div>
+        ) : null}
+
+        <div className="fm-login__field">
+          <label htmlFor="fm-login-email">Email address</label>
+
+          <input
+            id="fm-login-email"
+            type="email"
+            placeholder="you@example.com"
+            autoComplete="username"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={loading}
+          />
+        </div>
+
+        <div className="fm-login__field">
+          <label htmlFor="fm-login-password">Password</label>
+
+          <input
+            id="fm-login-password"
+            type="password"
+            placeholder="Enter your password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={loading}
+          />
+        </div>
+
+        <button className="fm-login__submit" type="submit" disabled={loading}>
+          {loading ? "Logging in..." : "Login"}
+        </button>
+
+        {onSwitch ? (
+          <p className="fm-login__switchText">
             Don’t have an account?{" "}
-            <button type="button" className="link" onClick={onSwitch}>Create one</button>
+            <button
+              type="button"
+              className="fm-login__switchButton"
+              onClick={onSwitch}
+              disabled={loading}>
+              Create one
+            </button>
           </p>
-        )}
+        ) : null}
       </form>
     </div>
   );

@@ -1,3 +1,14 @@
-body {
-  background-color: #f7faff;
+.homePage {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+  color: var(--fm-text, #101828);
+  background: var(--fm-bg, #f4f7fb);
+  font-family: var(--font-body);
+}
+
+.homePage,
+.homePage * {
+  box-sizing: border-box;
 }

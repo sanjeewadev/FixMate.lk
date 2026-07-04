@@ -1,16 +1,18 @@
 import React from "react";
-import "./Home.css";
-import PublicNavBar from "../../Components/nav/PublicNavBar.jsx";
-import Hero from "../../Components/Herosection/Herosection";
-import ServicesSection from "../../Components/ServicesSection/ServicesSection";
-import ContactUs from "../../Components/ContactUs/ContactUs";
-import AboutSection from "../../Components/AboutSection/AboutSection";
+
+import NavBar from "../../Components/NavBar/NavBar.jsx";
+import Hero from "./Components/Herosection/Herosection.jsx";
+import ServicesSection from "./Components/ServicesSection/ServicesSection.jsx";
+import AboutSection from "./Components/AboutSection/AboutSection.jsx";
+import ContactUs from "./Components/ContactUs/ContactUs.jsx";
 import Footer from "../../Components/Footer/Footer.jsx";
+
+import "./Home.css";
 
 function Home() {
   return (
     <div className="homePage">
-      <PublicNavBar />
+      <NavBar />
       <Hero />
       <ServicesSection />
       <AboutSection />

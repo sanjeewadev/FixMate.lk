@@ -1,46 +1,133 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { AlertCircle, X } from "lucide-react";
+
 import { createComplaint } from "../../../../services/complaints.js";
 import "./ComplaintModal.css";
 
-export default function ComplaintModal({ bookingId = null, onClose, onCreated }) {
+export default function ComplaintModal({
+  bookingId = null,
+  onClose,
+  onCreated,
+}) {
   const [title, setTitle] = useState("");
   const [details, setDetails] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState(null);
 
-  async function submit(e) {
-    e.preventDefault();
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        onClose?.();
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
+  async function submit(event) {
+    event.preventDefault();
     setMsg(null);
-    if (!title.trim()) { setMsg({ type:"error", text:"Title is required" }); return; }
+
+    if (!title.trim()) {
+      setMsg({
+        type: "error",
+        text: "Title is required.",
+      });
+      return;
+    }
+
     try {
       setSubmitting(true);
-      const doc = await createComplaint({ bookingId, title, details });
-      onCreated?.(doc);
+
+      const complaint = await createComplaint({
+        bookingId,
+        title: title.trim(),
+        details: details.trim(),
+      });
+
+      onCreated?.(complaint);
       onClose?.();
-    } catch (e2) {
-      setMsg({ type:"error", text: e2?.response?.data?.message || "Failed to create complaint" });
+    } catch (error) {
+      setMsg({
+        type: "error",
+        text:
+          error?.response?.data?.message ||
+          "Failed to create complaint. Please try again.",
+      });
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <div className="cmpBack" role="dialog" aria-modal="true">
-      <div className="cmpCard">
-        <div className="cmpHead">
-          <div className="cmpTitle">New Complaint</div>
-          <button className="cmpX" onClick={onClose} aria-label="Close">×</button>
-        </div>
-        {msg?.text && <div className={`cmpMsg ${msg.type}`}>{msg.text}</div>}
-        <form className="cmpForm" onSubmit={submit}>
-          <label>Title *</label>
-          <input value={title} onChange={(e)=>setTitle(e.target.value)} placeholder="Short summary…" required />
-          <label>Details</label>
-          <textarea rows="4" value={details} onChange={(e)=>setDetails(e.target.value)} placeholder="Describe the issue…" />
-          <div className="cmpActions">
-            <button type="button" className="cmpBtn ghost" onClick={onClose}>Cancel</button>
-            <button type="submit" className="cmpBtn primary" disabled={submitting}>
-              {submitting ? "Submitting…" : "Submit"}
+    <div
+      className="fm-complaint-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="New complaint"
+      onClick={onClose}>
+      <div
+        className="fm-complaint-modal__card"
+        onClick={(event) => event.stopPropagation()}>
+        <header className="fm-complaint-modal__header">
+          <div>
+            <span>Customer Complaint</span>
+            <h2>New Complaint</h2>
+          </div>
+
+          <button
+            type="button"
+            className="fm-complaint-modal__close"
+            onClick={onClose}
+            aria-label="Close">
+            <X size={16} />
+          </button>
+        </header>
+
+        {msg?.text ? (
+          <div
+            className={`fm-complaint-modal__msg fm-complaint-modal__msg--${msg.type}`}>
+            <AlertCircle size={16} />
+            <span>{msg.text}</span>
+          </div>
+        ) : null}
+
+        <form className="fm-complaint-modal__form" onSubmit={submit}>
+          <label htmlFor="complaint-title">Title *</label>
+
+          <input
+            id="complaint-title"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder="Short summary"
+            required
+          />
+
+          <label htmlFor="complaint-details">Details</label>
+
+          <textarea
+            id="complaint-details"
+            rows="4"
+            value={details}
+            onChange={(event) => setDetails(event.target.value)}
+            placeholder="Describe the issue"
+          />
+
+          <div className="fm-complaint-modal__actions">
+            <button
+              type="button"
+              className="fm-complaint-modal__btn fm-complaint-modal__btn--outline"
+              onClick={onClose}>
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              className="fm-complaint-modal__btn fm-complaint-modal__btn--primary"
+              disabled={submitting}>
+              {submitting ? "Submitting..." : "Submit"}
             </button>
           </div>
         </form>

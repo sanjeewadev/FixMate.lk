@@ -1,4 +1,27 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  Check,
+  ImagePlus,
+  Mail,
+  MapPin,
+  Pencil,
+  Phone,
+  RefreshCw,
+  Search,
+  Trash2,
+  Upload,
+  UserPlus,
+  UserRound,
+  Users,
+  X,
+} from "lucide-react";
+
 import api from "../../../lib/api";
 import "./ManageUsers.css";
 
@@ -21,6 +44,7 @@ const DISTRICTS = [
   "Ampara",
   "Trincomalee",
   "Kurunegala",
+  "Kurunegala",
   "Puttalam",
   "Anuradhapura",
   "Polonnaruwa",
@@ -30,26 +54,32 @@ const DISTRICTS = [
   "Kegalle",
 ];
 
+const EMPTY_FORM = {
+  full_name: "",
+  email: "",
+  phone_number: "",
+  address: "",
+  district: "",
+  password: "",
+};
+
+const getInitial = (name, email) => {
+  const source = name || email || "U";
+  return String(source).charAt(0).toUpperCase();
+};
+
 export default function ManageUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState(null);
-  const [msg, setMsg] = useState("");
+  const [msg, setMsg] = useState(null);
+  const [query, setQuery] = useState("");
 
-  const [form, setForm] = useState({
-    full_name: "",
-    email: "",
-    phone_number: "",
-    address: "",
-    district: "",
-    password: "",
-  });
+  const [form, setForm] = useState(EMPTY_FORM);
 
-  // preview + payload
   const [imagePreview, setImagePreview] = useState("");
   const [imageDataUrl, setImageDataUrl] = useState("");
 
-  // ---- cropper
   const fileRef = useRef(null);
   const [cropOpen, setCropOpen] = useState(false);
   const [cropSrc, setCropSrc] = useState(null);
@@ -57,6 +87,7 @@ export default function ManageUsers() {
   const [base, setBase] = useState(1);
   const [offX, setOffX] = useState(0);
   const [offY, setOffY] = useState(0);
+
   const dragRef = useRef({
     active: false,
     startX: 0,
@@ -64,36 +95,84 @@ export default function ManageUsers() {
     startOffX: 0,
     startOffY: 0,
   });
+
   const imgMeta = useRef({ w: 0, h: 0 });
 
-  // ---------- load ----------
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-  async function fetchUsers() {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const { data } = await api.get("/api/admin/customers");
       setUsers(Array.isArray(data) ? data : []);
-    } catch (e) {
-      setMsg(e?.response?.data?.message || "Failed to load users");
+    } catch (error) {
+      setMsg({
+        type: "error",
+        text: error?.response?.data?.message || "Failed to load users.",
+      });
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
-  // ---------- form ----------
-  const handleChange = (e) =>
-    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
-  const handleEmailChange = (e) =>
-    setForm((p) => ({ ...p, email: e.target.value }));
-  const handlePasswordChange = (e) =>
-    setForm((p) => ({ ...p, password: e.target.value }));
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
-  // ---------- create/update ----------
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setMsg("");
+  useEffect(() => {
+    return () => {
+      if (cropSrc) {
+        URL.revokeObjectURL(cropSrc);
+      }
+    };
+  }, [cropSrc]);
+
+  const filteredUsers = useMemo(() => {
+    const text = query.trim().toLowerCase();
+
+    if (!text) return users;
+
+    return users.filter((user) => {
+      return [
+        user.full_name,
+        user.email,
+        user.phone_number,
+        user.district,
+        user.address,
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(text));
+    });
+  }, [query, users]);
+
+  const stats = useMemo(() => {
+    const districts = new Set(
+      users.map((user) => user.district).filter(Boolean),
+    );
+    const withPhotos = users.filter((user) => user.profile_image_url).length;
+
+    return {
+      total: users.length,
+      withPhotos,
+      districts: districts.size,
+    };
+  }, [users]);
+
+  const updateField = (name, value) => {
+    setForm((current) => ({
+      ...current,
+      [name]: value,
+    }));
+
+    if (msg?.type === "error") {
+      setMsg(null);
+    }
+  };
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    updateField(name, value);
+  };
+
+  const validateForm = () => {
     const required = [
       "full_name",
       "email",
@@ -102,145 +181,226 @@ export default function ManageUsers() {
       "district",
       ...(editingUser ? [] : ["password"]),
     ];
-    const missing = required.filter((k) => !String(form[k] ?? "").trim());
+
+    const missing = required.filter((key) => !String(form[key] ?? "").trim());
+
     if (missing.length) {
-      setMsg(`Please fill: ${missing.join(", ")}`);
+      return "Please complete all required fields.";
+    }
+
+    if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) {
+      return "Please enter a valid email address.";
+    }
+
+    return null;
+  };
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    setMsg(null);
+
+    const validationMessage = validateForm();
+
+    if (validationMessage) {
+      setMsg({
+        type: "error",
+        text: validationMessage,
+      });
       return;
     }
 
     try {
       if (editingUser) {
         const payload = {
-          full_name: form.full_name,
-          email: form.email,
-          phone_number: form.phone_number,
-          address: form.address,
+          full_name: form.full_name.trim(),
+          email: form.email.trim(),
+          phone_number: form.phone_number.trim(),
+          address: form.address.trim(),
           district: form.district,
+          ...(form.password.trim() ? { password: form.password } : {}),
           ...(imageDataUrl ? { profile_image_url: imageDataUrl } : {}),
         };
+
         await api.put(`/api/admin/customers/${editingUser._id}`, payload);
-        setMsg("User updated ✨");
+
+        setMsg({
+          type: "success",
+          text: "User updated successfully.",
+        });
       } else {
         const payload = {
-          full_name: form.full_name,
-          email: form.email,
+          full_name: form.full_name.trim(),
+          email: form.email.trim(),
           password: form.password,
-          phone_number: form.phone_number,
-          address: form.address,
+          phone_number: form.phone_number.trim(),
+          address: form.address.trim(),
           district: form.district,
           ...(imageDataUrl ? { profile_image_url: imageDataUrl } : {}),
         };
+
         await api.post("/api/admin/customers", payload);
-        setMsg("User created ");
+
+        setMsg({
+          type: "success",
+          text: "User created successfully.",
+        });
       }
+
       resetForm();
       fetchUsers();
-    } catch (e) {
-      setMsg(e?.response?.data?.message || "Error saving user");
+    } catch (error) {
+      setMsg({
+        type: "error",
+        text: error?.response?.data?.message || "Error saving user.",
+      });
     }
   }
 
   async function handleDelete(id) {
     if (!window.confirm("Delete this user?")) return;
+
     try {
       await api.delete(`/api/admin/customers/${id}`);
       fetchUsers();
-    } catch {
-      setMsg("Error deleting user");
+
+      setMsg({
+        type: "success",
+        text: "User deleted successfully.",
+      });
+    } catch (error) {
+      setMsg({
+        type: "error",
+        text: error?.response?.data?.message || "Error deleting user.",
+      });
     }
   }
 
-  function startEdit(u) {
-    setEditingUser(u);
+  function startEdit(user) {
+    setEditingUser(user);
+
     setForm({
-      full_name: u.full_name || "",
-      email: u.email || "",
-      phone_number: u.phone_number || "",
-      address: u.address || "",
-      district: u.district || "",
+      full_name: user.full_name || "",
+      email: user.email || "",
+      phone_number: user.phone_number || "",
+      address: user.address || "",
+      district: user.district || "",
       password: "",
     });
-    setImagePreview(u.profile_image_url || "");
+
+    setImagePreview(user.profile_image_url || "");
     setImageDataUrl("");
+    setMsg(null);
+
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function resetForm() {
     setEditingUser(null);
-    setForm({
-      full_name: "",
-      email: "",
-      phone_number: "",
-      address: "",
-      district: "",
-      password: "",
-    });
+    setForm(EMPTY_FORM);
     setImagePreview("");
     setImageDataUrl("");
   }
 
-  // ---------- pick & crop ----------
-  const pickFile = () => fileRef.current?.click();
-  const onPick = (e) => {
-    const f = e.target.files?.[0];
-    if (!f || !f.type?.startsWith("image/")) return;
-    const url = URL.createObjectURL(f);
+  const pickFile = () => {
+    fileRef.current?.click();
+  };
+
+  const onPick = (event) => {
+    const selectedFile = event.target.files?.[0];
+
+    if (!selectedFile) return;
+
+    if (!selectedFile.type?.startsWith("image/")) {
+      setMsg({
+        type: "error",
+        text: "Please select a valid image file.",
+      });
+      return;
+    }
+
+    if (cropSrc) {
+      URL.revokeObjectURL(cropSrc);
+    }
+
+    const url = URL.createObjectURL(selectedFile);
     setCropSrc(url);
     setCropOpen(true);
-    e.target.value = "";
+    event.target.value = "";
   };
-  const onPreviewLoad = (e) => {
-    const img = e.currentTarget;
-    imgMeta.current = { w: img.naturalWidth, h: img.naturalHeight };
-    const S = 256;
-    const fit = Math.max(S / img.naturalWidth, S / img.naturalHeight);
+
+  const onPreviewLoad = (event) => {
+    const img = event.currentTarget;
+
+    imgMeta.current = {
+      w: img.naturalWidth,
+      h: img.naturalHeight,
+    };
+
+    const size = 256;
+    const fit = Math.max(size / img.naturalWidth, size / img.naturalHeight);
+
     setBase(fit);
     setZoom(1);
     setOffX(0);
     setOffY(0);
   };
+
   const clampPan = (x, y, z) => {
-    const S = 256;
+    const size = 256;
     const w = imgMeta.current.w * base * z;
     const h = imgMeta.current.h * base * z;
-    const maxX = Math.max(0, (w - S) / 2);
-    const maxY = Math.max(0, (h - S) / 2);
+
+    const maxX = Math.max(0, (w - size) / 2);
+    const maxY = Math.max(0, (h - size) / 2);
+
     return {
       x: Math.max(-maxX, Math.min(maxX, x)),
       y: Math.max(-maxY, Math.min(maxY, y)),
     };
   };
-  const onDragStart = (e) => {
-    e.preventDefault();
-    const p = e.touches ? e.touches[0] : e;
+
+  const onDragStart = (event) => {
+    event.preventDefault();
+
+    const point = event.touches ? event.touches[0] : event;
+
     dragRef.current = {
       active: true,
-      startX: p.clientX,
-      startY: p.clientY,
+      startX: point.clientX,
+      startY: point.clientY,
       startOffX: offX,
       startOffY: offY,
     };
   };
-  const onDragMove = (e) => {
+
+  const onDragMove = (event) => {
     if (!dragRef.current.active) return;
-    const p = e.touches ? e.touches[0] : e;
-    const dx = p.clientX - dragRef.current.startX;
-    const dy = p.clientY - dragRef.current.startY;
+
+    const point = event.touches ? event.touches[0] : event;
+    const dx = point.clientX - dragRef.current.startX;
+    const dy = point.clientY - dragRef.current.startY;
+
     const next = clampPan(
       dragRef.current.startOffX + dx,
       dragRef.current.startOffY + dy,
       zoom,
     );
+
     setOffX(next.x);
     setOffY(next.y);
   };
-  const onDragEnd = () => (dragRef.current.active = false);
 
-  function exportCroppedDataUrl(img, size = 256, startQ = 0.75) {
+  const onDragEnd = () => {
+    dragRef.current.active = false;
+  };
+
+  function exportCroppedDataUrl(img, size = 256, startQuality = 0.8) {
     const canvas = document.createElement("canvas");
     canvas.width = size;
     canvas.height = size;
+
     const ctx = canvas.getContext("2d");
+
     const scale = base * zoom;
     const drawW = img.naturalWidth * scale;
     const drawH = img.naturalHeight * scale;
@@ -257,93 +417,175 @@ export default function ManageUsers() {
     ctx.drawImage(img, dx, dy, drawW, drawH);
     ctx.restore();
 
-    let q = startQ,
-      out = canvas.toDataURL("image/jpeg", q);
+    let quality = startQuality;
+    let output = canvas.toDataURL("image/jpeg", quality);
     const maxBytes = 60 * 1024;
-    while (out.length * 0.75 > maxBytes && q > 0.5) {
-      q -= 0.1;
-      out = canvas.toDataURL("image/jpeg", q);
+
+    while (output.length * 0.75 > maxBytes && quality > 0.5) {
+      quality -= 0.1;
+      output = canvas.toDataURL("image/jpeg", quality);
     }
-    return out;
+
+    return output;
   }
 
   const confirmCrop = async () => {
     if (!cropSrc) return;
+
     const img = new Image();
     img.src = cropSrc;
-    await new Promise((r) => (img.onload = r));
+
+    await new Promise((resolve) => {
+      img.onload = resolve;
+    });
+
     const data = exportCroppedDataUrl(img, 256, 0.8);
+
     setImageDataUrl(data);
     setImagePreview(data);
     setCropOpen(false);
-    if (cropSrc) URL.revokeObjectURL(cropSrc);
+
+    URL.revokeObjectURL(cropSrc);
     setCropSrc(null);
   };
 
   const cleanupCrop = () => {
-    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    if (cropSrc) {
+      URL.revokeObjectURL(cropSrc);
+    }
+
     setCropSrc(null);
     setCropOpen(false);
   };
 
   return (
-    <div className="mu">
-      {/* Header */}
-      <div className="mu-header">
-        <div className="mu-title">
-          <h2>Manage Users</h2>
-          <div className="mu-sub">
-            Create, update, or remove customers. Avatars are optional.
-          </div>
+    <section className="fm-admin-users">
+      <div className="fm-admin-users__header">
+        <div>
+          <span className="fm-admin-users__eyebrow">Customer Management</span>
+          <h1>Manage Users</h1>
+          <p>
+            Create customer accounts, update profile details, manage addresses,
+            and maintain customer contact records.
+          </p>
         </div>
+
+        <button
+          type="button"
+          className="fm-admin-users__btn fm-admin-users__btn--outline"
+          onClick={fetchUsers}
+          disabled={loading}>
+          <RefreshCw size={16} />
+          {loading ? "Refreshing" : "Refresh"}
+        </button>
       </div>
 
-      {msg && <div className="mu-alert mu-alert--info">{msg}</div>}
+      <div className="fm-admin-users__summaryGrid">
+        <article className="fm-admin-users__summaryCard">
+          <span>
+            <Users size={17} />
+          </span>
+          <div>
+            <strong>{stats.total}</strong>
+            <p>Total users</p>
+          </div>
+        </article>
 
-      {/* Form Card */}
+        <article className="fm-admin-users__summaryCard">
+          <span>
+            <ImagePlus size={17} />
+          </span>
+          <div>
+            <strong>{stats.withPhotos}</strong>
+            <p>Profile photos</p>
+          </div>
+        </article>
+
+        <article className="fm-admin-users__summaryCard">
+          <span>
+            <MapPin size={17} />
+          </span>
+          <div>
+            <strong>{stats.districts}</strong>
+            <p>Districts covered</p>
+          </div>
+        </article>
+      </div>
+
+      {msg?.text ? (
+        <div
+          className={`fm-admin-users__notice fm-admin-users__notice--${msg.type}`}
+          role="status"
+          aria-live="polite">
+          {msg.type === "success" ? <Check size={16} /> : <X size={16} />}
+          <span>{msg.text}</span>
+        </div>
+      ) : null}
+
       <form
-        className="mu-card mu-form"
+        className="fm-admin-users__card"
         onSubmit={handleSubmit}
         autoComplete="off">
-        {/* decoys */}
+        <div className="fm-admin-users__cardHeader">
+          <div>
+            <span>{editingUser ? "Edit customer" : "New customer"}</span>
+            <h2>
+              {editingUser ? "Update user details" : "Create user account"}
+            </h2>
+          </div>
+
+          {editingUser ? (
+            <button
+              type="button"
+              className="fm-admin-users__btn fm-admin-users__btn--outline"
+              onClick={resetForm}>
+              Cancel edit
+            </button>
+          ) : null}
+        </div>
+
         <input
           type="text"
           name="username"
           autoComplete="username"
-          style={{ display: "none" }}
+          className="fm-admin-users__hiddenInput"
         />
         <input
           type="password"
           name="password"
           autoComplete="current-password"
-          style={{ display: "none" }}
+          className="fm-admin-users__hiddenInput"
         />
 
-        <div className="mu-form-grid">
-          {/* Fields */}
-          <div className="mu-fields">
-            <div className="mu-field">
-              <label>Full Name</label>
+        <div className="fm-admin-users__formLayout">
+          <div className="fm-admin-users__fields">
+            <div className="fm-admin-users__field">
+              <label htmlFor="fm-user-full-name">Full name *</label>
               <input
+                id="fm-user-full-name"
                 name="full_name"
                 type="text"
                 value={form.full_name}
                 onChange={handleChange}
-                placeholder="Full Name"
+                placeholder="Full name"
                 required
               />
             </div>
 
-            <div className="mu-field">
-              <label>Email</label>
+            <div className="fm-admin-users__field">
+              <label htmlFor="fm-user-email">Email *</label>
               <input
-                name="__no_email"
+                id="fm-user-email"
+                name="email"
                 type="email"
                 inputMode="email"
                 value={form.email}
-                onChange={handleEmailChange}
-                onBlur={(e) =>
-                  setForm((p) => ({ ...p, email: e.target.value.trim() }))
+                onChange={handleChange}
+                onBlur={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    email: event.target.value.trim(),
+                  }))
                 }
                 placeholder="email@example.com"
                 required
@@ -354,27 +596,23 @@ export default function ManageUsers() {
                 data-1p-ignore="true"
                 data-lpignore="true"
               />
-              {editingUser && (
-                <div className="tiny muted">
-                  Changing email updates the user’s login.
-                </div>
-              )}
             </div>
 
-            <div className="mu-cols-2">
-              <div className="mu-field">
-                <label>
-                  {editingUser ? "New Password (optional)" : "Password"}
+            <div className="fm-admin-users__fieldGrid">
+              <div className="fm-admin-users__field">
+                <label htmlFor="fm-user-password">
+                  {editingUser ? "New password" : "Password *"}
                 </label>
                 <input
-                  name="__no_password"
+                  id="fm-user-password"
+                  name="password"
                   type="password"
                   value={form.password}
-                  onChange={handlePasswordChange}
+                  onChange={handleChange}
                   placeholder={
                     editingUser
                       ? "Leave blank to keep current password"
-                      : "Set a strong password"
+                      : "Set a password"
                   }
                   required={!editingUser}
                   autoComplete="new-password"
@@ -384,196 +622,262 @@ export default function ManageUsers() {
                 />
               </div>
 
-              <div className="mu-field">
-                <label>Phone Number</label>
+              <div className="fm-admin-users__field">
+                <label htmlFor="fm-user-phone">Phone number *</label>
                 <input
+                  id="fm-user-phone"
                   name="phone_number"
                   type="text"
                   value={form.phone_number}
                   onChange={handleChange}
                   placeholder="+94XXXXXXXXX"
+                  required
                 />
               </div>
             </div>
 
-            <div className="mu-cols-2">
-              <div className="mu-field">
-                <label>Address</label>
+            <div className="fm-admin-users__fieldGrid">
+              <div className="fm-admin-users__field">
+                <label htmlFor="fm-user-address">Address *</label>
                 <input
+                  id="fm-user-address"
                   name="address"
                   type="text"
                   value={form.address}
                   onChange={handleChange}
-                  placeholder="Street, City"
+                  placeholder="Street, city"
                   required
                 />
               </div>
 
-              <div className="mu-field">
-                <label>District</label>
+              <div className="fm-admin-users__field">
+                <label htmlFor="fm-user-district">District *</label>
                 <select
+                  id="fm-user-district"
                   name="district"
                   value={form.district}
                   onChange={handleChange}
                   required>
-                  <option value="">Select district…</option>
-                  {DISTRICTS.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
+                  <option value="">Select district</option>
+                  {[...new Set(DISTRICTS)].map((district) => (
+                    <option key={district} value={district}>
+                      {district}
                     </option>
                   ))}
                 </select>
               </div>
             </div>
 
-            <div className="mu-actions">
-              <button type="submit" className="mu-btn mu-btn--primary">
+            <div className="fm-admin-users__actions">
+              <button
+                type="submit"
+                className="fm-admin-users__btn fm-admin-users__btn--primary">
+                <UserPlus size={16} />
                 {editingUser ? "Update User" : "Create User"}
               </button>
-              {editingUser && (
-                <button
-                  type="button"
-                  className="mu-btn mu-btn--outline"
-                  onClick={resetForm}>
-                  Cancel
-                </button>
-              )}
             </div>
           </div>
 
-          {/* Avatar side */}
-          <div className="mu-avatar-card">
-            <div className="mu-avatar-wrap">
-              <img
-                src={imagePreview || "/default-profile.png"}
-                alt="profile"
-                className="mu-avatar"
-              />
+          <aside className="fm-admin-users__photoPanel">
+            <div className="fm-admin-users__photoPreview">
+              {imagePreview ? (
+                <img src={imagePreview} alt="Selected user profile" />
+              ) : (
+                <UserRound size={44} />
+              )}
             </div>
-            <div className="mu-avatar-actions">
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={onPick}
-              />
+
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={onPick}
+            />
+
+            <div className="fm-admin-users__photoActions">
               <button
                 type="button"
-                className="mu-btn mu-btn--secondary"
+                className="fm-admin-users__btn fm-admin-users__btn--secondary"
                 onClick={pickFile}>
+                <Upload size={16} />
                 {imagePreview ? "Change Photo" : "Upload Photo"}
               </button>
-              {imagePreview && (
+
+              {imagePreview ? (
                 <button
                   type="button"
-                  className="mu-btn mu-btn--danger"
+                  className="fm-admin-users__btn fm-admin-users__btn--dangerLight"
                   onClick={() => {
                     setImagePreview("");
                     setImageDataUrl("");
                   }}>
-                  Remove Photo
+                  Remove
                 </button>
-              )}
+              ) : null}
             </div>
-            <div className="tiny muted">Square images look best · JPG/PNG</div>
-          </div>
+
+            <p>
+              Profile photo is optional. Square JPG or PNG images work best.
+            </p>
+          </aside>
         </div>
       </form>
 
-      {/* Users Table */}
-      <div className="mu-card">
-        <div className="mu-list-head">
-          <h3>All Users</h3>
-          <button
-            className="mu-btn mu-btn--outline"
-            onClick={fetchUsers}
-            disabled={loading}>
-            {loading ? "Refreshing…" : "Refresh"}
-          </button>
+      <section className="fm-admin-users__card">
+        <div className="fm-admin-users__listHeader">
+          <div>
+            <span>Customer records</span>
+            <h2>All Users</h2>
+          </div>
+
+          <label className="fm-admin-users__search">
+            <Search size={16} />
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search users"
+            />
+          </label>
         </div>
 
-        <div className="mu-table-wrap">
-          <table className="mu-table">
+        <div className="fm-admin-users__tableWrap">
+          <table className="fm-admin-users__table">
             <thead>
               <tr>
-                <th>Profile</th>
-                <th>Name</th>
-                <th>Email</th>
+                <th>User</th>
+                <th>Contact</th>
                 <th>Phone</th>
                 <th>District</th>
                 <th>Address</th>
-                <th style={{ width: 150 }}>Actions</th>
+                <th className="fm-admin-users__actionsCol">Actions</th>
               </tr>
             </thead>
+
             <tbody>
-              {users.map((u) => (
-                <tr key={u._id}>
+              {filteredUsers.map((user) => (
+                <tr key={user._id}>
                   <td>
-                    {u.profile_image_url ? (
-                      <img
-                        src={u.profile_image_url}
-                        alt={u.full_name}
-                        className="mu-avatar--sm"
-                      />
-                    ) : (
-                      <span className="tiny muted">—</span>
-                    )}
+                    <div className="fm-admin-users__identity">
+                      {user.profile_image_url ? (
+                        <img
+                          src={user.profile_image_url}
+                          alt={user.full_name}
+                        />
+                      ) : (
+                        <span>{getInitial(user.full_name, user.email)}</span>
+                      )}
+
+                      <div>
+                        <strong>{user.full_name || "Unnamed user"}</strong>
+                        <small>{user._id}</small>
+                      </div>
+                    </div>
                   </td>
-                  <td>{u.full_name}</td>
-                  <td className="mu-clip">{u.email}</td>
-                  <td>{u.phone_number || "—"}</td>
-                  <td>{u.district}</td>
-                  <td className="mu-clip">{u.address}</td>
-                  <td className="mu-row-actions">
-                    <button
-                      className="mu-btn mu-btn--small mu-btn--primary"
-                      onClick={() => startEdit(u)}>
-                      Edit
-                    </button>
-                    <button
-                      className="mu-btn mu-btn--small mu-btn--danger"
-                      onClick={() => handleDelete(u._id)}>
-                      Delete
-                    </button>
+
+                  <td>
+                    <div className="fm-admin-users__cellIcon">
+                      <Mail size={14} />
+                      <span>{user.email || "—"}</span>
+                    </div>
+                  </td>
+
+                  <td>
+                    <div className="fm-admin-users__cellIcon">
+                      <Phone size={14} />
+                      <span>{user.phone_number || "—"}</span>
+                    </div>
+                  </td>
+
+                  <td>{user.district || "—"}</td>
+                  <td className="fm-admin-users__clip">
+                    {user.address || "—"}
+                  </td>
+
+                  <td>
+                    <div className="fm-admin-users__rowActions">
+                      <button
+                        type="button"
+                        className="fm-admin-users__iconAction"
+                        onClick={() => startEdit(user)}
+                        aria-label={`Edit ${user.full_name || "user"}`}>
+                        <Pencil size={15} />
+                      </button>
+
+                      <button
+                        type="button"
+                        className="fm-admin-users__iconAction fm-admin-users__iconAction--danger"
+                        onClick={() => handleDelete(user._id)}
+                        aria-label={`Delete ${user.full_name || "user"}`}>
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
-              {!users.length && !loading && (
+
+              {!filteredUsers.length && !loading ? (
                 <tr>
-                  <td
-                    colSpan="7"
-                    className="muted"
-                    style={{ textAlign: "center" }}>
-                    No users found
+                  <td colSpan="6">
+                    <div className="fm-admin-users__empty">
+                      <Users size={24} />
+                      <strong>No users found</strong>
+                      <span>
+                        {query
+                          ? "Try a different search keyword."
+                          : "Create a user to show customer records here."}
+                      </span>
+                    </div>
                   </td>
                 </tr>
-              )}
+              ) : null}
+
+              {loading ? (
+                <tr>
+                  <td colSpan="6">
+                    <div className="fm-admin-users__empty">
+                      <RefreshCw size={24} />
+                      <strong>Loading users</strong>
+                      <span>
+                        Please wait while customer records are loaded.
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              ) : null}
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
 
-      {/* Crop modal */}
-      {cropOpen && (
+      {cropOpen ? (
         <div
-          className="mu-crop-overlay"
+          className="fm-admin-users-crop"
           onClick={cleanupCrop}
           role="dialog"
-          aria-modal="true">
-          <div className="mu-crop-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="mu-crop-head">
-              <h4>Adjust Photo</h4>
+          aria-modal="true"
+          aria-label="Crop profile photo">
+          <div
+            className="fm-admin-users-crop__modal"
+            onClick={(event) => event.stopPropagation()}>
+            <div className="fm-admin-users-crop__header">
+              <div>
+                <span>Profile image</span>
+                <h2>Adjust Photo</h2>
+              </div>
+
               <button
                 type="button"
-                className="mu-btn mu-btn--danger mu-btn--small"
-                onClick={cleanupCrop}>
-                Close
+                className="fm-admin-users__iconAction"
+                onClick={cleanupCrop}
+                aria-label="Close crop modal">
+                <X size={16} />
               </button>
             </div>
 
             <div
-              className={`mu-crop-viewport ${dragRef.current.active ? "dragging" : ""}`}
+              className="fm-admin-users-crop__viewport"
               onMouseDown={onDragStart}
               onMouseMove={onDragMove}
               onMouseUp={onDragEnd}
@@ -581,39 +885,47 @@ export default function ManageUsers() {
               onTouchStart={onDragStart}
               onTouchMove={onDragMove}
               onTouchEnd={onDragEnd}>
-              {cropSrc && (
+              {cropSrc ? (
                 <img
                   src={cropSrc}
                   alt="Crop preview"
-                  className="mu-crop-img"
+                  className="fm-admin-users-crop__image"
                   onLoad={onPreviewLoad}
                   style={{
-                    transform: `translate(calc(-50% + ${offX}px), calc(-50% + ${offY}px)) scale(${base * zoom})`,
+                    transform: `translate(calc(-50% + ${offX}px), calc(-50% + ${offY}px)) scale(${
+                      base * zoom
+                    })`,
                   }}
                 />
-              )}
-              <div className="mu-crop-circle" />
+              ) : null}
+
+              <div className="fm-admin-users-crop__circle" />
             </div>
 
-            <div className="mu-crop-controls">
-              <input
-                type="range"
-                min="1"
-                max="3"
-                step="0.01"
-                value={zoom}
-                onChange={(e) => setZoom(parseFloat(e.target.value))}
-              />
-              <div className="mu-crop-actions">
+            <div className="fm-admin-users-crop__controls">
+              <label>
+                <span>Zoom</span>
+                <input
+                  type="range"
+                  min="1"
+                  max="3"
+                  step="0.01"
+                  value={zoom}
+                  onChange={(event) => setZoom(parseFloat(event.target.value))}
+                />
+              </label>
+
+              <div className="fm-admin-users-crop__actions">
                 <button
                   type="button"
-                  className="mu-btn mu-btn--danger mu-btn--outline"
+                  className="fm-admin-users__btn fm-admin-users__btn--outline"
                   onClick={cleanupCrop}>
                   Cancel
                 </button>
+
                 <button
                   type="button"
-                  className="mu-btn mu-btn--primary"
+                  className="fm-admin-users__btn fm-admin-users__btn--primary"
                   onClick={confirmCrop}>
                   Use Photo
                 </button>
@@ -621,7 +933,7 @@ export default function ManageUsers() {
             </div>
           </div>
         </div>
-      )}
-    </div>
+      ) : null}
+    </section>
   );
 }

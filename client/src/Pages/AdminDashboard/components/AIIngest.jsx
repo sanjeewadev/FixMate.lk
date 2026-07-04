@@ -1,35 +1,62 @@
-// src/Pages/AdminDashboard/components/AIIngest.jsx
 import React, { useMemo, useRef, useState } from "react";
-import "./AIIngest.css";
-import api from "../../../lib/api";
-import { useAuth } from "../../../context/AuthContext.jsx";
+import {
+  Check,
+  DatabaseZap,
+  FileText,
+  Plus,
+  RotateCcw,
+  Tags,
+  Trash2,
+  UploadCloud,
+  X,
+} from "lucide-react";
 
-/** mirror server-side helper (1200 chars, split on blank lines) */
-function chunkText(txt, maxChars = 1200) {
-  const paras = String(txt).split(/\n{2,}/g).map(p => p.trim()).filter(Boolean);
+import { useAuth } from "../../../context/AuthContext.jsx";
+import api from "../../../lib/api";
+import "./AIIngest.css";
+
+function chunkText(text, maxChars = 1200) {
+  const paragraphs = String(text)
+    .split(/\n{2,}/g)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+
   const chunks = [];
-  let buf = "";
-  for (const p of paras) {
-    const next = buf ? buf + "\n\n" + p : p;
+  let buffer = "";
+
+  for (const paragraph of paragraphs) {
+    const next = buffer ? `${buffer}\n\n${paragraph}` : paragraph;
+
     if (next.length > maxChars) {
-      if (buf) chunks.push(buf);
-      buf = p;
+      if (buffer) chunks.push(buffer);
+      buffer = paragraph;
     } else {
-      buf = next;
+      buffer = next;
     }
   }
-  if (buf) chunks.push(buf);
+
+  if (buffer) chunks.push(buffer);
+
   return chunks;
 }
-const parseTags = (s) =>
+
+const parseTags = (value) =>
   Array.from(
     new Set(
-      String(s || "")
+      String(value || "")
         .split(/[,\n]/g)
-        .map(t => t.trim())
-        .filter(Boolean)
-    )
+        .map((tag) => tag.trim())
+        .filter(Boolean),
+    ),
   ).slice(0, 10);
+
+const makeId = () => {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+};
 
 export default function AIIngest() {
   const { role } = useAuth();
@@ -40,7 +67,8 @@ export default function AIIngest() {
     tagsInput: "",
     text: "",
   });
-  const [docs, setDocs] = useState([]); // {id, source, tags[], text}
+
+  const [docs, setDocs] = useState([]);
   const [upsert, setUpsert] = useState(true);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState(null);
@@ -48,229 +76,428 @@ export default function AIIngest() {
   const fileRef = useRef(null);
 
   const totals = useMemo(() => {
-    const d = docs.length;
-    const c = docs.reduce((sum, doc) => sum + chunkText(doc.text).length, 0);
-    const ch = docs.reduce((sum, doc) => sum + (doc.text?.length || 0), 0);
-    return { docs: d, chunks: c, chars: ch };
+    const docCount = docs.length;
+    const chunkCount = docs.reduce(
+      (sum, doc) => sum + chunkText(doc.text).length,
+      0,
+    );
+    const charCount = docs.reduce(
+      (sum, doc) => sum + (doc.text?.length || 0),
+      0,
+    );
+
+    return {
+      docs: docCount,
+      chunks: chunkCount,
+      chars: charCount,
+    };
   }, [docs]);
 
   function addDocFromForm() {
     const text = form.text?.trim();
+
     if (!text) {
-      setMsg({ type: "error", text: "Please enter some text to ingest." });
+      setMsg({
+        type: "error",
+        text: "Please enter some text to ingest.",
+      });
       return;
     }
+
     const doc = {
-      id: crypto.randomUUID(),
+      id: makeId(),
       source: form.source?.trim(),
       tags: parseTags(form.tagsInput),
       text,
     };
-    setDocs((prev) => [doc, ...prev]);
-    setForm({ source: form.source, tagsInput: form.tagsInput, text: "" });
-    setMsg({ type: "success", text: "Document staged. You can add more or click Ingest." });
+
+    setDocs((current) => [doc, ...current]);
+
+    setForm((current) => ({
+      ...current,
+      text: "",
+    }));
+
+    setMsg({
+      type: "success",
+      text: "Document staged. You can add more or ingest the batch.",
+    });
   }
 
   function removeDoc(id) {
-    setDocs((prev) => prev.filter((d) => d.id !== id));
+    setDocs((current) => current.filter((doc) => doc.id !== id));
   }
+
   function clearAll() {
     setDocs([]);
   }
 
   async function onIngest() {
     if (!docs.length) {
-      setMsg({ type: "error", text: "Nothing to ingest. Add at least one document." });
+      setMsg({
+        type: "error",
+        text: "Nothing to ingest. Add at least one document.",
+      });
       return;
     }
+
     setBusy(true);
     setMsg(null);
+
     try {
       const payload = {
         upsert,
-        docs: docs.map(({ source, tags, text }) => ({ source, tags, text })),
+        docs: docs.map(({ source, tags, text }) => ({
+          source,
+          tags,
+          text,
+        })),
       };
+
       const { data } = await api.post("/api/ai/ingest", payload);
       const written = data?.chunks ?? 0;
+
       setMsg({
         type: "success",
-        text: `Ingested ${written} chunk${written === 1 ? "" : "s"} successfully.`,
+        text: `Ingested ${written} chunk${
+          written === 1 ? "" : "s"
+        } successfully.`,
       });
-      // keep staged docs for more ingest
-    } catch (e) {
-      const t = e?.response?.data?.message || e?.message || "Ingest failed";
-      setMsg({ type: "error", text: t });
+    } catch (error) {
+      setMsg({
+        type: "error",
+        text:
+          error?.response?.data?.message || error?.message || "Ingest failed.",
+      });
     } finally {
       setBusy(false);
     }
   }
 
-  // ---- drag & drop plain text/markdown ----
-  const onDrop = async (e) => {
-    e.preventDefault();
-    const files = Array.from(e.dataTransfer.files || []);
-    const accepted = files.filter((f) => /text|markdown|plain/.test(f.type) || /\.(txt|md)$/i.test(f.name));
+  async function addFiles(files) {
+    const accepted = files.filter(
+      (file) =>
+        /text|markdown|plain/.test(file.type) || /\.(txt|md)$/i.test(file.name),
+    );
+
     if (!accepted.length) {
-      setMsg({ type: "error", text: "Only .txt or .md files are supported for drag & drop." });
+      setMsg({
+        type: "error",
+        text: "Only .txt or .md files are supported.",
+      });
       return;
     }
-    for (const f of accepted) {
-      const text = await f.text();
-      setDocs((prev) => [
-        {
-          id: crypto.randomUUID(),
-          source: form.source?.trim() || f.name,
-          tags: parseTags(form.tagsInput),
-          text,
-        },
-        ...prev,
-      ]);
+
+    const nextDocs = [];
+
+    for (const file of accepted) {
+      const text = await file.text();
+
+      nextDocs.push({
+        id: makeId(),
+        source: form.source?.trim() || file.name,
+        tags: parseTags(form.tagsInput),
+        text,
+      });
     }
-    setMsg({ type: "success", text: `Added ${accepted.length} file(s) to the batch.` });
+
+    setDocs((current) => [...nextDocs, ...current]);
+
+    setMsg({
+      type: "success",
+      text: `Added ${accepted.length} file${
+        accepted.length === 1 ? "" : "s"
+      } to the batch.`,
+    });
+  }
+
+  const onDrop = async (event) => {
+    event.preventDefault();
+
+    const files = Array.from(event.dataTransfer.files || []);
+    await addFiles(files);
   };
-  const onDragOver = (e) => e.preventDefault();
+
+  const onDragOver = (event) => {
+    event.preventDefault();
+  };
 
   if (!isAdmin) {
-    return <div className="aii-msg aii-msg--error" style={{ marginTop: 12 }}>You are not authorized to access AI Ingest.</div>;
+    return (
+      <div className="fm-admin-aii__notice fm-admin-aii__notice--error">
+        You are not authorized to access AI Ingest.
+      </div>
+    );
   }
 
   return (
-    <div className="aii-page">
-      <div className="aii-header">
-        <h2>AI Knowledge Ingest</h2>
-        <div className="aii-muted aii-tiny">Add internal knowledge so AI answers with your facts (with citations).</div>
+    <section className="fm-admin-aii">
+      <div className="fm-admin-aii__header">
+        <div>
+          <span className="fm-admin-aii__eyebrow">AI Knowledge Base</span>
+
+          <h1>AI Knowledge Ingest</h1>
+
+          <p>
+            Add internal knowledge so the AI can answer using your business
+            facts, source labels, and tags.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          className="fm-admin-aii__btn fm-admin-aii__btn--outline"
+          onClick={clearAll}
+          disabled={!docs.length || busy}>
+          <RotateCcw size={16} />
+          Clear Batch
+        </button>
       </div>
 
-      {msg?.text && <div className={`aii-msg aii-msg--${msg.type || "info"}`}>{msg.text}</div>}
+      <div className="fm-admin-aii__summaryGrid">
+        <article className="fm-admin-aii__summaryCard">
+          <span>
+            <FileText size={17} />
+          </span>
+          <div>
+            <strong>{totals.docs}</strong>
+            <p>Documents staged</p>
+          </div>
+        </article>
 
-      {/* Composer */}
-      <section className="aii-composer">
-        <div className="aii-row">
-          <div className="aii-field">
-            <label>Source (optional)</label>
+        <article className="fm-admin-aii__summaryCard">
+          <span>
+            <DatabaseZap size={17} />
+          </span>
+          <div>
+            <strong>{totals.chunks}</strong>
+            <p>Estimated chunks</p>
+          </div>
+        </article>
+
+        <article className="fm-admin-aii__summaryCard">
+          <span>
+            <Tags size={17} />
+          </span>
+          <div>
+            <strong>{totals.chars.toLocaleString()}</strong>
+            <p>Characters</p>
+          </div>
+        </article>
+      </div>
+
+      {msg?.text ? (
+        <div
+          className={`fm-admin-aii__notice fm-admin-aii__notice--${
+            msg.type || "info"
+          }`}
+          role="status"
+          aria-live="polite">
+          {msg.type === "success" ? <Check size={16} /> : <X size={16} />}
+          <span>{msg.text}</span>
+        </div>
+      ) : null}
+
+      <section className="fm-admin-aii__card">
+        <div className="fm-admin-aii__cardHeader">
+          <div>
+            <span>Knowledge composer</span>
+            <h2>Add Source Content</h2>
+          </div>
+        </div>
+
+        <div className="fm-admin-aii__formGrid">
+          <div className="fm-admin-aii__field">
+            <label htmlFor="fm-aii-source">Source</label>
             <input
+              id="fm-aii-source"
               type="text"
               placeholder="e.g., SOP-AC-123, GoogleDoc URL, or KB label"
               value={form.source}
-              onChange={(e) => setForm((p) => ({ ...p, source: e.target.value }))}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  source: event.target.value,
+                }))
+              }
             />
-            <div className="aii-hint aii-tiny">Recommended for upsert: same source avoids duplicates.</div>
+            <small>
+              Recommended for upsert. Same source helps avoid duplicates.
+            </small>
           </div>
-          <div className="aii-field">
-            <label>Tags (optional)</label>
+
+          <div className="fm-admin-aii__field">
+            <label htmlFor="fm-aii-tags">Tags</label>
             <input
+              id="fm-aii-tags"
               type="text"
               placeholder="comma, separated, tags"
               value={form.tagsInput}
-              onChange={(e) => setForm((p) => ({ ...p, tagsInput: e.target.value }))}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  tagsInput: event.target.value,
+                }))
+              }
             />
-            <div className="aii-hint aii-tiny">Up to 10 tags. They’ll be stored per chunk.</div>
+            <small>Up to 10 tags. Tags are stored per chunk.</small>
           </div>
         </div>
 
         <div
-          className="aii-dropzone"
+          className="fm-admin-aii__dropzone"
           onDrop={onDrop}
           onDragOver={onDragOver}
           onClick={() => fileRef.current?.click()}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => (e.key === "Enter" ? fileRef.current?.click() : null)}
-        >
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              fileRef.current?.click();
+            }
+          }}>
           <input
             ref={fileRef}
             type="file"
             accept=".txt,.md,text/plain"
             hidden
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) f.text().then((text) => {
-                setDocs((prev) => [
-                  { id: crypto.randomUUID(), source: form.source?.trim() || f.name, tags: parseTags(form.tagsInput), text },
-                  ...prev,
-                ]);
-                setMsg({ type: "success", text: `Added ${f.name} to the batch.` });
-              });
-              e.target.value = "";
+            onChange={async (event) => {
+              const files = Array.from(event.target.files || []);
+              await addFiles(files);
+              event.target.value = "";
             }}
           />
-          <div className="aii-dz-icon">📎</div>
-          <div className="aii-dz-text">
-            <strong>Drop .txt / .md</strong> or click to upload
-            <div className="aii-muted aii-tiny">We’ll keep your current Source/Tags for uploaded files.</div>
+
+          <span>
+            <UploadCloud size={22} />
+          </span>
+
+          <div>
+            <strong>Drop .txt or .md files here</strong>
+            <p>
+              Click to upload. Current source and tags are applied to files.
+            </p>
           </div>
         </div>
 
-        <div className="aii-field">
-          <label>Text</label>
+        <div className="fm-admin-aii__field">
+          <label htmlFor="fm-aii-text">Text</label>
           <textarea
-            placeholder="Paste content here. Paragraphs separated by a blank line will be chunked automatically (~1200 chars/chunk)."
+            id="fm-aii-text"
+            placeholder="Paste content here. Paragraphs separated by a blank line will be chunked automatically."
             value={form.text}
-            onChange={(e) => setForm((p) => ({ ...p, text: e.target.value }))}
+            onChange={(event) =>
+              setForm((current) => ({
+                ...current,
+                text: event.target.value,
+              }))
+            }
           />
         </div>
 
-        <div className="aii-actions">
-          <label className="aii-switch">
-            <input type="checkbox" checked={upsert} onChange={(e) => setUpsert(e.target.checked)} />
-            <span>Upsert (skip if same source + text already exists)</span>
+        <div className="fm-admin-aii__actions">
+          <label className="fm-admin-aii__switch">
+            <input
+              type="checkbox"
+              checked={upsert}
+              onChange={(event) => setUpsert(event.target.checked)}
+            />
+            <span>Upsert duplicate source and text</span>
           </label>
 
-          <div className="aii-spacer" />
-          <button type="button" className="aii-btn aii-btn--outline" onClick={addDocFromForm}>Add to Batch</button>
+          <button
+            type="button"
+            className="fm-admin-aii__btn fm-admin-aii__btn--outline"
+            onClick={addDocFromForm}>
+            <Plus size={16} />
+            Add to Batch
+          </button>
         </div>
       </section>
 
-      {/* Batch list */}
-      <section className="aii-batch">
-        <div className="aii-batch-head">
-          <h3>Staged Documents</h3>
-          <div className="aii-muted aii-tiny">
-            {totals.docs} doc{totals.docs === 1 ? "" : "s"} · ~{totals.chunks} chunk{totals.chunks === 1 ? "" : "s"} · {totals.chars.toLocaleString()} chars
+      <section className="fm-admin-aii__card">
+        <div className="fm-admin-aii__batchHeader">
+          <div>
+            <span>Batch queue</span>
+            <h2>Staged Documents</h2>
+            <p>
+              {totals.docs} doc{totals.docs === 1 ? "" : "s"} · ~{totals.chunks}{" "}
+              chunk{totals.chunks === 1 ? "" : "s"} ·{" "}
+              {totals.chars.toLocaleString()} chars
+            </p>
           </div>
-          <div className="aii-spacer" />
-          <button className="aii-btn aii-btn--danger" disabled={!docs.length || busy} onClick={clearAll}>Clear</button>
+
+          <button
+            type="button"
+            className="fm-admin-aii__btn fm-admin-aii__btn--dangerLight"
+            disabled={!docs.length || busy}
+            onClick={clearAll}>
+            <Trash2 size={15} />
+            Clear
+          </button>
         </div>
 
-        <div className="aii-list">
+        <div className="fm-admin-aii__list">
           {docs.length === 0 ? (
-            <div className="aii-empty aii-muted">Nothing staged yet. Add a document above.</div>
+            <div className="fm-admin-aii__empty">
+              <FileText size={24} />
+              <strong>Nothing staged yet</strong>
+              <span>Add a document above to prepare an ingest batch.</span>
+            </div>
           ) : (
-            docs.map((d, idx) => {
-              const estChunks = chunkText(d.text).length;
-              const tags = d.tags || [];
+            docs.map((doc, index) => {
+              const estChunks = chunkText(doc.text).length;
+              const tags = doc.tags || [];
+
               return (
-                <div key={d.id} className="aii-doc">
-                  <div className="aii-doc-top">
-                    <div className="aii-doc-title">
-                      <span className="aii-badge">#{docs.length - idx}</span>
-                      <strong>{d.source || "KB"}</strong>
-                      <span className="aii-muted aii-tiny"> · ~{estChunks} chunk{estChunks === 1 ? "" : "s"}</span>
+                <article className="fm-admin-aii__doc" key={doc.id}>
+                  <div className="fm-admin-aii__docTop">
+                    <div className="fm-admin-aii__docTitle">
+                      <span>#{docs.length - index}</span>
+                      <strong>{doc.source || "KB"}</strong>
+                      <small>
+                        ~{estChunks} chunk{estChunks === 1 ? "" : "s"}
+                      </small>
                     </div>
-                    <button className="aii-btn aii-btn--ghost" onClick={() => removeDoc(d.id)}>Remove</button>
+
+                    <button
+                      type="button"
+                      className="fm-admin-aii__iconAction"
+                      onClick={() => removeDoc(doc.id)}
+                      aria-label="Remove document">
+                      <X size={16} />
+                    </button>
                   </div>
 
-                  {tags.length > 0 && (
-                    <div className="aii-tags">
-                      {tags.map((t) => (
-                        <span className="aii-tag" key={t}>{t}</span>
+                  {tags.length > 0 ? (
+                    <div className="fm-admin-aii__tags">
+                      {tags.map((tag) => (
+                        <span key={tag}>{tag}</span>
                       ))}
                     </div>
-                  )}
+                  ) : null}
 
-                  <pre className="aii-preview">{d.text.slice(0, 600)}{d.text.length > 600 ? "…" : ""}</pre>
-                </div>
+                  <pre className="fm-admin-aii__preview">
+                    {doc.text.slice(0, 600)}
+                    {doc.text.length > 600 ? "..." : ""}
+                  </pre>
+                </article>
               );
             })
           )}
         </div>
 
-        <div className="aii-footer-actions">
-          <button className="aii-btn aii-btn--primary" disabled={!docs.length || busy} onClick={onIngest}>
+        <div className="fm-admin-aii__footerActions">
+          <button
+            type="button"
+            className="fm-admin-aii__btn fm-admin-aii__btn--primary"
+            disabled={!docs.length || busy}
+            onClick={onIngest}>
+            <DatabaseZap size={16} />
             {busy ? "Ingesting..." : "Ingest Now"}
           </button>
         </div>
       </section>
-    </div>
+    </section>
   );
 }

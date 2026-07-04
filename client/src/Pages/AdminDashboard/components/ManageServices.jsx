@@ -1,29 +1,65 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  BadgeDollarSign,
+  Check,
+  ImagePlus,
+  Layers3,
+  PackageCheck,
+  Pencil,
+  Power,
+  PowerOff,
+  RefreshCw,
+  Search,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
+
 import api from "../../../lib/api";
 import "./ManageServices.css";
+
+const EMPTY_FORM = {
+  name: "",
+  description: "",
+  basePrice: "",
+  category: "",
+};
+
+const getServiceImage = (service) => {
+  if (service?.serviceImages?.[0]?.url) return service.serviceImages[0].url;
+
+  if (Array.isArray(service?.imageUrls)) {
+    return service.imageUrls[0] || "";
+  }
+
+  return service?.imageUrls || "";
+};
+
+const formatPrice = (value) => {
+  if (value === null || value === undefined || value === "") return "—";
+  return `Rs. ${Number(value).toLocaleString("en-LK")}`;
+};
 
 export default function ManageServices() {
   const [services, setServices] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState("");
+  const [msg, setMsg] = useState(null);
 
-  // view toggle
   const [hideInactive, setHideInactive] = useState(false);
+  const [query, setQuery] = useState("");
 
-  // form state
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    basePrice: "",
-    category: "",
-  });
+  const [form, setForm] = useState(EMPTY_FORM);
 
-  // preview + payload (base64) for service image
   const [imagePreview, setImagePreview] = useState("");
   const [imageDataUrl, setImageDataUrl] = useState("");
 
-  // ---- cropper (square)
   const fileRef = useRef(null);
   const [cropOpen, setCropOpen] = useState(false);
   const [cropSrc, setCropSrc] = useState(null);
@@ -31,6 +67,7 @@ export default function ManageServices() {
   const [base, setBase] = useState(1);
   const [offX, setOffX] = useState(0);
   const [offY, setOffY] = useState(0);
+
   const dragRef = useRef({
     active: false,
     startX: 0,
@@ -38,266 +75,527 @@ export default function ManageServices() {
     startOffX: 0,
     startOffY: 0,
   });
+
   const imgMeta = useRef({ w: 0, h: 0 });
 
-  // ---------- load ----------
-  const fetchServices = async () => {
+  const fetchServices = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await api.get("/api/admin/services");
-      setServices(res.data?.data || res.data || []);
-    } catch (e) {
-      setMsg(e?.response?.data?.message || "Failed to fetch services");
+      const { data } = await api.get("/api/admin/services");
+      setServices(data?.data || data || []);
+    } catch (error) {
+      setMsg({
+        type: "error",
+        text: error?.response?.data?.message || "Failed to fetch services.",
+      });
     } finally {
       setLoading(false);
     }
-  };
-  useEffect(() => {
-    fetchServices();
   }, []);
 
-  // ---------- form ----------
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((p) => ({ ...p, [name]: name === "basePrice" ? value : value }));
+  useEffect(() => {
+    fetchServices();
+  }, [fetchServices]);
+
+  useEffect(() => {
+    return () => {
+      if (cropSrc) {
+        URL.revokeObjectURL(cropSrc);
+      }
+    };
+  }, [cropSrc]);
+
+  const stats = useMemo(() => {
+    const active = services.filter((service) => service.isActive).length;
+    const inactive = services.filter((service) => !service.isActive).length;
+    const categories = new Set(
+      services.map((service) => service.category).filter(Boolean),
+    );
+
+    return {
+      total: services.length,
+      active,
+      inactive,
+      categories: categories.size,
+    };
+  }, [services]);
+
+  const filteredServices = useMemo(() => {
+    const searchText = query.trim().toLowerCase();
+
+    return services
+      .filter((service) => (hideInactive ? service.isActive : true))
+      .filter((service) => {
+        if (!searchText) return true;
+
+        return [service.name, service.category, service.description]
+          .filter(Boolean)
+          .some((value) => String(value).toLowerCase().includes(searchText));
+      });
+  }, [hideInactive, query, services]);
+
+  const updateField = (name, value) => {
+    setForm((current) => ({
+      ...current,
+      [name]: value,
+    }));
+
+    if (msg?.type === "error") {
+      setMsg(null);
+    }
+  };
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    updateField(name, value);
   };
 
   const buildPayload = () => {
     const payload = {
-      name: form.name,
-      description: form.description,
-      category: form.category,
+      name: form.name.trim(),
+      description: form.description.trim(),
+      category: form.category.trim(),
     };
-    if (form.basePrice !== "") payload.basePrice = Number(form.basePrice);
-    if (imageDataUrl) payload.imageUrls = imageDataUrl; // controller accepts 'imageUrls'
+
+    if (form.basePrice !== "") {
+      payload.basePrice = Number(form.basePrice);
+    }
+
+    if (imageDataUrl) {
+      payload.imageUrls = imageDataUrl;
+    }
+
     return payload;
   };
 
   const resetForm = () => {
     setEditingId(null);
-    setForm({ name: "", description: "", basePrice: "", category: "" });
+    setForm(EMPTY_FORM);
     setImagePreview("");
     setImageDataUrl("");
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const validateForm = () => {
+    if (!form.name.trim()) return "Please enter the service name.";
+
+    if (form.basePrice !== "" && Number(form.basePrice) < 0) {
+      return "Base price cannot be negative.";
+    }
+
+    return null;
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setMsg(null);
+
+    const validationMessage = validateForm();
+
+    if (validationMessage) {
+      setMsg({
+        type: "error",
+        text: validationMessage,
+      });
+      return;
+    }
+
     try {
       if (editingId) {
         await api.put(`/api/admin/services/${editingId}`, buildPayload());
-        setMsg("Service updated ✨");
+
+        setMsg({
+          type: "success",
+          text: "Service updated successfully.",
+        });
       } else {
         await api.post("/api/admin/services", buildPayload());
-        setMsg("Service created ");
+
+        setMsg({
+          type: "success",
+          text: "Service created successfully.",
+        });
       }
+
       resetForm();
       fetchServices();
-    } catch (e2) {
-      setMsg(e2?.response?.data?.message || "Error saving service");
+    } catch (error) {
+      setMsg({
+        type: "error",
+        text: error?.response?.data?.message || "Error saving service.",
+      });
     }
   };
 
-  // ---------- actions ----------
-  const startEdit = (s) => {
-    setEditingId(s._id);
+  const startEdit = (service) => {
+    setEditingId(service._id);
+
     setForm({
-      name: s.name || "",
-      description: s.description || "",
-      basePrice: s.basePrice ?? "",
-      category: s.category || "",
+      name: service.name || "",
+      description: service.description || "",
+      basePrice: service.basePrice ?? "",
+      category: service.category || "",
     });
-    const existing = s?.serviceImages?.[0]?.url || "";
-    setImagePreview(existing);
+
+    setImagePreview(getServiceImage(service));
     setImageDataUrl("");
+    setMsg(null);
+
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleSoftDelete = async (id) => {
     if (!window.confirm("Deactivate this service?")) return;
+
     try {
       await api.delete(`/api/admin/services/${id}`);
-      setServices((prev) =>
-        prev.map((s) => (s._id === id ? { ...s, isActive: false } : s)),
+
+      setServices((current) =>
+        current.map((service) =>
+          service._id === id ? { ...service, isActive: false } : service,
+        ),
       );
-      setMsg("Service deactivated ");
-    } catch (e) {
-      setMsg(e?.response?.data?.message || "Error deactivating service");
+
+      setMsg({
+        type: "success",
+        text: "Service deactivated successfully.",
+      });
+    } catch (error) {
+      setMsg({
+        type: "error",
+        text: error?.response?.data?.message || "Error deactivating service.",
+      });
     }
   };
 
   const handleActivate = async (id) => {
     try {
       await api.patch(`/api/admin/services/${id}/activate`);
-      setServices((prev) =>
-        prev.map((s) => (s._id === id ? { ...s, isActive: true } : s)),
+
+      setServices((current) =>
+        current.map((service) =>
+          service._id === id ? { ...service, isActive: true } : service,
+        ),
       );
-      setMsg("Service activated ");
-    } catch (err) {
-      // fallback PATCH
+
+      setMsg({
+        type: "success",
+        text: "Service activated successfully.",
+      });
+    } catch {
       try {
         await api.patch(`/api/admin/services/${id}`, { isActive: true });
-        setServices((prev) =>
-          prev.map((s) => (s._id === id ? { ...s, isActive: true } : s)),
+
+        setServices((current) =>
+          current.map((service) =>
+            service._id === id ? { ...service, isActive: true } : service,
+          ),
         );
-        setMsg("Service activated ");
-      } catch (e2) {
-        setMsg(e2?.response?.data?.message || "Error activating service");
+
+        setMsg({
+          type: "success",
+          text: "Service activated successfully.",
+        });
+      } catch (error) {
+        setMsg({
+          type: "error",
+          text: error?.response?.data?.message || "Error activating service.",
+        });
       }
     }
   };
 
   const handleHardDelete = async (id) => {
-    if (!window.confirm("⚠️ Permanently delete this service?")) return;
+    if (!window.confirm("Permanently delete this service?")) return;
+
     try {
       await api.delete(`/api/admin/services/${id}?hard=true`);
-      setServices((prev) => prev.filter((s) => s._id !== id));
-      setMsg("Service permanently deleted 🗑️");
-    } catch (e) {
-      setMsg(e?.response?.data?.message || "Error deleting service");
+
+      setServices((current) => current.filter((service) => service._id !== id));
+
+      setMsg({
+        type: "success",
+        text: "Service permanently deleted.",
+      });
+    } catch (error) {
+      setMsg({
+        type: "error",
+        text: error?.response?.data?.message || "Error deleting service.",
+      });
     }
   };
 
-  // ---------- image pick & crop (square) ----------
-  const pickFile = () => fileRef.current?.click();
-  const onPick = (e) => {
-    const f = e.target.files?.[0];
-    if (!f || !f.type?.startsWith("image/")) return;
-    const url = URL.createObjectURL(f);
+  const pickFile = () => {
+    fileRef.current?.click();
+  };
+
+  const onPick = (event) => {
+    const selectedFile = event.target.files?.[0];
+
+    if (!selectedFile) return;
+
+    if (!selectedFile.type?.startsWith("image/")) {
+      setMsg({
+        type: "error",
+        text: "Please select a valid image file.",
+      });
+      return;
+    }
+
+    if (cropSrc) {
+      URL.revokeObjectURL(cropSrc);
+    }
+
+    const url = URL.createObjectURL(selectedFile);
     setCropSrc(url);
     setCropOpen(true);
-    e.target.value = "";
+    event.target.value = "";
   };
-  const onPreviewLoad = (e) => {
-    const img = e.currentTarget;
-    imgMeta.current = { w: img.naturalWidth, h: img.naturalHeight };
-    const S = 256;
-    const fit = Math.max(S / img.naturalWidth, S / img.naturalHeight);
+
+  const onPreviewLoad = (event) => {
+    const img = event.currentTarget;
+
+    imgMeta.current = {
+      w: img.naturalWidth,
+      h: img.naturalHeight,
+    };
+
+    const size = 256;
+    const fit = Math.max(size / img.naturalWidth, size / img.naturalHeight);
+
     setBase(fit);
     setZoom(1);
     setOffX(0);
     setOffY(0);
   };
+
   const clampPan = (x, y, z) => {
-    const S = 256;
+    const size = 256;
     const w = imgMeta.current.w * base * z;
     const h = imgMeta.current.h * base * z;
-    const maxX = Math.max(0, (w - S) / 2);
-    const maxY = Math.max(0, (h - S) / 2);
+
+    const maxX = Math.max(0, (w - size) / 2);
+    const maxY = Math.max(0, (h - size) / 2);
+
     return {
       x: Math.max(-maxX, Math.min(maxX, x)),
       y: Math.max(-maxY, Math.min(maxY, y)),
     };
   };
-  const onDragStart = (e) => {
-    e.preventDefault();
-    const p = e.touches ? e.touches[0] : e;
+
+  const onDragStart = (event) => {
+    event.preventDefault();
+
+    const point = event.touches ? event.touches[0] : event;
+
     dragRef.current = {
       active: true,
-      startX: p.clientX,
-      startY: p.clientY,
+      startX: point.clientX,
+      startY: point.clientY,
       startOffX: offX,
       startOffY: offY,
     };
   };
-  const onDragMove = (e) => {
+
+  const onDragMove = (event) => {
     if (!dragRef.current.active) return;
-    const p = e.touches ? e.touches[0] : e;
-    const dx = p.clientX - dragRef.current.startX;
-    const dy = p.clientY - dragRef.current.startY;
+
+    const point = event.touches ? event.touches[0] : event;
+    const dx = point.clientX - dragRef.current.startX;
+    const dy = point.clientY - dragRef.current.startY;
+
     const next = clampPan(
       dragRef.current.startOffX + dx,
       dragRef.current.startOffY + dy,
       zoom,
     );
+
     setOffX(next.x);
     setOffY(next.y);
   };
-  const onDragEnd = () => (dragRef.current.active = false);
 
-  function exportCroppedDataUrl(img, size = 256, startQ = 0.8) {
+  const onDragEnd = () => {
+    dragRef.current.active = false;
+  };
+
+  function exportCroppedDataUrl(img, size = 256, startQuality = 0.85) {
     const canvas = document.createElement("canvas");
     canvas.width = size;
     canvas.height = size;
+
     const ctx = canvas.getContext("2d");
+
     const scale = base * zoom;
-    const w = img.naturalWidth * scale;
-    const h = img.naturalHeight * scale;
-    const dx = (size - w) / 2 + offX;
-    const dy = (size - h) / 2 + offY;
+    const width = img.naturalWidth * scale;
+    const height = img.naturalHeight * scale;
+    const dx = (size - width) / 2 + offX;
+    const dy = (size - height) / 2 + offY;
+
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
-    ctx.drawImage(img, dx, dy, w, h);
-    let q = startQ,
-      out = canvas.toDataURL("image/jpeg", q);
+    ctx.drawImage(img, dx, dy, width, height);
+
+    let quality = startQuality;
+    let output = canvas.toDataURL("image/jpeg", quality);
     const maxBytes = 70 * 1024;
-    while (out.length * 0.75 > maxBytes && q > 0.5) {
-      q -= 0.1;
-      out = canvas.toDataURL("image/jpeg", q);
+
+    while (output.length * 0.75 > maxBytes && quality > 0.5) {
+      quality -= 0.1;
+      output = canvas.toDataURL("image/jpeg", quality);
     }
-    return out;
+
+    return output;
   }
 
   const confirmCrop = async () => {
     if (!cropSrc) return;
+
     const img = new Image();
     img.src = cropSrc;
-    await new Promise((r) => (img.onload = r));
+
+    await new Promise((resolve) => {
+      img.onload = resolve;
+    });
+
     const data = exportCroppedDataUrl(img, 256, 0.85);
+
     setImageDataUrl(data);
     setImagePreview(data);
     setCropOpen(false);
-    if (cropSrc) URL.revokeObjectURL(cropSrc);
+
+    URL.revokeObjectURL(cropSrc);
     setCropSrc(null);
-    setMsg("Image ready. Remember to save ");
+
+    setMsg({
+      type: "info",
+      text: "Image ready. Save the service to apply it.",
+    });
   };
+
   const cleanupCrop = () => {
-    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    if (cropSrc) {
+      URL.revokeObjectURL(cropSrc);
+    }
+
     setCropSrc(null);
     setCropOpen(false);
   };
 
-  const list = hideInactive ? services.filter((s) => s.isActive) : services;
-
   return (
-    <div className="ms">
-      {/* Header */}
-      <div className="ms-header">
-        <div className="ms-title">
-          <h2>Manage Services</h2>
-          <div className="ms-sub">
-            Create, update, activate/deactivate, or delete services.
-          </div>
+    <section className="fm-admin-services">
+      <div className="fm-admin-services__header">
+        <div>
+          <span className="fm-admin-services__eyebrow">Service Management</span>
+
+          <h1>Manage Services</h1>
+
+          <p>
+            Create, update, activate, deactivate, and maintain service
+            categories shown to customers.
+          </p>
         </div>
+
+        <button
+          type="button"
+          className="fm-admin-services__btn fm-admin-services__btn--outline"
+          onClick={fetchServices}
+          disabled={loading}>
+          <RefreshCw size={16} />
+          {loading ? "Refreshing" : "Refresh"}
+        </button>
       </div>
 
-      {msg && <div className="ms-alert ms-alert--info">{msg}</div>}
+      <div className="fm-admin-services__summaryGrid">
+        <article className="fm-admin-services__summaryCard">
+          <span>
+            <PackageCheck size={17} />
+          </span>
+          <div>
+            <strong>{stats.total}</strong>
+            <p>Total services</p>
+          </div>
+        </article>
 
-      {/* Form Card */}
+        <article className="fm-admin-services__summaryCard">
+          <span>
+            <Power size={17} />
+          </span>
+          <div>
+            <strong>{stats.active}</strong>
+            <p>Active services</p>
+          </div>
+        </article>
+
+        <article className="fm-admin-services__summaryCard">
+          <span>
+            <PowerOff size={17} />
+          </span>
+          <div>
+            <strong>{stats.inactive}</strong>
+            <p>Inactive services</p>
+          </div>
+        </article>
+
+        <article className="fm-admin-services__summaryCard">
+          <span>
+            <Layers3 size={17} />
+          </span>
+          <div>
+            <strong>{stats.categories}</strong>
+            <p>Categories</p>
+          </div>
+        </article>
+      </div>
+
+      {msg?.text ? (
+        <div
+          className={`fm-admin-services__notice fm-admin-services__notice--${msg.type}`}
+          role="status"
+          aria-live="polite">
+          {msg.type === "success" ? <Check size={16} /> : <X size={16} />}
+          <span>{msg.text}</span>
+        </div>
+      ) : null}
+
       <form
-        className="ms-card ms-form"
+        className="fm-admin-services__card"
         onSubmit={handleSubmit}
         autoComplete="off">
-        {/* hidden decoys for autofill sanity */}
+        <div className="fm-admin-services__cardHeader">
+          <div>
+            <span>{editingId ? "Edit service" : "New service"}</span>
+            <h2>{editingId ? "Update service details" : "Create service"}</h2>
+          </div>
+
+          {editingId ? (
+            <button
+              type="button"
+              className="fm-admin-services__btn fm-admin-services__btn--outline"
+              onClick={resetForm}>
+              Cancel edit
+            </button>
+          ) : null}
+        </div>
+
         <input
           type="text"
           name="username"
           autoComplete="username"
-          style={{ display: "none" }}
+          className="fm-admin-services__hiddenInput"
         />
         <input
           type="password"
           name="password"
           autoComplete="current-password"
-          style={{ display: "none" }}
+          className="fm-admin-services__hiddenInput"
         />
 
-        <div className="ms-form-grid">
-          {/* Fields */}
-          <div className="ms-fields">
-            <div className="ms-cols-2">
-              <div className="ms-field">
-                <label>Service Name</label>
+        <div className="fm-admin-services__formLayout">
+          <div className="fm-admin-services__fields">
+            <div className="fm-admin-services__fieldGrid">
+              <div className="fm-admin-services__field">
+                <label htmlFor="fm-service-name">Service name *</label>
                 <input
+                  id="fm-service-name"
                   name="name"
                   type="text"
                   placeholder="e.g., AC Repair"
@@ -306,9 +604,11 @@ export default function ManageServices() {
                   required
                 />
               </div>
-              <div className="ms-field">
-                <label>Category</label>
+
+              <div className="fm-admin-services__field">
+                <label htmlFor="fm-service-category">Category</label>
                 <input
+                  id="fm-service-category"
                   name="category"
                   type="text"
                   placeholder="e.g., Electrical"
@@ -318,10 +618,11 @@ export default function ManageServices() {
               </div>
             </div>
 
-            <div className="ms-cols-2">
-              <div className="ms-field">
-                <label>Base Price</label>
+            <div className="fm-admin-services__fieldGrid fm-admin-services__fieldGrid--single">
+              <div className="fm-admin-services__field">
+                <label htmlFor="fm-service-price">Base price</label>
                 <input
+                  id="fm-service-price"
                   name="basePrice"
                   type="number"
                   min="0"
@@ -332,171 +633,235 @@ export default function ManageServices() {
               </div>
             </div>
 
-            <div className="ms-field">
-              <label>Description</label>
+            <div className="fm-admin-services__field">
+              <label htmlFor="fm-service-description">Description</label>
               <textarea
+                id="fm-service-description"
                 name="description"
                 rows={4}
-                placeholder="Short description…"
+                placeholder="Short service description"
                 value={form.description}
                 onChange={handleChange}
               />
             </div>
 
-            <div className="ms-actions">
-              <button type="submit" className="ms-btn ms-btn--primary">
+            <div className="fm-admin-services__actions">
+              <button
+                type="submit"
+                className="fm-admin-services__btn fm-admin-services__btn--primary">
+                <PackageCheck size={16} />
                 {editingId ? "Update Service" : "Create Service"}
               </button>
-              {editingId && (
-                <button
-                  type="button"
-                  className="ms-btn ms-btn--outline"
-                  onClick={resetForm}>
-                  Cancel
-                </button>
-              )}
             </div>
           </div>
 
-          {/* Image side card */}
-          <div className="ms-avatar-card">
-            <div className="ms-thumb-wrap">
+          <aside className="fm-admin-services__imagePanel">
+            <div className="fm-admin-services__imagePreview">
               {imagePreview ? (
-                <img src={imagePreview} alt="Service" className="ms-thumb" />
+                <img src={imagePreview} alt="Selected service" />
               ) : (
-                <div className="ms-thumb placeholder" />
+                <ImagePlus size={44} />
               )}
             </div>
-            <div className="ms-avatar-actions">
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={onPick}
-              />
+
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={onPick}
+            />
+
+            <div className="fm-admin-services__imageActions">
               <button
                 type="button"
-                className="ms-btn ms-btn--secondary"
+                className="fm-admin-services__btn fm-admin-services__btn--secondary"
                 onClick={pickFile}>
+                <Upload size={16} />
                 {imagePreview ? "Change Image" : "Upload Image"}
               </button>
-              {imagePreview && (
+
+              {imagePreview ? (
                 <button
                   type="button"
-                  className="ms-btn ms-btn--danger"
+                  className="fm-admin-services__btn fm-admin-services__btn--dangerLight"
                   onClick={() => {
                     setImagePreview("");
                     setImageDataUrl("");
                   }}>
-                  Remove Image
+                  Remove
                 </button>
-              )}
-              <div className="tiny muted">
-                Square images recommended · JPG/PNG
-              </div>
+              ) : null}
             </div>
-          </div>
+
+            <p>Square service images are recommended. JPG or PNG supported.</p>
+          </aside>
         </div>
       </form>
 
-      {/* List Card */}
-      <div className="ms-card">
-        <div className="ms-list-head">
-          <h3>Service List</h3>
-          <div className="ms-list-controls">
-            <label className="tiny muted">
+      <section className="fm-admin-services__card">
+        <div className="fm-admin-services__listHeader">
+          <div>
+            <span>Service records</span>
+            <h2>Service List</h2>
+          </div>
+
+          <div className="fm-admin-services__tools">
+            <label className="fm-admin-services__checkbox">
               <input
                 type="checkbox"
                 checked={hideInactive}
-                onChange={(e) => setHideInactive(e.target.checked)}
+                onChange={(event) => setHideInactive(event.target.checked)}
               />
-              <span>&nbsp;Hide inactive</span>
+              <span>Hide inactive</span>
             </label>
-            <button
-              className="ms-btn ms-btn--outline"
-              onClick={fetchServices}
-              disabled={loading}>
-              {loading ? "Refreshing…" : "Refresh"}
-            </button>
+
+            <label className="fm-admin-services__search">
+              <Search size={16} />
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search services"
+              />
+            </label>
           </div>
         </div>
 
-        <div className="ms-cards">
-          {list.map((s) => {
-            const img = s?.serviceImages?.[0]?.url || "";
-            const inactive = !s.isActive;
+        <div className="fm-admin-services__grid">
+          {filteredServices.map((service) => {
+            const image = getServiceImage(service);
+            const inactive = !service.isActive;
+
             return (
-              <div
-                key={s._id}
-                className={`ms-card-item ${inactive ? "inactive" : ""}`}>
-                {img ? (
-                  <img src={img} className="ms-card-thumb" alt={s.name} />
-                ) : (
-                  <div className="ms-card-thumb placeholder" />
-                )}
-                <h4>{s.name}</h4>
-                <p className="muted">{s.category || "—"}</p>
-                <p className="muted">
-                  {s.basePrice != null ? `Rs. ${s.basePrice}` : "—"}
-                </p>
-                <p>Status: {inactive ? " Inactive" : " Active"}</p>
-                <div className="ms-row-actions">
+              <article
+                key={service._id}
+                className={`fm-admin-services__serviceCard ${
+                  inactive ? "isInactive" : ""
+                }`}>
+                <div className="fm-admin-services__serviceImage">
+                  {image ? (
+                    <img src={image} alt={service.name} />
+                  ) : (
+                    <ImagePlus size={28} />
+                  )}
+                </div>
+
+                <div className="fm-admin-services__serviceBody">
+                  <div className="fm-admin-services__serviceTitleRow">
+                    <h3>{service.name || "Unnamed service"}</h3>
+
+                    <span
+                      className={`fm-admin-services__status ${
+                        inactive ? "isInactive" : ""
+                      }`}>
+                      {inactive ? "Inactive" : "Active"}
+                    </span>
+                  </div>
+
+                  <p>{service.description || "No description added."}</p>
+
+                  <div className="fm-admin-services__metaGrid">
+                    <div>
+                      <Layers3 size={14} />
+                      <span>{service.category || "No category"}</span>
+                    </div>
+
+                    <div>
+                      <BadgeDollarSign size={14} />
+                      <span>{formatPrice(service.basePrice)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="fm-admin-services__rowActions">
                   <button
-                    className="ms-btn ms-btn--small ms-btn--primary"
-                    onClick={() => startEdit(s)}>
-                    Edit
+                    type="button"
+                    className="fm-admin-services__iconAction"
+                    onClick={() => startEdit(service)}
+                    aria-label={`Edit ${service.name || "service"}`}>
+                    <Pencil size={15} />
                   </button>
+
                   {inactive ? (
                     <button
-                      className="ms-btn ms-btn--small ms-btn--outline"
-                      onClick={() => handleActivate(s._id)}>
-                      Activate
+                      type="button"
+                      className="fm-admin-services__iconAction"
+                      onClick={() => handleActivate(service._id)}
+                      aria-label={`Activate ${service.name || "service"}`}>
+                      <Power size={15} />
                     </button>
                   ) : (
                     <button
-                      className="ms-btn ms-btn--small ms-btn--warn"
-                      onClick={() => handleSoftDelete(s._id)}>
-                      Deactivate
+                      type="button"
+                      className="fm-admin-services__iconAction"
+                      onClick={() => handleSoftDelete(service._id)}
+                      aria-label={`Deactivate ${service.name || "service"}`}>
+                      <PowerOff size={15} />
                     </button>
                   )}
+
                   <button
-                    className="ms-btn ms-btn--small ms-btn--danger"
-                    onClick={() => handleHardDelete(s._id)}>
-                    Delete
+                    type="button"
+                    className="fm-admin-services__iconAction fm-admin-services__iconAction--danger"
+                    onClick={() => handleHardDelete(service._id)}
+                    aria-label={`Delete ${service.name || "service"}`}>
+                    <Trash2 size={15} />
                   </button>
                 </div>
-              </div>
+              </article>
             );
           })}
-          {!list.length && !loading && (
-            <div className="muted tiny" style={{ padding: "6px 2px" }}>
-              No services
-            </div>
-          )}
-        </div>
-      </div>
 
-      {/* Crop modal */}
-      {cropOpen && (
+          {!filteredServices.length && !loading ? (
+            <div className="fm-admin-services__empty">
+              <PackageCheck size={24} />
+              <strong>No services found</strong>
+              <span>
+                {query
+                  ? "Try a different search keyword."
+                  : "Create a service to show it here."}
+              </span>
+            </div>
+          ) : null}
+
+          {loading ? (
+            <div className="fm-admin-services__empty">
+              <RefreshCw size={24} />
+              <strong>Loading services</strong>
+              <span>Please wait while service records are loaded.</span>
+            </div>
+          ) : null}
+        </div>
+      </section>
+
+      {cropOpen ? (
         <div
-          className="ms-crop-overlay"
+          className="fm-admin-services-crop"
           onClick={cleanupCrop}
           role="dialog"
-          aria-modal="true">
-          <div className="ms-crop-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="ms-crop-head">
-              <h4>Adjust Image</h4>
+          aria-modal="true"
+          aria-label="Crop service image">
+          <div
+            className="fm-admin-services-crop__modal"
+            onClick={(event) => event.stopPropagation()}>
+            <div className="fm-admin-services-crop__header">
+              <div>
+                <span>Service image</span>
+                <h2>Adjust Image</h2>
+              </div>
+
               <button
                 type="button"
-                className="ms-btn ms-btn--danger ms-btn--small"
-                onClick={cleanupCrop}>
-                Close
+                className="fm-admin-services__iconAction"
+                onClick={cleanupCrop}
+                aria-label="Close crop modal">
+                <X size={16} />
               </button>
             </div>
 
             <div
-              className={`ms-crop-viewport ${dragRef.current.active ? "dragging" : ""}`}
+              className="fm-admin-services-crop__viewport"
               onMouseDown={onDragStart}
               onMouseMove={onDragMove}
               onMouseUp={onDragEnd}
@@ -504,38 +869,45 @@ export default function ManageServices() {
               onTouchStart={onDragStart}
               onTouchMove={onDragMove}
               onTouchEnd={onDragEnd}>
-              {cropSrc && (
+              {cropSrc ? (
                 <img
                   src={cropSrc}
                   alt="Crop preview"
-                  className="ms-crop-img"
+                  className="fm-admin-services-crop__image"
                   onLoad={onPreviewLoad}
                   style={{
-                    transform: `translate(calc(-50% + ${offX}px), calc(-50% + ${offY}px)) scale(${base * zoom})`,
+                    transform: `translate(calc(-50% + ${offX}px), calc(-50% + ${offY}px)) scale(${
+                      base * zoom
+                    })`,
                   }}
                 />
-              )}
+              ) : null}
             </div>
 
-            <div className="ms-crop-controls">
-              <input
-                type="range"
-                min="1"
-                max="3"
-                step="0.01"
-                value={zoom}
-                onChange={(e) => setZoom(parseFloat(e.target.value))}
-              />
-              <div className="ms-crop-actions">
+            <div className="fm-admin-services-crop__controls">
+              <label>
+                <span>Zoom</span>
+                <input
+                  type="range"
+                  min="1"
+                  max="3"
+                  step="0.01"
+                  value={zoom}
+                  onChange={(event) => setZoom(parseFloat(event.target.value))}
+                />
+              </label>
+
+              <div className="fm-admin-services-crop__actions">
                 <button
                   type="button"
-                  className="ms-btn ms-btn--outline"
+                  className="fm-admin-services__btn fm-admin-services__btn--outline"
                   onClick={cleanupCrop}>
                   Cancel
                 </button>
+
                 <button
                   type="button"
-                  className="ms-btn ms-btn--primary"
+                  className="fm-admin-services__btn fm-admin-services__btn--primary"
                   onClick={confirmCrop}>
                   Use Image
                 </button>
@@ -543,7 +915,7 @@ export default function ManageServices() {
             </div>
           </div>
         </div>
-      )}
-    </div>
+      ) : null}
+    </section>
   );
 }

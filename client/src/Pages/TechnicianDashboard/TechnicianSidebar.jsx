@@ -1,33 +1,85 @@
 import React from "react";
+import {
+  CheckCircle2,
+  Clock3,
+  ClipboardList,
+  LayoutDashboard,
+  MessageSquare,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
+
 import "./technician-dashboard.css";
 
-export default function TechnicianSidebar({ setActiveTab, activeTab }) {
-  const links = [
-    { key: "overview", label: "Overview", icon: "📊" },
-    { key: "assigned", label: "Assigned Tasks", icon: "🧾" },
-    { key: "pending", label: "Pending Approval", icon: "⏳" },
-    { key: "approved", label: "Approved Requests", icon: "" },
-    { key: "completed", label: "Completed", icon: "🏁" },
-    { key: "chat", label: "Chat", icon: "💬" }, // 👈 NEW
-    { key: "profile", label: "Profile", icon: "👤" },
-  ];
+const links = [
+  {
+    key: "overview",
+    label: "Overview",
+    icon: LayoutDashboard,
+  },
+  {
+    key: "assigned",
+    label: "Assigned Tasks",
+    icon: ClipboardList,
+  },
+  {
+    key: "pending",
+    label: "Pending Approval",
+    icon: Clock3,
+  },
+  {
+    key: "approved",
+    label: "Approved Requests",
+    icon: ShieldCheck,
+  },
+  {
+    key: "completed",
+    label: "Completed",
+    icon: CheckCircle2,
+  },
+  {
+    key: "chat",
+    label: "Chat",
+    icon: MessageSquare,
+  },
+  {
+    key: "profile",
+    label: "Profile",
+    icon: UserRound,
+  },
+];
 
+export default function TechnicianSidebar({ setActiveTab, activeTab }) {
   return (
-    <div className="tech-sidebar">
-      <h3>Fixmate</h3>
-      <ul>
-        {links.map((link) => (
-          <li
-            key={link.key}
-            className={activeTab === link.key ? "active" : ""}
-            onClick={() => setActiveTab(link.key)}>
-            <span className="tab-emoji" aria-hidden="true">
-              {link.icon}
-            </span>
-            <span className="tab-label">{link.label}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <aside className="tech-sidebar">
+      <div className="tech-sidebar__brand">
+        <span className="tech-sidebar__mark">FM</span>
+        <span>FixMate.lk</span>
+      </div>
+
+      <nav className="tech-sidebar__nav" aria-label="Technician dashboard">
+        <div className="tech-sidebar__section">Technician</div>
+
+        <ul>
+          {links.map((link) => {
+            const Icon = link.icon;
+            const isActive = activeTab === link.key;
+
+            return (
+              <li key={link.key}>
+                <button
+                  type="button"
+                  className={`tech-nav-link ${isActive ? "active" : ""}`}
+                  onClick={() => setActiveTab(link.key)}
+                  aria-current={isActive ? "page" : undefined}>
+                  <Icon size={17} />
+                  <span>{link.label}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    </aside>
   );
 }

@@ -1,54 +1,159 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import {
+  CalendarClock,
+  CheckCircle2,
+  ClipboardList,
+  Eye,
+  MapPin,
+  ReceiptText,
+  RefreshCw,
+  Route,
+  Timer,
+  UserRound,
+  Wrench,
+  X,
+} from "lucide-react";
+
 import api from "../../../lib/api";
 import "./JobsProgress.css";
 
 const TABS = [
-  { key: "coordinator_approved", label: "Assigned" },
-  { key: "in_progress",          label: "In Progress" },
-  { key: "completed",            label: "Completed" },
+  {
+    key: "coordinator_approved",
+    label: "Assigned",
+  },
+  {
+    key: "in_progress",
+    label: "In Progress",
+  },
+  {
+    key: "completed",
+    label: "Completed",
+  },
 ];
 
-function fmtDate(v) {
-  if (!v) return "—";
-  try { return new Date(v).toLocaleString(); } catch { return String(v); }
+function fmtDate(value) {
+  if (!value) return "—";
+
+  try {
+    return new Date(value).toLocaleString();
+  } catch {
+    return String(value);
+  }
 }
-function fmtMoney(n) {
-  const val = Number(n || 0);
-  return new Intl.NumberFormat("en-LK", { style: "currency", currency: "LKR", maximumFractionDigits: 0 }).format(val);
+
+function fmtMoney(value) {
+  const numberValue = Number(value || 0);
+
+  return new Intl.NumberFormat("en-LK", {
+    style: "currency",
+    currency: "LKR",
+    maximumFractionDigits: 0,
+  }).format(numberValue);
+}
+
+function normalizeSpecializations(value) {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) =>
+        typeof item === "object"
+          ? item.name || item.code || item.category || item.slug
+          : String(item),
+      )
+      .filter(Boolean);
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    return [value.trim()];
+  }
+
+  if (typeof value === "object" && value) {
+    const label = value.name || value.code || value.category || value.slug;
+    return label ? [label] : [];
+  }
+
+  return [];
 }
 
 function StatusChip({ status }) {
   const map = {
-    coordinator_approved: { text: "Assigned",  cls: "chip assigned" },
-    in_progress:          { text: "In Progress", cls: "chip progress" },
-    completed:            { text: "Completed", cls: "chip done" },
-    awaiting_coordinator: { text: "Awaiting", cls: "chip wait" },
-    pending:              { text: "New", cls: "chip new" },
-    cancelled:            { text: "Cancelled", cls: "chip cancel" },
+    coordinator_approved: {
+      text: "Assigned",
+      className: "isAssigned",
+    },
+    in_progress: {
+      text: "In Progress",
+      className: "isProgress",
+    },
+    completed: {
+      text: "Completed",
+      className: "isDone",
+    },
+    awaiting_coordinator: {
+      text: "Awaiting",
+      className: "isWait",
+    },
+    pending: {
+      text: "New",
+      className: "isNew",
+    },
+    cancelled: {
+      text: "Cancelled",
+      className: "isCancel",
+    },
   };
-  const m = map[status] || { text: status || "—", cls: "chip" };
-  return <span className={m.cls}>{m.text}</span>;
+
+  const item = map[status] || {
+    text: status || "—",
+    className: "",
+  };
+
+  return (
+    <span className={`fm-admin-jobs__status ${item.className}`}>
+      {item.text}
+    </span>
+  );
 }
 
-function Timeline({ b }) {
+function Timeline({ booking }) {
   const steps = [
-    { k: "techOnTheWayAt", label: "On the way" },
-    { k: "techArrivedAt",  label: "Arrived" },
-    { k: "workStartedAt",  label: "Started work" },
-    { k: "workCompletedAt",label: "Completed" },
+    {
+      key: "techOnTheWayAt",
+      label: "On the way",
+    },
+    {
+      key: "techArrivedAt",
+      label: "Arrived",
+    },
+    {
+      key: "workStartedAt",
+      label: "Started work",
+    },
+    {
+      key: "workCompletedAt",
+      label: "Completed",
+    },
   ];
+
   return (
-    <div className="timeline">
-      {steps.map(({k,label}, i) => {
-        const has = Boolean(b?.[k]);
+    <div className="fm-admin-jobs__timeline">
+      {steps.map(({ key, label }, index) => {
+        const isDone = Boolean(booking?.[key]);
+
         return (
-          <div key={k} className={`tl-step ${has ? "done" : ""}`}>
-            <div className="tl-dot" />
-            <div className="tl-body">
-              <div className="tl-label">{label}</div>
-              <div className="tl-date tiny muted">{fmtDate(b?.[k])}</div>
+          <div
+            key={key}
+            className={`fm-admin-jobs__timelineStep ${isDone ? "isDone" : ""}`}>
+            <div className="fm-admin-jobs__timelineDot" />
+
+            <div className="fm-admin-jobs__timelineBody">
+              <strong>{label}</strong>
+              <span>{fmtDate(booking?.[key])}</span>
             </div>
-            {i < steps.length-1 && <div className="tl-line" />}
+
+            {index < steps.length - 1 ? (
+              <div className="fm-admin-jobs__timelineLine" />
+            ) : null}
           </div>
         );
       })}
@@ -59,25 +164,32 @@ function Timeline({ b }) {
 export default function JobsProgress() {
   const [tab, setTab] = useState("coordinator_approved");
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(false);   // used only to disable Refresh button
+  const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
-  const [open, setOpen] = useState(null);      // booking object when details open
+  const [open, setOpen] = useState(null);
   const [openLoading, setOpenLoading] = useState(false);
 
-  const [ready, setReady] = useState(false);   // first fetch done?
+  const [ready, setReady] = useState(false);
   const pollRef = useRef(null);
 
-  // Load list (silent by default; pass { silent:false } to show button loading state only)
-  async function load(opts = { silent: true }) {
-    const silent = opts?.silent ?? true;
+  async function load(options = { silent: true }) {
+    const silent = options?.silent ?? true;
+
     if (!silent) setLoading(true);
+
     setErr("");
+
     try {
-      const { data } = await api.get("/api/coordinator/bookings", { params: { status: tab } });
-      setItems(Array.isArray(data) ? data : (data?.items || []));
-    } catch (e) {
-      setErr(e?.response?.data?.message || "Failed to load jobs");
+      const { data } = await api.get("/api/coordinator/bookings", {
+        params: {
+          status: tab,
+        },
+      });
+
+      setItems(Array.isArray(data) ? data : data?.items || []);
+    } catch (error) {
+      setErr(error?.response?.data?.message || "Failed to load jobs.");
       setItems([]);
     } finally {
       if (!silent) setLoading(false);
@@ -85,240 +197,582 @@ export default function JobsProgress() {
     }
   }
 
-  // Initial load (silent)
-  useEffect(() => { load({ silent: true }); }, []); // mount
-
-  // Reload silently on tab change
-  useEffect(() => { load({ silent: true }); }, [tab]);
-
-  // Background polling (silent)
   useEffect(() => {
-    // refresh every 5s; reset when tab changes
-    pollRef.current = setInterval(() => load({ silent: true }), 5000);
-    return () => clearInterval(pollRef.current);
+    load({
+      silent: true,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    load({
+      silent: true,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
+  useEffect(() => {
+    pollRef.current = setInterval(
+      () =>
+        load({
+          silent: true,
+        }),
+      5000,
+    );
+
+    return () => clearInterval(pollRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setOpen(null);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open]);
+
   async function openDetails(id) {
+    setOpen({
+      _id: id,
+      problemTitle: "Loading booking...",
+    });
+
     setOpenLoading(true);
+
     try {
       const { data } = await api.get(`/api/bookings/${id}`);
       setOpen(data);
-    } catch (e) {
-      setErr(e?.response?.data?.message || "Failed to load booking");
+    } catch (error) {
+      setErr(error?.response?.data?.message || "Failed to load booking.");
+      setOpen(null);
     } finally {
       setOpenLoading(false);
     }
   }
 
   const rows = useMemo(() => {
-    return (items || []).map(b => ({
-      id: b._id,
-      title: b.problemTitle || "—",
-      service: b?.service?.name || "—",
-      assignedTech: b?.assignedTechnician?.full_name || "—",
-      district: b?.customerSnapshot?.district || "—",
-      created: b.createdAt,
-      status: b.status,
-      acceptedCount: Number(b.acceptedCount || 0),
+    return (items || []).map((booking) => ({
+      id: booking._id,
+      title: booking.problemTitle || "—",
+      service: booking?.service?.name || "—",
+      assignedTech: booking?.assignedTechnician?.full_name || "—",
+      district: booking?.customerSnapshot?.district || "—",
+      created: booking.createdAt,
+      status: booking.status,
+      acceptedCount: Number(booking.acceptedCount || 0),
     }));
   }, [items]);
 
-  return (
-    <div className="jobs-page">
-      <div className="page-header">
-        <h2>Jobs and Progress</h2>
-        <div className="muted tiny">Track assigned work, live status, expenses, and payments.</div>
-      </div>
+  const stats = useMemo(() => {
+    const acceptedTechs = items.reduce(
+      (total, booking) => total + Number(booking.acceptedCount || 0),
+      0,
+    );
 
-      <div className="tabs">
-        {TABS.map(t => (
-          <button key={t.key}
-                  className={`tab ${tab===t.key ? "active": ""}`}
-                  onClick={() => setTab(t.key)}>
-            {t.label}
-          </button>
-        ))}
-        <div className="tabs-spacer" />
-        <button className="btn small" onClick={() => load({ silent: false })} disabled={loading}>
-          {loading ? "Refreshing…" : "Refresh"}
+    const withTechnician = items.filter(
+      (booking) => booking.assignedTechnician,
+    ).length;
+
+    const withPayment = items.filter((booking) => booking.payment).length;
+
+    return {
+      total: items.length,
+      acceptedTechs,
+      withTechnician,
+      withPayment,
+    };
+  }, [items]);
+
+  return (
+    <section className="fm-admin-jobs">
+      <div className="fm-admin-jobs__header">
+        <div>
+          <span className="fm-admin-jobs__eyebrow">Job Operations</span>
+
+          <h1>Jobs & Progress</h1>
+
+          <p>
+            Track assigned jobs, live work progress, technician activity,
+            customer media, expenses, and payment confirmation details.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          className="fm-admin-jobs__btn fm-admin-jobs__btn--outline"
+          onClick={() =>
+            load({
+              silent: false,
+            })
+          }
+          disabled={loading}>
+          <RefreshCw size={16} />
+          {loading ? "Refreshing" : "Refresh"}
         </button>
       </div>
 
-      {err && <div className="msg error">{err}</div>}
-      <div className="table-wrapper">
-        <table className="styled-table">
-          <thead>
-            <tr>
-              <th style={{minWidth:220}}>Title</th>
-              <th>Service</th>
-              <th>District</th>
-              <th>Technician</th>
-              <th>Status</th>
-              <th className="hide-sm">Accepted Techs</th>
-              <th className="hide-sm">Created</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {!ready ? (
-              // First render: stay silent (no loading text)
-              <tr><td colSpan={8} style={{ padding: 12 }} /></tr>
-            ) : rows.length === 0 ? (
-              <tr><td colSpan={8} style={{ padding: 16 }}>No records.</td></tr>
-            ) : rows.map(r => (
-              <tr key={r.id}>
-                <td>{r.title}</td>
-                <td>{r.service}</td>
-                <td>{r.district}</td>
-                <td>{r.assignedTech}</td>
-                <td><StatusChip status={r.status} /></td>
-                <td className="hide-sm">{r.acceptedCount}</td>
-                <td className="hide-sm">{fmtDate(r.created)}</td>
-                <td>
-                  <button className="btn view" onClick={() => openDetails(r.id)}>View</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="fm-admin-jobs__summaryGrid">
+        <article className="fm-admin-jobs__summaryCard">
+          <span>
+            <ClipboardList size={17} />
+          </span>
+          <div>
+            <strong>{stats.total}</strong>
+            <p>Current tab jobs</p>
+          </div>
+        </article>
+
+        <article className="fm-admin-jobs__summaryCard">
+          <span>
+            <UserRound size={17} />
+          </span>
+          <div>
+            <strong>{stats.withTechnician}</strong>
+            <p>Assigned technicians</p>
+          </div>
+        </article>
+
+        <article className="fm-admin-jobs__summaryCard">
+          <span>
+            <Timer size={17} />
+          </span>
+          <div>
+            <strong>{stats.acceptedTechs}</strong>
+            <p>Accepted techs</p>
+          </div>
+        </article>
+
+        <article className="fm-admin-jobs__summaryCard">
+          <span>
+            <ReceiptText size={17} />
+          </span>
+          <div>
+            <strong>{stats.withPayment}</strong>
+            <p>Payments visible</p>
+          </div>
+        </article>
       </div>
 
-      {/* Drawer / Modal */}
-      {open && (
-        <div className="jp-overlay" onClick={() => setOpen(null)} role="dialog" aria-modal="true">
-          <div className="jp-drawer" onClick={e => e.stopPropagation()}>
-            <div className="jp-head">
-              <div className="title">
-                <div className="tiny muted">Booking</div>
-                <h3>{open.problemTitle || "Request"}</h3>
+      <section className="fm-admin-jobs__card">
+        <div className="fm-admin-jobs__tabs">
+          {TABS.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              className={`fm-admin-jobs__tab ${
+                tab === item.key ? "isActive" : ""
+              }`}
+              onClick={() => setTab(item.key)}>
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {err ? (
+        <div className="fm-admin-jobs__notice fm-admin-jobs__notice--error">
+          {err}
+        </div>
+      ) : null}
+
+      <section className="fm-admin-jobs__card">
+        <div className="fm-admin-jobs__cardHeader">
+          <div>
+            <span>Job records</span>
+            <h2>{TABS.find((item) => item.key === tab)?.label || "Jobs"}</h2>
+          </div>
+        </div>
+
+        <div className="fm-admin-jobs__tableWrap">
+          <table className="fm-admin-jobs__table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Service</th>
+                <th>District</th>
+                <th>Technician</th>
+                <th>Status</th>
+                <th>Accepted Techs</th>
+                <th>Created</th>
+                <th className="fm-admin-jobs__actionsCol">Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {!ready ? (
+                <tr>
+                  <td colSpan="8">
+                    <div className="fm-admin-jobs__empty isCompact" />
+                  </td>
+                </tr>
+              ) : rows.length === 0 ? (
+                <tr>
+                  <td colSpan="8">
+                    <div className="fm-admin-jobs__empty">
+                      <ClipboardList size={24} />
+                      <strong>No jobs found</strong>
+                      <span>No records are available for this status.</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                rows.map((row) => (
+                  <tr key={row.id}>
+                    <td>
+                      <div className="fm-admin-jobs__titleCell">
+                        <strong>{row.title}</strong>
+                        <small>{row.id}</small>
+                      </div>
+                    </td>
+
+                    <td>{row.service}</td>
+
+                    <td>
+                      <div className="fm-admin-jobs__cellIcon">
+                        <MapPin size={14} />
+                        <span>{row.district}</span>
+                      </div>
+                    </td>
+
+                    <td>{row.assignedTech}</td>
+
+                    <td>
+                      <StatusChip status={row.status} />
+                    </td>
+
+                    <td>{row.acceptedCount}</td>
+                    <td>{fmtDate(row.created)}</td>
+
+                    <td>
+                      <button
+                        type="button"
+                        className="fm-admin-jobs__btn fm-admin-jobs__btn--primary fm-admin-jobs__btn--small"
+                        onClick={() => openDetails(row.id)}>
+                        <Eye size={14} />
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {open ? (
+        <div
+          className="fm-admin-jobs-modal"
+          onClick={() => setOpen(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Booking details">
+          <div
+            className="fm-admin-jobs-modal__card"
+            onClick={(event) => event.stopPropagation()}>
+            <div className="fm-admin-jobs-modal__header">
+              <div>
+                <span>Booking</span>
+                <h2>{open.problemTitle || "Request"}</h2>
               </div>
-              <div className="right">
+
+              <div className="fm-admin-jobs-modal__headerActions">
                 <StatusChip status={open.status} />
-                <button className="btn close" onClick={() => setOpen(null)}>Close</button>
+
+                <button
+                  type="button"
+                  className="fm-admin-jobs__iconAction"
+                  onClick={() => setOpen(null)}
+                  aria-label="Close">
+                  <X size={16} />
+                </button>
               </div>
             </div>
 
             {openLoading ? (
-              <div className="pad" />
+              <div className="fm-admin-jobs__empty">
+                <RefreshCw size={24} />
+                <strong>Loading booking</strong>
+                <span>Please wait while booking details are loaded.</span>
+              </div>
             ) : (
-              <div className="jp-content">
-                {/* Left column: timeline + notes */}
-                <div className="jp-col">
-                  <div className="card">
-                    <div className="card-title">Timeline</div>
-                    <Timeline b={open} />
-                  </div>
+              <div className="fm-admin-jobs-modal__content">
+                <div className="fm-admin-jobs-modal__column">
+                  <section className="fm-admin-jobs__innerCard">
+                    <div className="fm-admin-jobs__innerTitle">
+                      <Route size={16} />
+                      <span>Timeline</span>
+                    </div>
 
-                  <div className="card">
-                    <div className="card-title">Notes</div>
-                    <div className="mono small">{open?.notes ? open.notes : <span className="muted">No notes yet.</span>}</div>
-                  </div>
+                    <Timeline booking={open} />
+                  </section>
+
+                  <section className="fm-admin-jobs__innerCard">
+                    <div className="fm-admin-jobs__innerTitle">
+                      <MessageIcon />
+                      <span>Notes</span>
+                    </div>
+
+                    <div className="fm-admin-jobs__notes">
+                      {open?.notes || "No notes yet."}
+                    </div>
+                  </section>
                 </div>
 
-                {/* Right column: details + expenses + payment */}
-                <div className="jp-col">
-                  <div className="card">
-                    <div className="card-title">Details</div>
-                    <div className="kv">
-                      <div><span>Service</span><b>{open?.service?.name || "—"}</b></div>
-                      <div><span>Category</span><b>{open?.service?.category || "—"}</b></div>
-                      <div><span>District</span><b>{open?.customerSnapshot?.district || "—"}</b></div>
-                      <div><span>Address</span><b>{open?.customerSnapshot?.address || "—"}</b></div>
-                      <div><span>Preferred</span><b>{fmtDate(open?.preferredAt)} {open?.timeSlot ? `(${open.timeSlot})` : ""}</b></div>
-                      <div><span>Assigned Tech</span><b>{open?.assignedTechnician?.full_name || "—"}</b></div>
+                <div className="fm-admin-jobs-modal__column">
+                  <section className="fm-admin-jobs__innerCard">
+                    <div className="fm-admin-jobs__innerTitle">
+                      <Wrench size={16} />
+                      <span>Details</span>
                     </div>
-                    {Array.isArray(open?.media) && open.media.length > 0 && (
+
+                    <div className="fm-admin-jobs__keyValues">
+                      <div>
+                        <span>Service</span>
+                        <strong>{open?.service?.name || "—"}</strong>
+                      </div>
+
+                      <div>
+                        <span>Category</span>
+                        <strong>{open?.service?.category || "—"}</strong>
+                      </div>
+
+                      <div>
+                        <span>District</span>
+                        <strong>
+                          {open?.customerSnapshot?.district || "—"}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>Address</span>
+                        <strong>
+                          {open?.customerSnapshot?.address || "—"}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>Preferred</span>
+                        <strong>
+                          {fmtDate(open?.preferredAt)}
+                          {open?.timeSlot ? ` (${open.timeSlot})` : ""}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>Assigned Tech</span>
+                        <strong>
+                          {open?.assignedTechnician?.full_name || "—"}
+                        </strong>
+                      </div>
+                    </div>
+
+                    {Array.isArray(open?.media) && open.media.length > 0 ? (
                       <>
-                        <div className="card-sub">Customer Photos</div>
-                        <div className="thumbs">
-                          {open.media.map((m,i) => (
-                            <a key={i} href={m.url} target="_blank" rel="noreferrer">
+                        <div className="fm-admin-jobs__subTitle">
+                          Customer Photos
+                        </div>
+
+                        <div className="fm-admin-jobs__thumbs">
+                          {open.media.map((item, index) => (
+                            <a
+                              key={`${item.url}-${index}`}
+                              href={item.url}
+                              target="_blank"
+                              rel="noreferrer">
                               <img
-                                src={m.url}
-                                alt={`media-${i}`}
-                                onError={(e)=>{ e.currentTarget.src="/fallback-image.png"; e.currentTarget.onerror=null; }}
+                                src={item.url}
+                                alt={`media-${index}`}
+                                onError={(event) => {
+                                  event.currentTarget.src =
+                                    "/fallback-image.png";
+                                  event.currentTarget.onerror = null;
+                                }}
                               />
                             </a>
                           ))}
                         </div>
                       </>
-                    )}
-                  </div>
+                    ) : null}
+                  </section>
 
-                  {open?.assignedTechnician && (
-                    <div className="card">
-                      <div className="card-title">Technician</div>
-                      <div className="tech-box">
+                  {open?.assignedTechnician ? (
+                    <section className="fm-admin-jobs__innerCard">
+                      <div className="fm-admin-jobs__innerTitle">
+                        <UserRound size={16} />
+                        <span>Technician</span>
+                      </div>
+
+                      <div className="fm-admin-jobs__technicianBox">
                         <img
-                          src={open.assignedTechnician.profile_image_url || "/default-profile.png"}
+                          src={
+                            open.assignedTechnician.profile_image_url ||
+                            "/default-profile.png"
+                          }
                           alt="Technician"
-                          onError={(e)=>{ e.currentTarget.src="/default-profile.png"; e.currentTarget.onerror=null; }}
+                          onError={(event) => {
+                            event.currentTarget.src = "/default-profile.png";
+                            event.currentTarget.onerror = null;
+                          }}
                         />
-                        <div className="tech-meta">
-                          <div className="tech-name">{open.assignedTechnician.full_name || "—"}</div>
-                          <div className="tiny muted">
-                            {open.assignedTechnician.email || "—"} · {open.assignedTechnician.phone_number || "—"}
-                          </div>
-                          <div className="tiny muted">
-                            District: {open.assignedTechnician.district || "—"} · {open.assignedTechnician.experience_years || 0} yrs exp
-                          </div>
-                          <div className="chips">
-                            {(Array.isArray(open.assignedTechnician.specialization) ? open.assignedTechnician.specialization : [])
-                              .map((s, i) => {
-                                const label = typeof s === "object" ? (s.name || s.code || s.category || s.slug) : String(s);
-                                return <span key={i} className="chip2">{label}</span>;
-                              })}
+
+                        <div>
+                          <strong>
+                            {open.assignedTechnician.full_name || "—"}
+                          </strong>
+
+                          <small>
+                            {open.assignedTechnician.email || "—"} ·{" "}
+                            {open.assignedTechnician.phone_number || "—"}
+                          </small>
+
+                          <small>
+                            District: {open.assignedTechnician.district || "—"}{" "}
+                            · {open.assignedTechnician.experience_years || 0}{" "}
+                            yrs exp
+                          </small>
+
+                          <div className="fm-admin-jobs__chips">
+                            {normalizeSpecializations(
+                              open.assignedTechnician.specialization,
+                            ).map((label, index) => (
+                              <span key={`${label}-${index}`}>{label}</span>
+                            ))}
                           </div>
                         </div>
                       </div>
+                    </section>
+                  ) : null}
+
+                  <section className="fm-admin-jobs__innerCard">
+                    <div className="fm-admin-jobs__innerTitle">
+                      <ReceiptText size={16} />
+                      <span>Expenses</span>
                     </div>
-                  )}
 
-                  <div className="card">
-                    <div className="card-title">Expenses</div>
-                    {Array.isArray(open?.expenses) && open.expenses.length > 0 ? (
-                      <table className="mini-table">
-                        <thead><tr><th>Label</th><th style={{width:120}}>Amount</th><th>Attachments</th></tr></thead>
-                        <tbody>
-                          {open.expenses.map((e,i)=>(
-                            <tr key={i}>
-                              <td>{e.label}</td>
-                              <td>{fmtMoney(e.amount)}</td>
-                              <td>
-                                {(e.attachments||[]).map((a,ix)=>(
-                                  <a key={ix} href={a.url} target="_blank" rel="noreferrer" className="tiny link">view</a>
-                                ))}
-                                {(e.attachments||[]).length===0 && <span className="tiny muted">—</span>}
-                              </td>
+                    {Array.isArray(open?.expenses) &&
+                    open.expenses.length > 0 ? (
+                      <div className="fm-admin-jobs__miniTableWrap">
+                        <table className="fm-admin-jobs__miniTable">
+                          <thead>
+                            <tr>
+                              <th>Label</th>
+                              <th>Amount</th>
+                              <th>Attachments</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    ) : <div className="muted tiny">No expenses recorded.</div>}
-                  </div>
+                          </thead>
 
-                  <div className="card">
-                    <div className="card-title">Payment</div>
-                    {open?.payment ? (
-                      <div className="kv">
-                        <div><span>Method</span><b>{open.payment.method?.toUpperCase?.() || "—"}</b></div>
-                        <div><span>Service Charge</span><b>{fmtMoney(open.payment.serviceCharge)}</b></div>
-                        <div><span>Expenses Total</span><b>{fmtMoney(open.payment.expensesTotal)}</b></div>
-                        <div><span>Grand Total</span><b className="big">{fmtMoney(open.payment.grandTotal)}</b></div>
-                        <div><span>Currency</span><b>{open.payment.currency || "LKR"}</b></div>
-                        <div><span>Confirmed</span><b>{fmtDate(open.payment.confirmedByTechnicianAt)}</b></div>
-                        <div><span>Receipt #</span><b>{open.payment.receiptNumber || "—"}</b></div>
+                          <tbody>
+                            {open.expenses.map((expense, index) => (
+                              <tr key={`${expense.label}-${index}`}>
+                                <td>{expense.label}</td>
+                                <td>{fmtMoney(expense.amount)}</td>
+                                <td>
+                                  {(expense.attachments || []).length ? (
+                                    (expense.attachments || []).map(
+                                      (attachment, attachmentIndex) => (
+                                        <a
+                                          key={`${attachment.url}-${attachmentIndex}`}
+                                          href={attachment.url}
+                                          target="_blank"
+                                          rel="noreferrer">
+                                          view
+                                        </a>
+                                      ),
+                                    )
+                                  ) : (
+                                    <span>—</span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     ) : (
-                      <div className="muted tiny">No payment yet. (Visible when technician completes & confirms.)</div>
+                      <div className="fm-admin-jobs__muted">
+                        No expenses recorded.
+                      </div>
                     )}
-                  </div>
+                  </section>
+
+                  <section className="fm-admin-jobs__innerCard">
+                    <div className="fm-admin-jobs__innerTitle">
+                      <ReceiptText size={16} />
+                      <span>Payment</span>
+                    </div>
+
+                    {open?.payment ? (
+                      <div className="fm-admin-jobs__keyValues">
+                        <div>
+                          <span>Method</span>
+                          <strong>
+                            {open.payment.method?.toUpperCase?.() || "—"}
+                          </strong>
+                        </div>
+
+                        <div>
+                          <span>Service Charge</span>
+                          <strong>
+                            {fmtMoney(open.payment.serviceCharge)}
+                          </strong>
+                        </div>
+
+                        <div>
+                          <span>Expenses Total</span>
+                          <strong>
+                            {fmtMoney(open.payment.expensesTotal)}
+                          </strong>
+                        </div>
+
+                        <div>
+                          <span>Grand Total</span>
+                          <strong className="isBig">
+                            {fmtMoney(open.payment.grandTotal)}
+                          </strong>
+                        </div>
+
+                        <div>
+                          <span>Currency</span>
+                          <strong>{open.payment.currency || "LKR"}</strong>
+                        </div>
+
+                        <div>
+                          <span>Confirmed</span>
+                          <strong>
+                            {fmtDate(open.payment.confirmedByTechnicianAt)}
+                          </strong>
+                        </div>
+
+                        <div>
+                          <span>Receipt #</span>
+                          <strong>{open.payment.receiptNumber || "—"}</strong>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="fm-admin-jobs__muted">
+                        No payment yet. Payment appears after technician
+                        completion and confirmation.
+                      </div>
+                    )}
+                  </section>
                 </div>
               </div>
             )}
           </div>
         </div>
-      )}
-    </div>
+      ) : null}
+    </section>
   );
+}
+
+function MessageIcon() {
+  return <CalendarClock size={16} />;
 }

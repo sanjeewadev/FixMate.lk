@@ -1,64 +1,92 @@
-// src/Pages/StaffDashboard/components/StaffSidebar.jsx
 import React from "react";
+import {
+  BriefcaseBusiness,
+  ClipboardList,
+  MessageSquare,
+  UserRound,
+  Users,
+  Wrench,
+} from "lucide-react";
 import { NavLink } from "react-router-dom";
+
+const menuGroups = [
+  {
+    title: "Coordinator",
+    items: [
+      {
+        to: "/StaffDashboard/requests",
+        label: "Service Requests",
+        icon: ClipboardList,
+      },
+      {
+        to: "/StaffDashboard/jobs",
+        label: "Jobs & Progress",
+        icon: Wrench,
+      },
+      {
+        to: "/StaffDashboard/chat",
+        label: "Chat",
+        icon: MessageSquare,
+      },
+      {
+        to: "/StaffDashboard/complaints",
+        label: "Complaints",
+        icon: BriefcaseBusiness,
+      },
+      {
+        to: "/StaffDashboard/customerlist",
+        label: "Customers",
+        icon: Users,
+      },
+      {
+        to: "/StaffDashboard/techlist",
+        label: "Technicians",
+        icon: Wrench,
+      },
+    ],
+  },
+  {
+    title: "Account",
+    items: [
+      {
+        to: "/StaffDashboard/profile",
+        label: "My Profile",
+        icon: UserRound,
+      },
+    ],
+  },
+];
 
 export default function StaffSidebar() {
   return (
     <aside className="staff-sidebar">
-      <div className="brand">FixMate.LK</div>
+      <div className="brand">
+        <span className="brand-mark">FM</span>
+        <span>FixMate.lk</span>
+      </div>
 
-      <nav className="side-nav">
-        <div className="side-section">Coordinator</div>
+      <nav className="side-nav" aria-label="Coordinator dashboard navigation">
+        {menuGroups.map((group) => (
+          <React.Fragment key={group.title}>
+            <div className="side-section">{group.title}</div>
 
-        <NavLink
-          to="/StaffDashboard/requests"
-          className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}
-        >
-          📋 Service Requests
-        </NavLink>
+            {group.items.map((item) => {
+              const Icon = item.icon;
 
-        <NavLink
-          to="/StaffDashboard/jobs"
-          className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}
-        >
-          🛠️ Jobs and Progress
-        </NavLink>
-
-        <NavLink
-          to="/StaffDashboard/chat"
-          className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}
-        >
-          💬 Chat
-        </NavLink>
-
-        <NavLink
-          to="/StaffDashboard/complaints"
-          className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}
-        >
-          📨 Complaints
-        </NavLink>
-
-        <NavLink
-          to="/StaffDashboard/customerlist"
-          className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}
-        >
-          👤 Customers
-        </NavLink>
-
-        <NavLink
-          to="/StaffDashboard/techlist"
-          className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}
-        >
-          🧑‍🔧 Technicians
-        </NavLink>
-
-        <div className="side-section">Account</div>
-        <NavLink
-          to="/StaffDashboard/profile"
-          className={({ isActive }) => `side-link ${isActive ? "active" : ""}`}
-        >
-          👤 My Profile
-        </NavLink>
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    `side-link ${isActive ? "active" : ""}`
+                  }>
+                  <Icon size={17} />
+                  <span>{item.label}</span>
+                </NavLink>
+              );
+            })}
+          </React.Fragment>
+        ))}
       </nav>
     </aside>
   );

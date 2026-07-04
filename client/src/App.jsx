@@ -1,17 +1,14 @@
-import React from 'react';
-import './App.css'
-import Home from './Pages/Home/Home.jsx';
+import React from "react";
+import Home from "./Pages/Home/Home.jsx";
 import AIChatWidget from "./Components/AIChat/AIChatWidget";
 
-
 function App() {
-  
-  return (    
-      <div>
-        <Home />
-        <AIChatWidget />
-      </div>
+  return (
+    <>
+      <Home />
+      <AIChatWidget />
+    </>
   );
 }
 
-export default App
+export default App;

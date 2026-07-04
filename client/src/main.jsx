@@ -1,7 +1,7 @@
 // src/main.jsx (or wherever your router is bootstrapped)
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css";
+import "./App.css";
 
 import App from "./App.jsx";
 import AboutUs from "./Pages/AboutUs/AboutUs.jsx";
@@ -12,16 +12,15 @@ import UserDashboard from "./Pages/UserDashboard/UserDashboard.jsx";
 import TechnicianDashboard from "./Pages/TechnicianDashboard/TechnicianDashboard.jsx"; //  fixed path
 import StaffDashboard from "./Pages/StaffDashboard/StaffDashboard.jsx";
 
-import UserProfile from "./Components/UserProfile/UserProfile.jsx";
-import BookService from "./Pages/BookService/BookService.jsx";
-
-import Overview from "./Pages/UserDashboard/Overview.jsx";
-import MyBookings from "./Pages/UserDashboard/MyBookings.jsx";
-import BookingDetails from "./Pages/UserDashboard/BookingDetails.jsx";
-import Support from "./Pages/UserDashboard/Support.jsx";
-import Complaints from "./Pages/UserDashboard/Complaints.jsx";
-import Ratings from "./Pages/UserDashboard/Ratings.jsx";
-import ChatTech from "./Pages/UserDashboard/ChatTech.jsx";
+import UserProfile from "./Pages/UserDashboard/components/UserProfile.jsx";
+import BookService from "./Pages/UserDashboard/components/BookService.jsx";
+import Overview from "./Pages/UserDashboard/components/Overview.jsx";
+import MyBookings from "./Pages/UserDashboard/components/MyBookings.jsx";
+import BookingDetails from "./Pages/UserDashboard/components/BookingDetails.jsx";
+import Support from "./Pages/UserDashboard/components/Support.jsx";
+import Complaints from "./Pages/UserDashboard/components/Complaints.jsx";
+import Ratings from "./Pages/UserDashboard/components/Ratings.jsx";
+import ChatTech from "./Pages/UserDashboard/components/ChatTech.jsx";
 
 // Admin nested pages
 import ManageUsers from "./Pages/AdminDashboard/components/ManageUsers.jsx";
@@ -81,7 +80,7 @@ const router = createBrowserRouter([
 
   // FULL User Dashboard with nested pages (protected)
   {
-    path: "/UserDashboard",
+    path: "/UserDashboard/*",
     element: (
       <ProtectedRoute>
         <UserDashboard />
@@ -118,10 +117,8 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <div className="fontBody">
-      <AuthProvider>
-        <RouterProvider router={router} />
-      </AuthProvider>
-    </div>
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
   </StrictMode>,
 );
