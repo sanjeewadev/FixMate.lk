@@ -9,7 +9,7 @@ function normalizeToken(raw) {
 const api = axios.create({
   baseURL:
     import.meta.env.VITE_API_URL ||
-    "https://logical-excel-dive-hat.trycloudflare.com",
+    "https://elegant-completing-comp-looking.trycloudflare.com ",
   timeout: 20000,
 });
 
