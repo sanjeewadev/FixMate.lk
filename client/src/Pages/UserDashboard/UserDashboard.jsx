@@ -10,7 +10,13 @@ import {
   TriangleAlert,
   UserRound,
 } from "lucide-react";
-import { Navigate, NavLink, Route, Routes, useLocation } from "react-router-dom";
+import {
+  Navigate,
+  NavLink,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
 
 import DashboardTopbar from "./components/DashboardTopbar.jsx";
 import Sidebar from "./components/Sidebar.jsx";
@@ -48,7 +54,10 @@ export default function UserDashboard() {
       <div className="fm-user-main">
         <DashboardTopbar />
 
-        <nav className="fm-user-mobile-nav" aria-label="Customer mobile navigation">
+        <nav
+          className="fm-user-mobile-nav"
+          aria-label="Customer mobile navigation"
+        >
           {mobileNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.to;
@@ -57,7 +66,8 @@ export default function UserDashboard() {
               <NavLink
                 key={item.to}
                 to={item.to}
-                className={`fm-user-mobile-nav__item ${isActive ? "active" : ""}`}>
+                className={`fm-user-mobile-nav__item ${isActive ? "active" : ""}`}
+              >
                 <Icon size={16} />
                 <span>{item.label}</span>
               </NavLink>

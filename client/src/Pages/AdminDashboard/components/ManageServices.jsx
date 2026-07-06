@@ -499,7 +499,8 @@ export default function ManageServices() {
           type="button"
           className="fm-admin-services__btn fm-admin-services__btn--outline"
           onClick={fetchServices}
-          disabled={loading}>
+          disabled={loading}
+        >
           <RefreshCw size={16} />
           {loading ? "Refreshing" : "Refresh"}
         </button>
@@ -551,7 +552,8 @@ export default function ManageServices() {
         <div
           className={`fm-admin-services__notice fm-admin-services__notice--${msg.type}`}
           role="status"
-          aria-live="polite">
+          aria-live="polite"
+        >
           {msg.type === "success" ? <Check size={16} /> : <X size={16} />}
           <span>{msg.text}</span>
         </div>
@@ -560,7 +562,8 @@ export default function ManageServices() {
       <form
         className="fm-admin-services__card"
         onSubmit={handleSubmit}
-        autoComplete="off">
+        autoComplete="off"
+      >
         <div className="fm-admin-services__cardHeader">
           <div>
             <span>{editingId ? "Edit service" : "New service"}</span>
@@ -571,7 +574,8 @@ export default function ManageServices() {
             <button
               type="button"
               className="fm-admin-services__btn fm-admin-services__btn--outline"
-              onClick={resetForm}>
+              onClick={resetForm}
+            >
               Cancel edit
             </button>
           ) : null}
@@ -649,7 +653,8 @@ export default function ManageServices() {
             <div className="fm-admin-services__actions">
               <button
                 type="submit"
-                className="fm-admin-services__btn fm-admin-services__btn--primary">
+                className="fm-admin-services__btn fm-admin-services__btn--primary"
+              >
                 <PackageCheck size={16} />
                 {editingId ? "Update Service" : "Create Service"}
               </button>
@@ -677,7 +682,8 @@ export default function ManageServices() {
               <button
                 type="button"
                 className="fm-admin-services__btn fm-admin-services__btn--secondary"
-                onClick={pickFile}>
+                onClick={pickFile}
+              >
                 <Upload size={16} />
                 {imagePreview ? "Change Image" : "Upload Image"}
               </button>
@@ -689,7 +695,8 @@ export default function ManageServices() {
                   onClick={() => {
                     setImagePreview("");
                     setImageDataUrl("");
-                  }}>
+                  }}
+                >
                   Remove
                 </button>
               ) : null}
@@ -739,7 +746,8 @@ export default function ManageServices() {
                 key={service._id}
                 className={`fm-admin-services__serviceCard ${
                   inactive ? "isInactive" : ""
-                }`}>
+                }`}
+              >
                 <div className="fm-admin-services__serviceImage">
                   {image ? (
                     <img src={image} alt={service.name} />
@@ -755,7 +763,8 @@ export default function ManageServices() {
                     <span
                       className={`fm-admin-services__status ${
                         inactive ? "isInactive" : ""
-                      }`}>
+                      }`}
+                    >
                       {inactive ? "Inactive" : "Active"}
                     </span>
                   </div>
@@ -780,7 +789,8 @@ export default function ManageServices() {
                     type="button"
                     className="fm-admin-services__iconAction"
                     onClick={() => startEdit(service)}
-                    aria-label={`Edit ${service.name || "service"}`}>
+                    aria-label={`Edit ${service.name || "service"}`}
+                  >
                     <Pencil size={15} />
                   </button>
 
@@ -789,7 +799,8 @@ export default function ManageServices() {
                       type="button"
                       className="fm-admin-services__iconAction"
                       onClick={() => handleActivate(service._id)}
-                      aria-label={`Activate ${service.name || "service"}`}>
+                      aria-label={`Activate ${service.name || "service"}`}
+                    >
                       <Power size={15} />
                     </button>
                   ) : (
@@ -797,7 +808,8 @@ export default function ManageServices() {
                       type="button"
                       className="fm-admin-services__iconAction"
                       onClick={() => handleSoftDelete(service._id)}
-                      aria-label={`Deactivate ${service.name || "service"}`}>
+                      aria-label={`Deactivate ${service.name || "service"}`}
+                    >
                       <PowerOff size={15} />
                     </button>
                   )}
@@ -806,7 +818,8 @@ export default function ManageServices() {
                     type="button"
                     className="fm-admin-services__iconAction fm-admin-services__iconAction--danger"
                     onClick={() => handleHardDelete(service._id)}
-                    aria-label={`Delete ${service.name || "service"}`}>
+                    aria-label={`Delete ${service.name || "service"}`}
+                  >
                     <Trash2 size={15} />
                   </button>
                 </div>
@@ -842,10 +855,12 @@ export default function ManageServices() {
           onClick={cleanupCrop}
           role="dialog"
           aria-modal="true"
-          aria-label="Crop service image">
+          aria-label="Crop service image"
+        >
           <div
             className="fm-admin-services-crop__modal"
-            onClick={(event) => event.stopPropagation()}>
+            onClick={(event) => event.stopPropagation()}
+          >
             <div className="fm-admin-services-crop__header">
               <div>
                 <span>Service image</span>
@@ -856,7 +871,8 @@ export default function ManageServices() {
                 type="button"
                 className="fm-admin-services__iconAction"
                 onClick={cleanupCrop}
-                aria-label="Close crop modal">
+                aria-label="Close crop modal"
+              >
                 <X size={16} />
               </button>
             </div>
@@ -869,7 +885,8 @@ export default function ManageServices() {
               onMouseLeave={onDragEnd}
               onTouchStart={onDragStart}
               onTouchMove={onDragMove}
-              onTouchEnd={onDragEnd}>
+              onTouchEnd={onDragEnd}
+            >
               {cropSrc ? (
                 <img
                   src={cropSrc}
@@ -902,14 +919,16 @@ export default function ManageServices() {
                 <button
                   type="button"
                   className="fm-admin-services__btn fm-admin-services__btn--outline"
-                  onClick={cleanupCrop}>
+                  onClick={cleanupCrop}
+                >
                   Cancel
                 </button>
 
                 <button
                   type="button"
                   className="fm-admin-services__btn fm-admin-services__btn--primary"
-                  onClick={confirmCrop}>
+                  onClick={confirmCrop}
+                >
                   Use Image
                 </button>
               </div>
