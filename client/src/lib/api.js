@@ -7,7 +7,9 @@ function normalizeToken(raw) {
 }
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:7001",
+  baseURL:
+    import.meta.env.VITE_API_URL ||
+    "https://logical-excel-dive-hat.trycloudflare.com",
   timeout: 20000,
 });
 
