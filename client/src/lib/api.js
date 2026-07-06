@@ -18,11 +18,15 @@ api.interceptors.request.use((cfg) => {
   if (token) cfg.headers.Authorization = `Bearer ${token}`;
 
   // Dev-only peek to confirm header is present
-  if (import.meta.env.DEV && /^\/api\/(admin|staff|technician|customer)\b/.test(cfg.url || "")) {
+  if (
+    import.meta.env.DEV &&
+    /^\/api\/(admin|staff|technician|customer)\b/.test(cfg.url || "")
+  ) {
     // eslint-disable-next-line no-console
     console.debug("[API ->]", cfg.method?.toUpperCase(), cfg.url, {
       authHeaderPresent: !!cfg.headers.Authorization,
-      authHeaderPreview: String(cfg.headers.Authorization || "").slice(0, 24) + "...",
+      authHeaderPreview:
+        String(cfg.headers.Authorization || "").slice(0, 24) + "...",
     });
   }
   return cfg;
@@ -36,10 +40,13 @@ api.interceptors.response.use(
     const status = err?.response?.status;
     if (status === 401 || status === 403) {
       // eslint-disable-next-line no-console
-      console.warn(`[API ${method} ${status}] ${url}`, err?.response?.data || "");
+      console.warn(
+        `[API ${method} ${status}] ${url}`,
+        err?.response?.data || "",
+      );
     }
     return Promise.reject(err);
-  }
+  },
 );
 
 export default api;
