@@ -163,6 +163,7 @@ export default function ManageServices() {
 
     if (imageDataUrl) {
       payload.imageUrls = imageDataUrl;
+      payload.replaceImages = editingId ? true : undefined;
     }
 
     return payload;

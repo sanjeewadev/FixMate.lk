@@ -173,8 +173,12 @@ exports.updateService = async (req, res) => {
       delete updates.imageUrls;
     }
 
+    const shouldReplaceImages =
+      String(updates.replaceImages || "").toLowerCase() === "true" ||
+      req.method === "PUT";
+
     if (newImages.length > 0) {
-      if (String(updates.replaceImages || "").toLowerCase() === "true") {
+      if (shouldReplaceImages) {
         updates.serviceImages = newImages;
       } else {
         // append

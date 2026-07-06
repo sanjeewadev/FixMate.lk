@@ -18,7 +18,10 @@ function chunkText(txt, maxChars = 1200) {
 }
 function cosineSim(a, b) {
   let dot = 0, na = 0, nb = 0;
-  const L = Math.min(a.length, b.length);
+  if (!a?.length || !b?.length)
+    return 0;
+
+const L = Math.min(a.length, b.length);
   for (let i = 0; i < L; i++) { dot += a[i]*b[i]; na += a[i]*a[i]; nb += b[i]*b[i]; }
   if (!na || !nb) return 0;
   return dot / (Math.sqrt(na) * Math.sqrt(nb));
@@ -50,9 +53,20 @@ exports.ingest = async (req, res) => {
     }
     res.status(201).json({ message: 'Ingested', chunks: written });
   } catch (e) {
-    console.error('AI ingest error:', e);
-    res.status(500).json({ message: 'Server error during ingest' });
-  }
+
+    console.error("AI Ingest Error");
+
+    console.error(e);
+
+    return res.status(500).json({
+
+        success:false,
+
+        message:e.message || "Knowledge ingestion failed."
+
+    });
+
+}
 };
 
 // ---- POST /api/ai/chat  (public or auth — your choice) ----
@@ -60,13 +74,32 @@ exports.ingest = async (req, res) => {
 exports.chat = async (req, res) => {
   try {
     const { message, topK = 4, history = [] } = req.body || {};
-    if (!message) return res.status(400).json({ message: 'message required' });
+    if (
+    !message ||
+    !message.trim()
+) {
+    return res.status(400).json({
+        message:"Message is required."
+    });
+}
 
     // 1) embed query
     const qEmb = await gemEmbed(message);
 
     // 2) retrieve top chunks (scan ≤500, score in Node)
     const candidates = await KnowledgeChunk.find({}, null, { limit: 500 }).lean();
+    if (!candidates.length) {
+
+    return res.json({
+
+        answer:
+            "I don't have any knowledge yet. Please upload documents first.",
+
+        sources:[]
+
+    });
+
+}
     const withScore = candidates.map(c => ({ ...c, _score: cosineSim(qEmb, c.embedding || []) }));
     withScore.sort((a,b) => b._score - a._score);
     const hits = withScore.slice(0, Math.max(1, Math.min(8, topK)));
@@ -96,7 +129,18 @@ Instructions:
     const sources = hits.map((h,i)=>({ n: i+1, source: h.source || 'KB', id: String(h._id), score: Number(h._score.toFixed(4)) }));
     res.json({ answer, sources });
   } catch (e) {
-    console.error('AI chat error:', e);
-    res.status(500).json({ message: 'Server error during chat' });
-  }
+
+    console.error("AI Chat Error");
+
+    console.error(e);
+
+    return res.status(500).json({
+
+        success:false,
+
+        message:e.message || "AI service unavailable."
+
+    });
+
+}
 };

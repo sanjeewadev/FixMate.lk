@@ -241,18 +241,44 @@
 
 @media (max-width: 560px) {
   .fm-user-shell .db-topbar {
-    padding: 0 12px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 10px;
+    min-height: auto;
+    height: auto;
+    padding: 12px;
+  }
+
+  .fm-user-shell .db-topbar__left {
+    flex: 1 1 100%;
   }
 
   .fm-user-shell .db-title-group h2 {
-    max-width: 170px;
+    max-width: none;
     font-size: 16px;
+  }
+
+  .fm-user-shell .db-topbar__right {
+    width: 100%;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .fm-user-shell .db-user-badge {
+    display: none;
   }
 
   .fm-user-shell .db-topbar .db-btn {
     min-height: 36px;
     padding: 0 10px;
     font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  .fm-user-shell .db-topbar .db-btn.danger {
+    margin-left: auto;
   }
 
   .fm-user-shell .db-topbar .db-btn.outline {

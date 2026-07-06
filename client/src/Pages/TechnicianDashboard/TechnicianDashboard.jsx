@@ -1,4 +1,13 @@
 import React, { useEffect, useState } from "react";
+import {
+  CheckCircle2,
+  Clock3,
+  ClipboardList,
+  LayoutDashboard,
+  MessageSquare,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
 import { useLocation } from "react-router-dom";
 
 import TechnicianSidebar from "./TechnicianSidebar.jsx";
@@ -23,6 +32,16 @@ const VALID_TABS = new Set([
   "chat",
   "profile",
 ]);
+
+const mobileNavItems = [
+  { key: "overview", label: "Home", icon: LayoutDashboard },
+  { key: "assigned", label: "Tasks", icon: ClipboardList },
+  { key: "pending", label: "Pending", icon: Clock3 },
+  { key: "approved", label: "Approved", icon: ShieldCheck },
+  { key: "completed", label: "Done", icon: CheckCircle2 },
+  { key: "chat", label: "Chat", icon: MessageSquare },
+  { key: "profile", label: "Profile", icon: UserRound },
+];
 
 export default function TechnicianDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -54,6 +73,29 @@ export default function TechnicianDashboard() {
 
       <div className="tech-main">
         <TechnicianTopbar activeTab={activeTab} />
+
+        <nav
+          className="tech-mobile-nav"
+          aria-label="Technician mobile navigation"
+        >
+          {mobileNavItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.key;
+
+            return (
+              <button
+                key={item.key}
+                type="button"
+                className={`tech-mobile-nav__item ${isActive ? "active" : ""}`}
+                onClick={() => handleTabChange(item.key)}
+                aria-current={isActive ? "page" : undefined}
+              >
+                <Icon size={17} />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
 
         <main className="tech-content">
           {activeTab === "overview" ? <OverviewTab /> : null}

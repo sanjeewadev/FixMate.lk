@@ -1,42 +1,111 @@
-// src/ai/geminiClient.js
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
-// --- keys & models ----------------------------------------------------------
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-if (!GEMINI_API_KEY) {
-  throw new Error("GEMINI_API_KEY (or GOOGLE_API_KEY) is not set in .env");
+const API_KEY =
+  process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+
+if (!API_KEY) {
+  throw new Error(
+    "Missing GEMINI_API_KEY (or GOOGLE_API_KEY) in your .env file."
+  );
 }
 
-// Initialize SDK
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+const genAI = new GoogleGenAI({
+  apiKey: API_KEY,
+});
 
-// Default model
-const geminiModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const CHAT_MODELS = (
+  process.env.GEMINI_CHAT_MODEL_LIST ||
+  "gemini-2.5-flash,gemini-2.0-flash,gemini-1.5-flash"
+)
+  .split(",")
+  .map((m) => m.trim())
+  .filter(Boolean);
 
-// ---- text generation -------------------------------------------------------
-export async function gemGenerate(prompt, {
-  temperature = 0.2,
-  maxOutputTokens = 400
-} = {}) {
-  const result = await geminiModel.generateContent({
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
-    generationConfig: { temperature, maxOutputTokens }
-  });
+const EMBED_MODEL =
+  process.env.GEMINI_EMBED_MODEL || "text-embedding-004";
 
-  return result.response.text();
-}
+const DEFAULT_TEMP = Number(
+  process.env.GEMINI_TEMPERATURE || 0.2
+);
 
-// ---- embeddings ------------------------------------------------------------
-export async function gemEmbed(text) {
-  const embedModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
+const DEFAULT_MAX_TOKENS = Number(
+  process.env.GEMINI_MAX_OUTPUT_TOKENS || 400
+);
 
-  const resp = await embedModel.embedContent(text);
 
-  const emb = resp?.embedding?.values;
-  if (!emb || !Array.isArray(emb)) {
-    throw new Error("Gemini embed failed: unexpected response shape");
+
+async function generateWithFallback(prompt, config = {}) {
+  let lastError;
+
+  for (const model of CHAT_MODELS) {
+    try {
+      console.log(`Trying model: ${model}`);
+
+      const response = await genAI.models.generateContent({
+        model,
+        contents: prompt,
+        config,
+      });
+
+      return response;
+    } catch (err) {
+      lastError = err;
+      console.warn(`Model ${model} failed`);
+      console.warn(err.message);
+    }
   }
-  return emb.map(Number);
+
+  throw lastError;
 }
 
-export { geminiModel };
+export async function gemGenerate(
+  prompt,
+  {
+    temperature = DEFAULT_TEMP,
+    maxOutputTokens = DEFAULT_MAX_TOKENS,
+  } = {}
+) {
+  try {
+    const response = await generateWithFallback(prompt, {
+      temperature,
+      maxOutputTokens,
+    });
+
+    return response.text;
+  } catch (err) {
+    console.error(err);
+
+    if (err.status === 429)
+      throw new Error("Gemini free quota exceeded.");
+
+    if (err.status === 403)
+      throw new Error("Invalid API key.");
+
+    throw new Error(err.message);
+  }
+}
+
+export async function gemEmbed(text) {
+  try {
+    const response = await genAI.models.embedContent({
+      model: `models/${process.env.GEMINI_EMBED_MODEL || "gemini-embedding-001"}`,
+      contents: text,
+    });
+
+    const embedding =
+      response?.embeddings?.[0]?.values;
+
+    if (!embedding) {
+      throw new Error("Embedding failed - no vector returned");
+    }
+
+    return embedding;
+  } catch (err) {
+    console.error("Embedding Error:");
+    console.error(err);
+
+    throw new Error(
+      err?.message || "Embedding generation failed"
+    );
+  }
+}
